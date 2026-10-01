@@ -1,2 +1,13 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Input data are committed byte-for-byte (two CSVs have CRLF line endings and are checked by md5).
+data/** -text
+*.rds binary
+*.tif binary
+*.xlsx binary
+*.png binary
+*.pdf binary
+*.zip binary
+*.shp binary
+*.shx binary
+*.dbf binary

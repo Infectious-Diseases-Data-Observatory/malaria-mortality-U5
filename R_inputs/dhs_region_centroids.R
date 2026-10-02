@@ -9,6 +9,7 @@ suppressPackageStartupMessages({ library(sf) })
 source("R_inputs/00_config.R")
 sf_use_s2(TRUE)
 reg <- read.csv(SURVEY_REGISTRY_CSV, stringsAsFactors = FALSE)
+reg <- reg[order(reg$SurveyId), ]   # surveys in SurveyId order; regions in boundary-file order, as in the original table
 rows <- lapply(seq_len(nrow(reg)), function(i) {
   f <- file.path(BOUNDARY_DIR, paste0(reg$SurveyId[i], ".rds"))
   if (!file.exists(f)) return(NULL)

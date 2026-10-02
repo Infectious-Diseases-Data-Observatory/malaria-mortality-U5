@@ -1,0 +1,145 @@
+#!/usr/bin/env Rscript
+# Focused extraction/selection checks; no model fits or respondent exports.
+source("R_cbh/load_pipeline.R")
+source("R_cbh/covariates/regional.R")
+source("R_cbh/covariates/settings.R")
+source("R_cbh/covariates/unicef.R")
+library(data.table)
+br <- data.frame(caseid=c("a","a","b","c"),v008=rep(1500,4),b3=c(1497,1476,1492,1420),
+  v005=c(1,1,3,1)*1e6,b4=c(1,2,2,1),v025=c(1,1,2,2),v190=c(1,1,5,3),
+  bord=c(2,1,1,1),v011=c(1150,1150,1100,1100),v133=c(6,6,12,4),b0=c(0,0,0,0),
+  b5=c(1,1,1,1),b9=c(0,0,0,0),bidx=c(1,2,1,1),b19=c(3,24,8,80),
+  m4=c(95,94,95,94),v409=c(0,0,0,0),v410=c(0,0,0,0),v411=c(0,0,0,0),v414e=c(0,0,0,0))
+s <- data.frame(svkey="TEST",iso3="TST")
+geo <- list(regkey=rep("one",4))
+x <- cbh_regional_recode(br,s,NULL,geo)$values
+get <- function(v)x$value[x$variable==v]
+stopifnot(abs(get("male_pct")-20)<1e-12,
+  abs(get("mean_wealth_quintile")-4)<1e-12,
+  abs(get("mean_maternal_education_years")-10.5)<1e-12,
+  get("exclusive_breastfeeding_pct")==100,get("urban_pct")==25,
+  x$eligible_n[x$variable=="exclusive_breastfeeding_pct"]==1L)
+# A missing feeding response must not become an exclusive-breastfeeding success.
+br$v409[1] <- NA_real_
+y <- cbh_regional_recode(br,s,NULL,geo)$values
+stopifnot(is.na(y$value[y$variable=="exclusive_breastfeeding_pct"]))
+# Individual wealth missingness can coexist with a valid regional average.
+br$v190[3] <- NA_real_
+y <- cbh_regional_recode(br,s,NULL,geo)$values
+stopifnot(y$value[y$variable=="mean_wealth_quintile"]==1,
+  y$missing_n[y$variable=="mean_wealth_quintile"]==1L)
+# DHS-7 labels (lowest/second/middle/fourth/highest) decode; an unknown label stops.
+br$v190 <- c("second","lowest","fourth","highest")
+y <- cbh_regional_recode(br,s,NULL,geo)$values
+stopifnot(abs(y$value[y$variable=="mean_wealth_quintile"]-3.5)<1e-12,
+  y$missing_n[y$variable=="mean_wealth_quintile"]==0L)
+br$v190[1] <- "top"
+stopifnot(inherits(try(cbh_regional_recode(br,s,NULL,geo),silent=TRUE),"try-error"))
+br$v190 <- c(1,1,5,3)
+spec <- cbh_regional_spec(); vars <- all.vars(cbh_regional_formula())
+# Missing regions do not contaminate a survey mean, nor borrow across surveys.
+w <- data.frame(survey=c("A","A","A","B","B","C","C"),regkey=c("a","b","c","a","b","a","b"),
+  example=c(20,NA,60,NA,NA,30,NA))
+y <- cbh_regional_mean_fill(w,"example")
+stopifnot(identical(cbh_regional_mean_fill(as.data.table(w),"example"),y))
+stopifnot(identical(y$example,c(20,40,60,NA_real_,NA_real_,30,30)),
+  identical(y$example_regional_mean_imputed,c(FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,TRUE)),
+  identical(y$example_donor_regions,c(2L,2L,2L,0L,0L,1L,1L)))
+bad <- try(cbh_regional_mean_fill(rbind(w,w[1,]),"example"),silent=TRUE)
+stopifnot(inherits(bad,"try-error"))
+stopifnot(length(spec$covariates)==18L,all(paste0("z_",spec$covariates) %in% vars),
+  "z_urban_pct" %in% vars,
+  !any(paste0("z_",c("hib3_pct","pcv3_pct","rotavirus_pct","exclusive_breastfeeding_pct")) %in% vars),
+  length(cbh_regional_spec(expanded=TRUE)$covariates)==22L,
+  !any(c("sex","multiple_birth","birth_order","maternal_age_birth","wealth_quintile","urban") %in% vars))
+args <- commandArgs(TRUE)
+stopifnot(all(args %in% c("--complete-case-only","--legacy-expanded")))
+settings <- cbh_covariate_settings("--complete-case-only" %in% args,"--legacy-expanded" %in% args)
+out <- settings$out
+loss <- fread(file.path(out,"selection_by_survey_region.csv"))
+stopifnot(all(loss$complete_case_records<=loss$records),
+  all(loss$complete_case_children<=loss$children),
+  all(loss$complete_case_deaths<=loss$deaths))
+summary <- fread(file.path(out,"complete_case_summary.csv"))
+stopifnot(all(summary$retained_regions+summary$lost_regions==summary$regions))
+choices <- fread(file.path(out,"published_selections.csv"))
+stopifnot(all(choices$consistent))
+stopifnot(choices[survey=="CD61FL" & regkey=="equateur",all(source_labels=="Equateur")],
+  choices[survey=="CD81FL" & regkey=="equateur",all(source_labels=="..Equateur (>= 2015)")],
+  choices[survey=="UG52FL" & regkey=="north",.N>0L && all(source_labels=="..Northern")])
+# Wealth is observed for >=95% of eligible mothers wherever the BR file has v190.
+# These 9 BR files have no v190/v190a/v191 (label audit 2026-09-27).
+no_v190 <- c("BJ41FL","ET41FL","GA41FL","ML41FL","MW41FL","NM41FL","RW41FL","UG41FL","ZM42FL")
+wq <- fread(file.path(settings$base,"recode_regional.csv"))[variable=="mean_wealth_quintile",
+  .(observed=sum(observed_n),eligible=sum(eligible_n)),by=survey]
+stopifnot(all(no_v190 %in% wq$survey),all(wq[survey %in% no_v190,observed]==0L),
+  all(wq[!survey %in% no_v190,observed>=0.95*eligible]))
+# UG7BFL South/North Buganda are DHS Central 1/Central 2 (region_overrides.csv).
+cw <- cbh_read_csv("data/derived_cbh/region_crosswalk.csv"); u <- cw[cw$svkey=="UG7BFL",]
+stopifnot(!any(u$match_method=="unmatched"),
+  identical(u$regkey[match(c("south buganda","north buganda"),u$source_label)],c("central1","central2")))
+man <- cbh_read_csv("data/derived_cbh/survey_manifest.csv")
+stopifnot(man$model_ready_rows[man$survey=="UG7BFL"]==89861L,man$model_ready_deaths[man$survey=="UG7BFL"]==887L)
+# Excluded published surveys carry exactly the recode replacements.
+rr <- fread(file.path(settings$base,"recode_replacements.csv"))
+rc <- fread(file.path(out,"regional_covariates.csv"))
+excl <- cbh_read_csv("R_cbh/covariates/published_survey_exclusions.csv")
+j <- match(paste(rr$survey,rr$regkey,rr$variable),paste(rc$survey,rc$regkey,rc$variable))
+stopifnot(setequal(rr$survey,excl$survey),!anyNA(j),all(abs(rc$value[j]-rr$value)<1e-9),
+  all(rc$source[j]=="DHS_recode_published_equivalent"),!nrow(rc[survey %in% excl$survey & source=="DHS_published_regional"]))
+writeLines(c("PASS: birth-weighted and distinct-mother-weighted summaries",
+  "PASS: youngest eligible infant denominator and unknown feeding responses",
+  "PASS: regional means retain records with missing individual values",
+  "PASS: DHS-7 wealth labels decode and unknown v190 labels stop; wealth observed for >=95% of eligible mothers in every survey with v190",
+  "PASS: UG7BFL South/North Buganda matched to Central 1/Central 2 with all UG7BFL child-band rows model-ready",
+  "PASS: excluded published surveys (SL61FL) use recode replacements with DHS definitions",
+  "PASS: available-region means exclude NAs, preserve values, leave all-missing surveys unresolved and reject duplicate regions",
+  "PASS: current 18 regional/annual confounders include urban proportion and exclude Hib3/PCV/rotavirus/exclusive breastfeeding; historical 22-variable specification remains reproducible",
+  "PASS: selection and region-loss accounting",
+  "PASS: published source consistency and reviewed DRC boundary versions"),file.path(out,"validation.txt"))
+cat("Regional adjustment validation passed.\n")
+if(settings$unicef_fallback) {
+  panel <- data.frame(country=c("TST","TST","TST"),year=c(2020,2021,2020),
+    variable=c("dtp3_pct","dtp3_pct","hib3_pct"),value=c(70,90,0),source="UNICEF_WUENIC_country_year")
+  input <- data.frame(country=c("TST","TST","TST"),survey_year=c(2020,2021,2019),
+    entry_year=c(2020,2020,2019),dtp3_pct=c(NA,55,NA),hib3_pct=c(NA,30,NA))
+  y <- cbh_unicef_fill(input,panel,c("dtp3_pct","hib3_pct"))
+  stopifnot(identical(y$dtp3_pct,c(70,55,NA_real_)),identical(y$hib3_pct,c(0,30,NA_real_)),
+    identical(y$dtp3_pct_imputed,c(TRUE,FALSE,FALSE)),
+    identical(y$hib3_pct_imputed,c(TRUE,FALSE,FALSE)))
+  bad <- try(cbh_unicef_fill(input,rbind(panel,panel[1,]),"dtp3_pct"),silent=TRUE)
+  stopifnot(inherits(bad,"try-error"))
+  w <- cbh_read_csv(file.path(settings$private,"regional_covariates_wide.csv"))
+  p <- cbh_read_csv(settings$panel)
+  for(v in c("dtp3_pct","measles_pct")) {
+    fill <- w[[paste0(v,"_imputed")]]
+    original <- w[[paste0(v,"_before_imputation")]]
+    stopifnot(all(!fill | !is.finite(original)),identical(w[[v]][!fill],original[!fill]))
+    z <- p[p$variable==v,]
+    j <- match(paste(w$country,w$survey_year),paste(z$country,z$year))
+    stopifnot(all(w[[v]][fill]==z$value[j[fill]]))
+  }
+  write("PASS: UNICEF exact-year matching, observed-value preservation, reported zeros and duplicate rejection",
+    file.path(out,"validation.txt"),append=TRUE)
+  cat("UNICEF substitution validation passed.\n")
+}
+if(!settings$expanded) {
+  spec <- cbh_regional_spec()
+  missing <- fread(file.path(out,"missingness_summary.csv"))
+  stopifnot(setequal(unique(missing$variable),spec$covariates),
+    all(missing[variable=="urban_pct",missing_records]==0L),
+    all(is.finite(w$urban_pct)),all(w$urban_pct>=0 & w$urban_pct<=100),
+    !any(c("hib3_pct","pcv3_pct","rotavirus_pct","exclusive_breastfeeding_pct") %in% names(w)))
+  for(v in spec$regional) {
+    original <- w[[paste0(v,"_before_regional_mean")]]
+    fill <- w[[paste0(v,"_regional_mean_imputed")]]
+    stopifnot(identical(w[[v]][!fill],original[!fill]),all(!fill | !is.finite(original)))
+    for(sv in unique(w$survey)) {
+      ix <- which(w$survey==sv); observed <- original[ix][is.finite(original[ix])]
+      target <- ix[fill[ix]]
+      if(length(target))stopifnot(length(observed)>0,all(abs(w[[v]][target]-mean(observed))<1e-8))
+    }
+  }
+  write("PASS: reduced primary overlay uses 18 predictors, retains urban proportion, excludes dropped fields and verifies all regional-mean substitutions",file.path(out,"validation.txt"),append=TRUE)
+  cat("Reduced primary adjustment validation passed.\n")
+}

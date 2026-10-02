@@ -65,6 +65,9 @@ reg$boundary_file <- ifelse(is.na(reg$boundary_file) | reg$boundary_file == "", 
 stopifnot(all(file.exists(reg$local_recode)), all(file.exists(reg$boundary_file[nzchar(reg$boundary_file)])))
 dir.create("data/frozen/data/derived_dhs", recursive = TRUE, showWarnings = FALSE)
 write.csv(reg, "data/frozen/data/derived_dhs/survey_registry.csv", row.names = FALSE, na = "")
+f <- "data/frozen/data/derived_dhs/survey_registry.csv"
+log[[length(log) + 1L]] <- data.frame(role = "frozen_restore", file = f, bytes = file.size(f), md5 = unname(tools::md5sum(f)),
+                                      source = "<analysis project>/data/derived_dhs/survey_registry.csv (paths made repository-relative)")
 
 ## Fallbacks for checkpoints (committed; used only with run_pipeline.R --map=frozen / --hiv=frozen) --
 fallback <- c("data/derived_dhs/map_pfpr_by_survey_region.csv", "data/derived_dhs/map_pfpr_window_years.csv",

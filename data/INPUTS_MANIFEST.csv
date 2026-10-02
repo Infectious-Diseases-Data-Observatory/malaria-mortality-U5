@@ -220,6 +220,7 @@
 "frozen_restore","data/frozen/data/derived_cbh/regional_adjustment/planned17_audit/nutrition_metadata_page1.json",1498,"b908b848399d786aa1d5eda41793ee06","<analysis project>/data/derived_cbh/regional_adjustment/planned17_audit/nutrition_metadata_page1.json"
 "frozen_restore","data/frozen/data/derived_dhs/statcompiler_covariates.csv",611543,"4b05eb709f27574be208de4e1172c72d","<analysis project>/data/derived_dhs/statcompiler_covariates.csv"
 "frozen_restore","data/frozen/data/derived_dhs/hiv_prevalence_country_year.csv",93801,"7d0f724809f1451d727ef6332f0aa041","<analysis project>/data/derived_dhs/hiv_prevalence_country_year.csv"
+"frozen_restore","data/frozen/data/derived_dhs/survey_registry.csv",18571,"841b033ee57ebc3a28e788df57bf01fc","<analysis project>/data/derived_dhs/survey_registry.csv (paths made repository-relative)"
 "frozen_fallback","data/frozen/data/derived_dhs/map_pfpr_by_survey_region.csv",99974,"ab662078cd96f247f839434598f5ea12","<analysis project>/data/derived_dhs/map_pfpr_by_survey_region.csv"
 "frozen_fallback","data/frozen/data/derived_dhs/map_pfpr_window_years.csv",449415,"b7c1c8769f4a75e43132fc2fac9c7d9e","<analysis project>/data/derived_dhs/map_pfpr_window_years.csv"
 "frozen_fallback","data/frozen/data/derived_cbh/hiv_incidence/child_incidence_country_year.csv",644108,"82b78d0a71dd8e9ce02c81a9ef1b217e","<analysis project>/data/derived_cbh/hiv_incidence/child_incidence_country_year.csv"

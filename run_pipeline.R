@@ -78,7 +78,7 @@ if (file.exists(lock)) {
   alive <- !is.na(pid) && identical(suppressWarnings(system2("kill", c("-0", pid), stdout = FALSE, stderr = FALSE)), 0L)
   if (alive) stop("Another pipeline run is active (process ", pid, "). One run at a time.")
 }
-writeLines(as.character(Sys.getpid()), lock); on.exit(unlink(lock), add = TRUE)
+writeLines(as.character(Sys.getpid()), lock)
 if (!identical(Sys.getlocale("LC_COLLATE"), "en_GB"))
   stop("The paper's results were produced with collation locale en_GB (sorting and factor levels depend on it); got ",
        Sys.getlocale("LC_COLLATE"), ". Set LANG=en_GB.UTF-8.")
@@ -115,7 +115,7 @@ stamp <- format(Sys.time(), "%Y%m%dT%H%M%S")
 times <- "logs/stage_times.csv"
 message(sprintf("Running %s (about %d minutes); commit %s%s", paste(run, collapse = ", "), sum(minutes[run]),
                 substr(commit, 1, 7), if (dirty) " with uncommitted changes" else ""))
-for (s in run) {
+run_stage <- function(s) {
   unlink(file.path(state_dir, paste0(s, c(".done", ".failed"))))
   started <- Sys.time(); message(format(started, "%H:%M:%S"), " stage ", s)
   for (k in seq_along(stages[[s]])) {
@@ -138,4 +138,5 @@ for (s in run) {
                paste0("script_md5: ", scripts, " ", unname(tools::md5sum(scripts)))), file.path(state_dir, paste0(s, ".done")))
   message(format(Sys.time(), "%H:%M:%S"), " stage ", s, " done")
 }
+tryCatch(for (s in run) run_stage(s), finally = unlink(lock))
 message("Pipeline finished: ", paste(run, collapse = ", "))

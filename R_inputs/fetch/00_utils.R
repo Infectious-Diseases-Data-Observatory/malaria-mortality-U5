@@ -1,0 +1,213 @@
+# =============================================================================
+# 00_utils.R — shared configuration and helper functions.
+# Source this first (all other R/ scripts start with source("R/00_utils.R")).
+# Run scripts from the repository root.
+# =============================================================================
+suppressMessages({
+  library(terra); library(sf); library(jsonlite); library(httr); library(countrycode)
+})
+
+## ---- paths & constants ------------------------------------------------------
+DATA    <- "data"
+RESULTS <- "results"
+dir.create(RESULTS, showWarnings = FALSE)
+
+PFPR_TIF <- file.path(DATA, "pfpr_2to10_africa_2024.tif")                 # MAP PfPR2-10 (proportion), year 2024
+GPW_TIF  <- file.path(DATA, "pop", "gpw_v4_population_density_rev11_2020_2.5m.tif")  # GPW density weight
+MAP_YEAR <- 2024                                                          # latest MAP release year (used as ~2025 proxy)
+
+## ---- small helpers ----------------------------------------------------------
+# normalise a place name to a join key (lowercase, ASCII, alphanumeric only)
+rkey <- function(x) gsub("[^a-z0-9]", "", tolower(iconv(as.character(x), "", "ASCII//TRANSLIT")))
+
+# Pick the recode variable whose region labels match a target geography's keys.
+# DHS usually stores the survey region in v024, but for some countries (e.g.
+# Tanzania) v024 holds the 30 fine admin regions while the DHS boundary file is
+# at the 9-zone level, stored in a survey-specific variable (e.g. sreg1). We keep
+# v024 whenever it already covers the target, else scan all character/factor
+# columns for the one that best matches — recovering surveys the v024 merge drops.
+best_region_var <- function(br, target_keys, prefer = "v024") {
+  tk <- unique(target_keys)
+  covr <- function(v) mean(tk %in% rkey(unique(as.character(br[[v]]))))
+  if (prefer %in% names(br) && covr(prefer) >= 0.5) return(prefer)   # v024 works -> keep (stability)
+  cand <- names(br)[vapply(br, function(x) is.character(x) || is.factor(x), TRUE)]
+  if (!length(cand)) return(prefer)
+  sc <- vapply(cand, function(v) sum(tk %in% rkey(unique(as.character(br[[v]])))), 0L)
+  best <- cand[which.max(sc)]
+  if (max(sc) > 0 && covr(best) >= 0.6) best else prefer
+}
+
+## ---- World Bank API (long format, with retries) ----------------------------
+wb_fetch <- function(indicator, date = "2000:2024") {
+  u <- sprintf("https://api.worldbank.org/v2/country/all/indicator/%s?date=%s&format=json&per_page=20000",
+               indicator, date)
+  for (attempt in 1:4) {
+    r <- tryCatch(GET(u, timeout(180)), error = function(e) NULL)
+    if (!is.null(r) && status_code(r) == 200) {
+      j <- fromJSON(content(r, "text", encoding = "UTF-8"), simplifyDataFrame = TRUE)[[2]]
+      d <- data.frame(iso3 = j$countryiso3code, year = as.integer(j$date),
+                      value = as.numeric(j$value), stringsAsFactors = FALSE)
+      return(d[!is.na(d$value) & nchar(d$iso3) == 3, ])
+    }
+    message("  World Bank retry ", attempt, " for ", indicator)
+  }
+  stop("World Bank fetch failed: ", indicator)
+}
+
+# most recent non-NA year per country
+wb_latest <- function(indicator, date = "2010:2024") {
+  d <- wb_fetch(indicator, date)
+  d <- d[order(d$iso3, -d$year), ]
+  d[!duplicated(d$iso3), c("iso3", "year", "value")]
+}
+
+# Sub-Saharan Africa country list (World Bank region classification)
+ssa_countries <- function() {
+  j <- fromJSON("https://api.worldbank.org/v2/country?format=json&per_page=400")[[2]]
+  d <- data.frame(iso3 = j$id, country = trimws(j$name),
+                  region = trimws(j$region$value), stringsAsFactors = FALSE)
+  d[d$region == "Sub-Saharan Africa", c("iso3", "country")]
+}
+
+## ---- MAP PfPR raster --------------------------------------------------------
+read_pfpr <- function() { stopifnot(file.exists(PFPR_TIF)); terra::rast(PFPR_TIF) }
+
+# population-weighted national/subnational PfPR2-10 (%) for polygons `v` (SpatVector)
+pfpr_by_admin <- function(pf, v) {
+  stopifnot(file.exists(GPW_TIF))
+  den <- terra::resample(terra::crop(terra::rast(GPW_TIF), pf), pf, method = "bilinear")
+  w   <- terra::mask(den, pf); num <- pf * w
+  an  <- terra::extract(num, v, fun = sum, na.rm = TRUE, exact = TRUE, ID = FALSE)
+  aw  <- terra::extract(w,   v, fun = sum, na.rm = TRUE, exact = TRUE, ID = FALSE)
+  100 * an[[1]] / aw[[1]]
+}
+
+## ---- age-standardise parasite prevalence to the PfPR2-10 reference ----------
+# DHS measures children ~6-59 months (0.5-5y); MAP PfPR is standardised to ages 2-10.
+# Uses malariaAtlas::convertPrevalence (Smith et al. 2007 age-prevalence model).
+# Input & output are PROPORTIONS (0-1).
+to_pfpr210 <- function(p_prop) {
+  out <- rep(NA_real_, length(p_prop)); ok <- is.finite(p_prop)
+  if (any(ok)) {                                        # age args must match prevalence length
+    n <- sum(ok)
+    out[ok] <- suppressMessages(as.numeric(malariaAtlas::convertPrevalence(
+      p_prop[ok], rep(0.5, n), rep(5, n), rep(2, n), rep(10, n))))
+  }
+  out
+}
+
+## ---- IHME / GBD export parser (classic GBD or Data Explorer schema) ---------
+# Returns iso3, deaths (Number), rate (per 100k, if present), year.
+parse_ihme <- function(csv) {
+  d <- read.csv(csv, stringsAsFactors = FALSE, check.names = FALSE)
+  names(d) <- tolower(trimws(names(d)))
+  alias <- c(location = "location_name", condition = "cause_name", measure = "measure_name",
+             unit = "metric_name", sex = "sex_name", age = "age_name", value = "val")
+  for (s in names(alias)) if (s %in% names(d) && !(alias[s] %in% names(d))) names(d)[names(d) == s] <- alias[s]
+  norm <- function(x) tolower(trimws(as.character(x)))
+  f <- d
+  if ("measure_name" %in% names(f)) f <- f[grepl("death",   norm(f$measure_name)), ]
+  if ("cause_name"   %in% names(f)) f <- f[grepl("malaria", norm(f$cause_name)),   ]
+  if ("sex_name"     %in% names(f)) f <- f[grepl("both",    norm(f$sex_name)),     ]
+  ac <- grep("age.*name|^age_name$|^age$", names(f), value = TRUE)[1]
+  if (!is.na(ac)) f <- f[grepl("under 5|under-5|<5|0-4|0 to 4", norm(f[[ac]])), ]
+  if ("year" %in% names(f)) { yr <- max(f$year); f <- f[f$year == yr, ] } else yr <- NA
+  iso_of <- function(x) countrycode(x, "country.name", "iso3c", warn = FALSE)
+  num  <- f[grepl("number", norm(f$metric_name)), ]
+  rate <- f[grepl("rate",   norm(f$metric_name)), ]
+  out <- data.frame(iso3 = iso_of(num$location_name), deaths = as.numeric(num$val),
+                    year = yr, stringsAsFactors = FALSE)
+  out$rate <- as.numeric(rate$val)[match(out$iso3, iso_of(rate$location_name))]
+  out[!is.na(out$iso3), ]
+}
+
+## ---- DHS.rates: all-cause mortality by region -------------------------------
+# Returns regkey, u5mr (5q0) and m1mo5y (U5MR - neonatal), per 1,000 live births,
+# plus exposure = chmort's weighted N (birth-exposure denominator, for count models).
+mort_by_region <- function(br, regvar) {
+  if (!regvar %in% names(br)) return(NULL)
+  r <- tryCatch(suppressMessages(DHS.rates::chmort(br, Class = regvar)), error = function(e) NULL)
+  if (is.null(r)) return(NULL)
+  u <- r[grepl("^U5MR", rownames(r)), c("Class", "R", "WN")]; names(u)[2:3] <- c("u5mr", "exposure")
+  n <- r[grepl("^NNMR", rownames(r)), c("Class", "R")]; names(n)[2] <- "nnmr"
+  m <- merge(u, n, by = "Class")
+  data.frame(regkey = rkey(m$Class), u5mr = m$u5mr, m1mo5y = m$u5mr - m$nnmr,
+             exposure = m$exposure, stringsAsFactors = FALSE)
+}
+
+## ---- DHS PR recode: prevalence + region covariates --------------------------
+# Design-weighted (hv005) by region: RDT & microscopy positivity in tested 6-59mo
+# children (the tested set is 6-59mo de facto by design), % urban (hv025),
+# % stunted (hc70 HAZ < -2). Returns one row per region.
+prev_cov_by_region <- function(pr, regvar) {
+  if (!regvar %in% names(pr)) return(NULL)
+  w <- as.numeric(pr$hv005) / 1e6; reg <- as.character(pr[[regvar]])
+  posfrac <- function(col) { v <- tolower(as.character(col)); t <- v %in% c("negative", "positive") & !is.na(reg)
+    if (!any(t)) return(NULL); 100 * tapply(w[t] * (v[t] == "positive"), reg[t], sum) / tapply(w[t], reg[t], sum) }
+  rdt <- posfrac(pr$hml35); if (is.null(rdt)) return(NULL)
+  mic <- if ("hml32" %in% names(pr)) posfrac(pr$hml32) else NULL
+  frac_if <- function(flag, ok) { k <- ok & !is.na(reg); if (!any(k)) return(NULL)
+    100 * tapply(w[k] * flag[k], reg[k], sum) / tapply(w[k], reg[k], sum) }
+  urb <- if ("hv025" %in% names(pr)) frac_if(tolower(as.character(pr$hv025)) == "urban", rep(TRUE, length(reg))) else NULL
+  st  <- if ("hc70"  %in% names(pr)) { h <- as.numeric(pr$hc70); h[h >= 9990] <- NA; frac_if(h < -200, !is.na(h)) } else NULL
+  regs <- names(rdt)
+  pick <- function(v) if (is.null(v)) NA_real_ else as.numeric(v[regs])
+  data.frame(regkey = rkey(regs), region = regs, rdt = as.numeric(rdt),
+             mic = pick(mic), pct_urban = pick(urb), stunting = pick(st), stringsAsFactors = FALSE)
+}
+
+## ---- shared model specifications (Components 1 & 2) -------------------------
+# Fit definitions live here so every downstream script (02, 04, 05, 07, 08) uses
+# one identical specification instead of re-declaring the formula. Callers pull
+# coefficients / predictions from the returned object.
+
+# Component 1 — malaria's % share of child deaths ~ prevalence + confounders.
+# `terms` lets the caller fit the prevalence-only variant (outlier residuals).
+C1_COVS <- c("pfpr_pct", "log_gdp", "dtp3")
+fit_c1_share <- function(dat, outcome, terms = C1_COVS)
+  lm(reformulate(terms, outcome), data = dat)
+
+# Component 2 — log child-mortality rate ~ prevalence + confounders, with an
+# uncorrelated country random intercept & slope on prevalence (REML, bobyqa).
+# `covs` defaults to the no-stunting set (keeps all countries incl. Liberia);
+# pass c(C2_COVS, "stunting") for the fuller-adjustment / sensitivity fit.
+# Returns list(m = model, dd = complete-case data used).
+C2_COVS <- c("pfpr10", "dtp3", "log_gdp", "pct_urban", "year_c")
+fit_c2_lmm <- function(dat, outcome, covs = C2_COVS) {
+  dd <- dat[complete.cases(dat[, c(outcome, covs, "country")]), ]
+  f  <- as.formula(paste0("log(", outcome, ") ~ ",
+                          paste(c(covs, "(1 + pfpr10 || country)"), collapse = " + ")))
+  list(m = lme4::lmer(f, data = dd, REML = TRUE,
+                      control = lme4::lmerControl(optimizer = "bobyqa")),
+       dd = dd)
+}
+
+# ---- Component 2 PRIMARY specification (M1: linear-in-prevalence nb-GAM) ------
+# Negative-binomial GAM (log link) for the region post-neonatal/U5 death count,
+# LINEAR in prevalence (pfpr10 = PfPR2-10/10), a smooth calendar-year term, a
+# log-exposure (births) offset, and country random intercept + prevalence slope.
+# Fitted on the analysis sample PfPR2-10 >= C2_MIN_PFPR (near-elimination regions,
+# where the exposure measure is least reliable and a no-malaria counterfactual is
+# ill-defined, are excluded). This is the study's primary Method-2 model; the
+# penalised-spline and log-scale variants are sensitivity analyses (see SText 1).
+C2_MIN_PFPR <- 1                                    # analysis floor (%) & AF reference
+fit_c2_primary <- function(dat, outcome, min_pfpr = C2_MIN_PFPR) {
+  need <- c(outcome, "pfpr10", "pfpr2_10", "dtp3", "log_gdp", "pct_urban",
+            "year_c", "country", "svkey", "exposure")
+  dd <- dat[complete.cases(dat[, need]) & is.finite(dat$exposure) &
+              dat$exposure > 0 & dat[[outcome]] > 0 & dat$pfpr2_10 >= min_pfpr, ]
+  dd$deaths  <- round(dd[[outcome]] / 1000 * dd$exposure)
+  dd$country <- factor(dd$country); dd$svkey <- factor(dd$svkey)
+  m <- mgcv::gam(deaths ~ pfpr10 + dtp3 + log_gdp + pct_urban + s(year_c) +
+                   s(country, bs = "re") + s(country, pfpr10, bs = "re") +
+                   offset(log(exposure)),
+                 family = mgcv::nb(), method = "REML", data = dd)
+  pt <- summary(m)$p.table["pfpr10", ]
+  list(m = m, dd = dd, beta = unname(pt["Estimate"]), se = unname(pt["Std. Error"]))
+}
+
+# Malaria-attributable fraction from the linear Method-2 model, referenced to a
+# counterfactual prevalence `ref`% (default 1%): AF(p) = 1 - exp(-beta*(p-ref)/10).
+# Covariates and country effects cancel in the rate ratio, so this closed form is
+# exact for the linear specification. Prevalences below `ref` are set to AF = 0.
+af_c2 <- function(beta, p, ref = C2_MIN_PFPR) ifelse(p < ref, 0, 1 - exp(-beta * (p - ref) / 10))

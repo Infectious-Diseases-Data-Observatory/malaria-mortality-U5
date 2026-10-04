@@ -1,0 +1,125 @@
+"iso3","CountryName","year","SurveyType","SurveyId","FileName","no_extension","svkey","local_recode","boundary_file","recode_available","boundary_available"
+"AGO","Angola",2011,"MIS","AO2011MIS","AOBR62FL.ZIP","AOBR62FL","AO62FL","data/raw/dhs/AOBR62FL.rds","data/dhs_boundaries/AO2011MIS.rds",TRUE,TRUE
+"AGO","Angola",2015,"DHS","AO2015DHS","AOBR71FL.ZIP","AOBR71FL","AO71FL","data/raw/dhs/AOBR71FL.rds","data/dhs_boundaries/AO2015DHS.rds",TRUE,TRUE
+"AGO","Angola",2023,"DHS","AO2023DHS","AOBR81FL.zip","AOBR81FL","AO81FL","data/raw/dhs/AOBR81FL.rds","data/dhs_boundaries/AO2023DHS.rds",TRUE,TRUE
+"BDI","Burundi",2010,"DHS","BU2010DHS","BUBR61FL.ZIP","BUBR61FL","BU61FL","data/raw/dhs/BUBR61FL.rds","data/dhs_boundaries/BU2010DHS.rds",TRUE,TRUE
+"BDI","Burundi",2016,"DHS","BU2016DHS","BUBR71FL.ZIP","BUBR71FL","BU71FL","data/raw/dhs/BUBR71FL.rds","data/dhs_boundaries/BU2016DHS.rds",TRUE,TRUE
+"BEN","Benin",2001,"DHS","BJ2001DHS","BJBR41FL.zip","BJBR41FL","BJ41FL","data/raw/dhs/BJBR41FL.rds","data/dhs_boundaries/BJ2001DHS.rds",TRUE,TRUE
+"BEN","Benin",2006,"DHS","BJ2006DHS","BJBR51FL.ZIP","BJBR51FL","BJ51FL","data/raw/dhs/BJBR51FL.rds","data/dhs_boundaries/BJ2006DHS.rds",TRUE,TRUE
+"BEN","Benin",2012,"DHS","BJ2012DHS","BJBR61FL.ZIP","BJBR61FL","BJ61FL","data/raw/dhs/BJBR61FL.rds","data/dhs_boundaries/BJ2012DHS.rds",TRUE,TRUE
+"BEN","Benin",2017,"DHS","BJ2017DHS","BJBR71FL.ZIP","BJBR71FL","BJ71FL","data/raw/dhs/BJBR71FL.rds","data/dhs_boundaries/BJ2017DHS.rds",TRUE,TRUE
+"BFA","Burkina Faso",2003,"DHS","BF2003DHS","BFBR43FL.zip","BFBR43FL","BF43FL","data/raw/dhs/BFBR43FL.rds","data/dhs_boundaries/BF2003DHS.rds",TRUE,TRUE
+"BFA","Burkina Faso",2010,"DHS","BF2010DHS","BFBR62FL.ZIP","BFBR62FL","BF62FL","data/raw/dhs/BFBR62FL.rds","data/dhs_boundaries/BF2010DHS.rds",TRUE,TRUE
+"BFA","Burkina Faso",2021,"DHS","BF2021DHS","BFBR81FL.ZIP","BFBR81FL","BF81FL","data/raw/dhs/BFBR81FL.rds","data/dhs_boundaries/BF2021DHS.rds",TRUE,TRUE
+"CIV","Cote d'Ivoire",2012,"DHS","CI2012DHS","CIBR62FL.ZIP","CIBR62FL","CI62FL","data/raw/dhs/CIBR62FL.rds","data/dhs_boundaries/CI2012DHS.rds",TRUE,TRUE
+"CIV","Cote d'Ivoire",2021,"DHS","CI2021DHS","CIBR81FL.ZIP","CIBR81FL","CI81FL","data/raw/dhs/CIBR81FL.rds","data/dhs_boundaries/CI2021DHS.rds",TRUE,TRUE
+"CMR","Cameroon",2004,"DHS","CM2004DHS","CMBR44FL.zip","CMBR44FL","CM44FL","data/raw/dhs/CMBR44FL.rds","data/dhs_boundaries/CM2004DHS.rds",TRUE,TRUE
+"CMR","Cameroon",2011,"DHS","CM2011DHS","CMBR61FL.ZIP","CMBR61FL","CM61FL","data/raw/dhs/CMBR61FL.rds","data/dhs_boundaries/CM2011DHS.rds",TRUE,TRUE
+"CMR","Cameroon",2018,"DHS","CM2018DHS","CMBR71FL.ZIP","CMBR71FL","CM71FL","data/raw/dhs/CMBR71FL.rds","data/dhs_boundaries/CM2018DHS.rds",TRUE,TRUE
+"COD","Congo Democratic Republic",2007,"DHS","CD2007DHS","CDBR51FL.ZIP","CDBR51FL","CD51FL","data/raw/dhs/CDBR51FL.rds","data/dhs_boundaries/CD2007DHS.rds",TRUE,TRUE
+"COD","Congo Democratic Republic",2013,"DHS","CD2013DHS","CDBR61FL.ZIP","CDBR61FL","CD61FL","data/raw/dhs/CDBR61FL.rds","data/dhs_boundaries/CD2013DHS.rds",TRUE,TRUE
+"COD","Congo Democratic Republic",2023,"DHS","CD2023DHS","CDBR81FL.zip","CDBR81FL","CD81FL","data/raw/dhs/CDBR81FL.rds","data/dhs_boundaries/CD2023DHS.rds",TRUE,TRUE
+"COG","Congo",2005,"DHS","CG2005DHS","CGBR51FL.ZIP","CGBR51FL","CG51FL","data/raw/dhs/CGBR51FL.rds","data/dhs_boundaries/CG2005DHS.rds",TRUE,TRUE
+"COG","Congo",2011,"DHS","CG2011DHS","CGBR61FL.ZIP","CGBR61FL","CG61FL","data/raw/dhs/CGBR61FL.rds","data/dhs_boundaries/CG2011DHS.rds",TRUE,TRUE
+"COM","Comoros",2012,"DHS","KM2012DHS","KMBR61FL.ZIP","KMBR61FL","KM61FL","data/raw/dhs/KMBR61FL.rds","data/dhs_boundaries/KM2012DHS.rds",TRUE,TRUE
+"ETH","Ethiopia",2000,"DHS","ET2000DHS","ETBR41FL.zip","ETBR41FL","ET41FL","data/raw/dhs/ETBR41FL.rds","data/dhs_boundaries/ET2000DHS.rds",TRUE,TRUE
+"ETH","Ethiopia",2005,"DHS","ET2005DHS","ETBR51FL.zip","ETBR51FL","ET51FL","data/raw/dhs/ETBR51FL.rds","data/dhs_boundaries/ET2005DHS.rds",TRUE,TRUE
+"ETH","Ethiopia",2011,"DHS","ET2011DHS","ETBR61FL.ZIP","ETBR61FL","ET61FL","data/raw/dhs/ETBR61FL.rds","data/dhs_boundaries/ET2011DHS.rds",TRUE,TRUE
+"ETH","Ethiopia",2016,"DHS","ET2016DHS","ETBR71FL.ZIP","ETBR71FL","ET71FL","data/raw/dhs/ETBR71FL.rds","data/dhs_boundaries/ET2016DHS.rds",TRUE,TRUE
+"ETH","Ethiopia",2019,"DHS","ET2019DHS","ETBR81FL.ZIP","ETBR81FL","ET81FL","data/raw/dhs/ETBR81FL.rds","data/dhs_boundaries/ET2019DHS.rds",TRUE,TRUE
+"ETH","Ethiopia",2024,"DHS","ET2024DHS","ETBR8AFL.zip","ETBR8AFL","ET8AFL","data/raw/dhs/ETBR8AFL.rds","data/dhs_boundaries/ET2024DHS.rds",TRUE,TRUE
+"GAB","Gabon",2000,"DHS","GA2000DHS","GABR41FL.ZIP","GABR41FL","GA41FL","data/raw/dhs/GABR41FL.rds","data/dhs_boundaries/GA2000DHS.rds",TRUE,TRUE
+"GAB","Gabon",2012,"DHS","GA2012DHS","GABR61FL.ZIP","GABR61FL","GA61FL","data/raw/dhs/GABR61FL.rds","data/dhs_boundaries/GA2012DHS.rds",TRUE,TRUE
+"GAB","Gabon",2019,"DHS","GA2019DHS","GABR71FL.ZIP","GABR71FL","GA71FL","data/raw/dhs/GABR71FL.rds","data/dhs_boundaries/GA2019DHS.rds",TRUE,TRUE
+"GHA","Ghana",2003,"DHS","GH2003DHS","GHBR4BFL.ZIP","GHBR4BFL","GH4BFL","data/raw/dhs/GHBR4BFL.rds","data/dhs_boundaries/GH2003DHS.rds",TRUE,TRUE
+"GHA","Ghana",2008,"DHS","GH2008DHS","GHBR5AFL.ZIP","GHBR5AFL","GH5AFL","data/raw/dhs/GHBR5AFL.rds","data/dhs_boundaries/GH2008DHS.rds",TRUE,TRUE
+"GHA","Ghana",2014,"DHS","GH2014DHS","GHBR72FL.ZIP","GHBR72FL","GH72FL","data/raw/dhs/GHBR72FL.rds","data/dhs_boundaries/GH2014DHS.rds",TRUE,TRUE
+"GHA","Ghana",2022,"DHS","GH2022DHS","GHBR8CFL.ZIP","GHBR8CFL","GH8CFL","data/raw/dhs/GHBR8CFL.rds","data/dhs_boundaries/GH2022DHS.rds",TRUE,TRUE
+"GIN","Guinea",2005,"DHS","GN2005DHS","GNBR52FL.zip","GNBR52FL","GN52FL","data/raw/dhs/GNBR52FL.rds","data/dhs_boundaries/GN2005DHS.rds",TRUE,TRUE
+"GIN","Guinea",2012,"DHS","GN2012DHS","GNBR62FL.ZIP","GNBR62FL","GN62FL","data/raw/dhs/GNBR62FL.rds","data/dhs_boundaries/GN2012DHS.rds",TRUE,TRUE
+"GIN","Guinea",2018,"DHS","GN2018DHS","GNBR71FL.ZIP","GNBR71FL","GN71FL","data/raw/dhs/GNBR71FL.rds","data/dhs_boundaries/GN2018DHS.rds",TRUE,TRUE
+"GMB","Gambia",2013,"DHS","GM2013DHS","GMBR61FL.ZIP","GMBR61FL","GM61FL","data/raw/dhs/GMBR61FL.rds","data/dhs_boundaries/GM2013DHS.rds",TRUE,TRUE
+"GMB","Gambia",2019,"DHS","GM2019DHS","GMBR81FL.ZIP","GMBR81FL","GM81FL","data/raw/dhs/GMBR81FL.rds","data/dhs_boundaries/GM2019DHS.rds",TRUE,TRUE
+"KEN","Kenya",2003,"DHS","KE2003DHS","KEBR42FL.ZIP","KEBR42FL","KE42FL","data/raw/dhs/KEBR42FL.rds","data/dhs_boundaries/KE2003DHS.rds",TRUE,TRUE
+"KEN","Kenya",2008,"DHS","KE2008DHS","KEBR52FL.ZIP","KEBR52FL","KE52FL","data/raw/dhs/KEBR52FL.rds","data/dhs_boundaries/KE2008DHS.rds",TRUE,TRUE
+"KEN","Kenya",2014,"DHS","KE2014DHS","KEBR72FL.ZIP","KEBR72FL","KE72FL","data/raw/dhs/KEBR72FL.rds","data/dhs_boundaries/KE2014DHS.rds",TRUE,TRUE
+"KEN","Kenya",2022,"DHS","KE2022DHS","KEBR8CFL.ZIP","KEBR8CFL","KE8CFL","data/raw/dhs/KEBR8CFL.rds","data/dhs_boundaries/KE2022DHS.rds",TRUE,TRUE
+"LBR","Liberia",2007,"DHS","LB2007DHS","LBBR51FL.ZIP","LBBR51FL","LB51FL","data/raw/dhs/LBBR51FL.rds","data/dhs_boundaries/LB2007DHS.rds",TRUE,TRUE
+"LBR","Liberia",2009,"MIS","LB2009MIS","LBBR5AFL.ZIP","LBBR5AFL","LB5AFL","data/raw/dhs/LBBR5AFL.rds","data/dhs_boundaries/LB2009MIS.rds",TRUE,TRUE
+"LBR","Liberia",2013,"DHS","LB2013DHS","LBBR6AFL.ZIP","LBBR6AFL","LB6AFL","data/raw/dhs/LBBR6AFL.rds","data/dhs_boundaries/LB2013DHS.rds",TRUE,TRUE
+"LBR","Liberia",2019,"DHS","LB2019DHS","LBBR7AFL.ZIP","LBBR7AFL","LB7AFL","data/raw/dhs/LBBR7AFL.rds","data/dhs_boundaries/LB2019DHS.rds",TRUE,TRUE
+"LSO","Lesotho",2004,"DHS","LS2004DHS","LSBR41FL.zip","LSBR41FL","LS41FL","data/raw/dhs/LSBR41FL.rds","data/dhs_boundaries/LS2004DHS.rds",TRUE,TRUE
+"LSO","Lesotho",2009,"DHS","LS2009DHS","LSBR61FL.ZIP","LSBR61FL","LS61FL","data/raw/dhs/LSBR61FL.rds","data/dhs_boundaries/LS2009DHS.rds",TRUE,TRUE
+"LSO","Lesotho",2014,"DHS","LS2014DHS","LSBR71FL.ZIP","LSBR71FL","LS71FL","data/raw/dhs/LSBR71FL.rds","data/dhs_boundaries/LS2014DHS.rds",TRUE,TRUE
+"LSO","Lesotho",2023,"DHS","LS2023DHS","LSBR81FL.ZIP","LSBR81FL","LS81FL","data/raw/dhs/LSBR81FL.rds","data/dhs_boundaries/LS2023DHS.rds",TRUE,TRUE
+"MDG","Madagascar",2004,"DHS","MD2004DHS","MDBR42FL.ZIP","MDBR42FL","MD42FL","data/raw/dhs/MDBR42FL.rds","data/dhs_boundaries/MD2004DHS.rds",TRUE,TRUE
+"MDG","Madagascar",2008,"DHS","MD2008DHS","MDBR51FL.ZIP","MDBR51FL","MD51FL","data/raw/dhs/MDBR51FL.rds","data/dhs_boundaries/MD2008DHS.rds",TRUE,TRUE
+"MDG","Madagascar",2021,"DHS","MD2021DHS","MDBR81FL.ZIP","MDBR81FL","MD81FL","data/raw/dhs/MDBR81FL.rds","data/dhs_boundaries/MD2021DHS.rds",TRUE,TRUE
+"MLI","Mali",2001,"DHS","ML2001DHS","MLBR41FL.zip","MLBR41FL","ML41FL","data/raw/dhs/MLBR41FL.rds","data/dhs_boundaries/ML2001DHS.rds",TRUE,TRUE
+"MLI","Mali",2006,"DHS","ML2006DHS","MLBR53FL.ZIP","MLBR53FL","ML53FL","data/raw/dhs/MLBR53FL.rds","data/dhs_boundaries/ML2006DHS.rds",TRUE,TRUE
+"MLI","Mali",2012,"DHS","ML2012DHS","MLBR6AFL.ZIP","MLBR6AFL","ML6AFL","data/raw/dhs/MLBR6AFL.rds","data/dhs_boundaries/ML2012DHS.rds",TRUE,TRUE
+"MLI","Mali",2018,"DHS","ML2018DHS","MLBR7AFL.ZIP","MLBR7AFL","ML7AFL","data/raw/dhs/MLBR7AFL.rds","data/dhs_boundaries/ML2018DHS.rds",TRUE,TRUE
+"MLI","Mali",2023,"DHS","ML2023DHS","MLBR8AFL.zip","MLBR8AFL","ML8AFL","data/raw/dhs/MLBR8AFL.rds","data/dhs_boundaries/ML2023DHS.rds",TRUE,TRUE
+"MOZ","Mozambique",2003,"DHS","MZ2003DHS","MZBR41FL.zip","MZBR41FL","MZ41FL","data/raw/dhs/MZBR41FL.rds","data/dhs_boundaries/MZ2003DHS.rds",TRUE,TRUE
+"MOZ","Mozambique",2011,"DHS","MZ2011DHS","MZBR62FL.ZIP","MZBR62FL","MZ62FL","data/raw/dhs/MZBR62FL.rds","data/dhs_boundaries/MZ2011DHS.rds",TRUE,TRUE
+"MOZ","Mozambique",2022,"DHS","MZ2022DHS","MZBR81FL.ZIP","MZBR81FL","MZ81FL","data/raw/dhs/MZBR81FL.rds","data/dhs_boundaries/MZ2022DHS.rds",TRUE,TRUE
+"MRT","Mauritania",2020,"DHS","MR2020DHS","MRBR71FL.ZIP","MRBR71FL","MR71FL","data/raw/dhs/MRBR71FL.rds","data/dhs_boundaries/MR2020DHS.rds",TRUE,TRUE
+"MWI","Malawi",2000,"DHS","MW2000DHS","MWBR41FL.zip","MWBR41FL","MW41FL","data/raw/dhs/MWBR41FL.rds","data/dhs_boundaries/MW2000DHS.rds",TRUE,TRUE
+"MWI","Malawi",2004,"DHS","MW2004DHS","MWBR4EFL.ZIP","MWBR4EFL","MW4EFL","data/raw/dhs/MWBR4EFL.rds","data/dhs_boundaries/MW2004DHS.rds",TRUE,TRUE
+"MWI","Malawi",2010,"DHS","MW2010DHS","MWBR61FL.ZIP","MWBR61FL","MW61FL","data/raw/dhs/MWBR61FL.rds","data/dhs_boundaries/MW2010DHS.rds",TRUE,TRUE
+"MWI","Malawi",2015,"DHS","MW2015DHS","MWBR7AFL.ZIP","MWBR7AFL","MW7AFL","data/raw/dhs/MWBR7AFL.rds","data/dhs_boundaries/MW2015DHS.rds",TRUE,TRUE
+"MWI","Malawi",2024,"DHS","MW2024DHS","MWBR81FL.zip","MWBR81FL","MW81FL","data/raw/dhs/MWBR81FL.rds","data/dhs_boundaries/MW2024DHS.rds",TRUE,TRUE
+"NAM","Namibia",2000,"DHS","NM2000DHS","NMBR41FL.zip","NMBR41FL","NM41FL","data/raw/dhs/NMBR41FL.rds","data/dhs_boundaries/NM2000DHS.rds",TRUE,TRUE
+"NAM","Namibia",2006,"DHS","NM2006DHS","NMBR51FL.ZIP","NMBR51FL","NM51FL","data/raw/dhs/NMBR51FL.rds","data/dhs_boundaries/NM2006DHS.rds",TRUE,TRUE
+"NAM","Namibia",2013,"DHS","NM2013DHS","NMBR61FL.ZIP","NMBR61FL","NM61FL","data/raw/dhs/NMBR61FL.rds","data/dhs_boundaries/NM2013DHS.rds",TRUE,TRUE
+"NER","Niger",2006,"DHS","NI2006DHS","NIBR51FL.zip","NIBR51FL","NI51FL","data/raw/dhs/NIBR51FL.rds","data/dhs_boundaries/NI2006DHS.rds",TRUE,TRUE
+"NER","Niger",2012,"DHS","NI2012DHS","NIBR61FL.ZIP","NIBR61FL","NI61FL","data/raw/dhs/NIBR61FL.rds","data/dhs_boundaries/NI2012DHS.rds",TRUE,TRUE
+"NGA","Nigeria",2003,"DHS","NG2003DHS","NGBR4BFL.zip","NGBR4BFL","NG4BFL","data/raw/dhs/NGBR4BFL.rds","data/dhs_boundaries/NG2003DHS.rds",TRUE,TRUE
+"NGA","Nigeria",2008,"DHS","NG2008DHS","NGBR53FL.ZIP","NGBR53FL","NG53FL","data/raw/dhs/NGBR53FL.rds","data/dhs_boundaries/NG2008DHS.rds",TRUE,TRUE
+"NGA","Nigeria",2010,"MIS","NG2010MIS","NGBR61FL.ZIP","NGBR61FL","NG61FL","data/raw/dhs/NGBR61FL.rds","data/dhs_boundaries/NG2010MIS.rds",TRUE,TRUE
+"NGA","Nigeria",2013,"DHS","NG2013DHS","NGBR6AFL.ZIP","NGBR6AFL","NG6AFL","data/raw/dhs/NGBR6AFL.rds","data/dhs_boundaries/NG2013DHS.rds",TRUE,TRUE
+"NGA","Nigeria",2018,"DHS","NG2018DHS","NGBR7BFL.ZIP","NGBR7BFL","NG7BFL","data/raw/dhs/NGBR7BFL.rds","data/dhs_boundaries/NG2018DHS.rds",TRUE,TRUE
+"NGA","Nigeria",2024,"DHS","NG2024DHS","NGBR8BFL.zip","NGBR8BFL","NG8BFL","data/raw/dhs/NGBR8BFL.rds","data/dhs_boundaries/NG2024DHS.rds",TRUE,TRUE
+"RWA","Rwanda",2000,"DHS","RW2000DHS","RWBR41FL.ZIP","RWBR41FL","RW41FL","data/raw/dhs/RWBR41FL.rds","data/dhs_boundaries/RW2000DHS.rds",TRUE,TRUE
+"RWA","Rwanda",2005,"DHS","RW2005DHS","RWBR53FL.ZIP","RWBR53FL","RW53FL","data/raw/dhs/RWBR53FL.rds","data/dhs_boundaries/RW2005DHS.rds",TRUE,TRUE
+"RWA","Rwanda",2008,"DHS","RW2008DHS","RWBR5AFL.ZIP","RWBR5AFL","RW5AFL","data/raw/dhs/RWBR5AFL.rds","data/dhs_boundaries/RW2008DHS.rds",TRUE,TRUE
+"RWA","Rwanda",2010,"DHS","RW2010DHS","RWBR61FL.ZIP","RWBR61FL","RW61FL","data/raw/dhs/RWBR61FL.rds","data/dhs_boundaries/RW2010DHS.rds",TRUE,TRUE
+"RWA","Rwanda",2015,"DHS","RW2015DHS","RWBR70FL.ZIP","RWBR70FL","RW70FL","data/raw/dhs/RWBR70FL.rds","data/dhs_boundaries/RW2015DHS.rds",TRUE,TRUE
+"RWA","Rwanda",2019,"DHS","RW2019DHS","RWBR81FL.ZIP","RWBR81FL","RW81FL","data/raw/dhs/RWBR81FL.rds","data/dhs_boundaries/RW2019DHS.rds",TRUE,TRUE
+"SEN","Senegal",2005,"DHS","SN2005DHS","SNBR4AFL.ZIP","SNBR4AFL","SN4AFL","data/raw/dhs/SNBR4AFL.rds","data/dhs_boundaries/SN2005DHS.rds",TRUE,TRUE
+"SEN","Senegal",2008,"MIS","SN2008MIS","SNBR5AFL.ZIP","SNBR5AFL","SN5AFL","data/raw/dhs/SNBR5AFL.rds","data/dhs_boundaries/SN2008MIS.rds",TRUE,TRUE
+"SEN","Senegal",2010,"DHS","SN2010DHS","SNBR61FL.ZIP","SNBR61FL","SN61FL","data/raw/dhs/SNBR61FL.rds","data/dhs_boundaries/SN2010DHS.rds",TRUE,TRUE
+"SEN","Senegal",2012,"DHS","SN2012DHS","SNBR6DFL.ZIP","SNBR6DFL","SN6DFL","data/raw/dhs/SNBR6DFL.rds","data/dhs_boundaries/SN2012DHS.rds",TRUE,TRUE
+"SEN","Senegal",2014,"DHS","SN2014DHS","SNBR71FL.ZIP","SNBR71FL","SN71FL","data/raw/dhs/SNBR71FL.rds","data/dhs_boundaries/SN2014DHS.rds",TRUE,TRUE
+"SEN","Senegal",2015,"DHS","SN2015DHS","SNBR7AFL.ZIP","SNBR7AFL","SN7AFL","data/raw/dhs/SNBR7AFL.rds","data/dhs_boundaries/SN2015DHS.rds",TRUE,TRUE
+"SEN","Senegal",2016,"DHS","SN2016DHS","SNBR7IFL.ZIP","SNBR7IFL","SN7IFL","data/raw/dhs/SNBR7IFL.rds","data/dhs_boundaries/SN2016DHS.rds",TRUE,TRUE
+"SEN","Senegal",2017,"DHS","SN2017DHS","SNBR7ZFL.ZIP","SNBR7ZFL","SN7ZFL","data/raw/dhs/SNBR7ZFL.rds","data/dhs_boundaries/SN2017DHS.rds",TRUE,TRUE
+"SEN","Senegal",2018,"DHS","SN2018DHS","SNBR81FL.ZIP","SNBR81FL","SN81FL","data/raw/dhs/SNBR81FL.rds","data/dhs_boundaries/SN2018DHS.rds",TRUE,TRUE
+"SEN","Senegal",2019,"DHS","SN2019DHS","SNBR8BFL.ZIP","SNBR8BFL","SN8BFL","data/raw/dhs/SNBR8BFL.rds","data/dhs_boundaries/SN2019DHS.rds",TRUE,TRUE
+"SEN","Senegal",2023,"DHS","SN2023DHS","SNBR8SFL.ZIP","SNBR8SFL","SN8SFL","data/raw/dhs/SNBR8SFL.rds","data/dhs_boundaries/SN2023DHS.rds",TRUE,TRUE
+"SLE","Sierra Leone",2008,"DHS","SL2008DHS","SLBR51FL.ZIP","SLBR51FL","SL51FL","data/raw/dhs/SLBR51FL.rds","data/dhs_boundaries/SL2008DHS.rds",TRUE,TRUE
+"SLE","Sierra Leone",2013,"DHS","SL2013DHS","SLBR61FL.ZIP","SLBR61FL","SL61FL","data/raw/dhs/SLBR61FL.rds","data/dhs_boundaries/SL2013DHS.rds",TRUE,TRUE
+"SLE","Sierra Leone",2019,"DHS","SL2019DHS","SLBR7AFL.ZIP","SLBR7AFL","SL7AFL","data/raw/dhs/SLBR7AFL.rds","data/dhs_boundaries/SL2019DHS.rds",TRUE,TRUE
+"STP","Sao Tome and Principe",2008,"DHS","ST2008DHS","STBR51FL.ZIP","STBR51FL","ST51FL","data/raw/dhs/STBR51FL.rds","data/dhs_boundaries/ST2008DHS.rds",TRUE,TRUE
+"SWZ","Eswatini",2006,"DHS","SZ2006DHS","SZBR51FL.ZIP","SZBR51FL","SZ51FL","data/raw/dhs/SZBR51FL.rds","data/dhs_boundaries/SZ2006DHS.rds",TRUE,TRUE
+"TCD","Chad",2004,"DHS","TD2004DHS","TDBR41FL.zip","TDBR41FL","TD41FL","data/raw/dhs/TDBR41FL.rds","data/dhs_boundaries/TD2004DHS.rds",TRUE,TRUE
+"TCD","Chad",2014,"DHS","TD2014DHS","TDBR71FL.ZIP","TDBR71FL","TD71FL","data/raw/dhs/TDBR71FL.rds","data/dhs_boundaries/TD2014DHS.rds",TRUE,TRUE
+"TGO","Togo",2013,"DHS","TG2013DHS","TGBR61FL.ZIP","TGBR61FL","TG61FL","data/raw/dhs/TGBR61FL.rds","data/dhs_boundaries/TG2013DHS.rds",TRUE,TRUE
+"TZA","Tanzania",2004,"DHS","TZ2004DHS","TZBR4IFL.ZIP","TZBR4IFL","TZ4IFL","data/raw/dhs/TZBR4IFL.rds","data/dhs_boundaries/TZ2004DHS.rds",TRUE,TRUE
+"TZA","Tanzania",2010,"DHS","TZ2010DHS","TZBR63FL.ZIP","TZBR63FL","TZ63FL","data/raw/dhs/TZBR63FL.rds","data/dhs_boundaries/TZ2010DHS.rds",TRUE,TRUE
+"TZA","Tanzania",2015,"DHS","TZ2015DHS","TZBR7BFL.ZIP","TZBR7BFL","TZ7BFL","data/raw/dhs/TZBR7BFL.rds","data/dhs_boundaries/TZ2015DHS.rds",TRUE,TRUE
+"TZA","Tanzania",2022,"DHS","TZ2022DHS","TZBR82FL.ZIP","TZBR82FL","TZ82FL","data/raw/dhs/TZBR82FL.rds","data/dhs_boundaries/TZ2022DHS.rds",TRUE,TRUE
+"UGA","Uganda",2000,"DHS","UG2000DHS","UGBR41FL.zip","UGBR41FL","UG41FL","data/raw/dhs/UGBR41FL.rds","data/dhs_boundaries/UG2000DHS.rds",TRUE,TRUE
+"UGA","Uganda",2006,"DHS","UG2006DHS","UGBR52FL.ZIP","UGBR52FL","UG52FL","data/raw/dhs/UGBR52FL.rds","data/dhs_boundaries/UG2006DHS.rds",TRUE,TRUE
+"UGA","Uganda",2009,"MIS","UG2009MIS","UGBR5AFL.ZIP","UGBR5AFL","UG5AFL","data/raw/dhs/UGBR5AFL.rds","data/dhs_boundaries/UG2009MIS.rds",TRUE,TRUE
+"UGA","Uganda",2011,"DHS","UG2011DHS","UGBR61FL.ZIP","UGBR61FL","UG61FL","data/raw/dhs/UGBR61FL.rds","data/dhs_boundaries/UG2011DHS.rds",TRUE,TRUE
+"UGA","Uganda",2016,"DHS","UG2016DHS","UGBR7BFL.ZIP","UGBR7BFL","UG7BFL","data/raw/dhs/UGBR7BFL.rds","data/dhs_boundaries/UG2016DHS.rds",TRUE,TRUE
+"ZAF","South Africa",2016,"DHS","ZA2016DHS","ZABR71FL.ZIP","ZABR71FL","ZA71FL","data/raw/dhs/ZABR71FL.rds","data/dhs_boundaries/ZA2016DHS.rds",TRUE,TRUE
+"ZMB","Zambia",2002,"DHS","ZM2002DHS","ZMBR42FL.zip","ZMBR42FL","ZM42FL","data/raw/dhs/ZMBR42FL.rds","data/dhs_boundaries/ZM2002DHS.rds",TRUE,TRUE
+"ZMB","Zambia",2007,"DHS","ZM2007DHS","ZMBR51FL.ZIP","ZMBR51FL","ZM51FL","data/raw/dhs/ZMBR51FL.rds","data/dhs_boundaries/ZM2007DHS.rds",TRUE,TRUE
+"ZMB","Zambia",2013,"DHS","ZM2013DHS","ZMBR61FL.ZIP","ZMBR61FL","ZM61FL","data/raw/dhs/ZMBR61FL.rds","data/dhs_boundaries/ZM2013DHS.rds",TRUE,TRUE
+"ZMB","Zambia",2018,"DHS","ZM2018DHS","ZMBR71FL.ZIP","ZMBR71FL","ZM71FL","data/raw/dhs/ZMBR71FL.rds","data/dhs_boundaries/ZM2018DHS.rds",TRUE,TRUE
+"ZMB","Zambia",2024,"DHS","ZM2024DHS","ZMBR81FL.zip","ZMBR81FL","ZM81FL","data/raw/dhs/ZMBR81FL.rds","data/dhs_boundaries/ZM2024DHS.rds",TRUE,TRUE
+"ZWE","Zimbabwe",2005,"DHS","ZW2005DHS","ZWBR52FL.ZIP","ZWBR52FL","ZW52FL","data/raw/dhs/ZWBR52FL.rds","data/dhs_boundaries/ZW2005DHS.rds",TRUE,TRUE
+"ZWE","Zimbabwe",2010,"DHS","ZW2010DHS","ZWBR62FL.ZIP","ZWBR62FL","ZW62FL","data/raw/dhs/ZWBR62FL.rds","data/dhs_boundaries/ZW2010DHS.rds",TRUE,TRUE
+"ZWE","Zimbabwe",2015,"DHS","ZW2015DHS","ZWBR72FL.ZIP","ZWBR72FL","ZW72FL","data/raw/dhs/ZWBR72FL.rds","data/dhs_boundaries/ZW2015DHS.rds",TRUE,TRUE

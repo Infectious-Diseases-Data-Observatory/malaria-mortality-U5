@@ -1,0 +1,10 @@
+{
+  "source_url": "https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,CME_CAUSE_OF_DEATH,1.0/.FRACTION.MALARIA._T.Y0T4./?format=sdmx-csv&dimensionAtObservation=AllDimensions&startPeriod=2000&endPeriod=2024",
+  "retrieved_utc": "2026-10-01T10:59:12Z",
+  "sha256": "74ee665771213c0bb792e421449d3e5fc13c11492bbecdf12f1c62fb89ee296d",
+  "bytes": 588193,
+  "portal": "https://childmortality.org/causes-of-death/data",
+  "source_label": "CA-CODE / UN IGME (WHO and UNICEF)",
+  "release": "CA CODE 2026 (childmortality.org update of 18 March 2026); years 2000 through 2024",
+  "note": "Malaria share (percent) of under-5 deaths, with bounds as published. Retrieved 1 October 2026 with user approval for the supplementary PfPR versus malaria-share figure."
+}

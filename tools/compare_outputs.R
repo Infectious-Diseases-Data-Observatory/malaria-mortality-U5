@@ -27,7 +27,8 @@ norm <- function(x) {
   x <- gsub(paste0(ref, "/"), "", x, fixed = TRUE); x <- gsub(paste0(tgt, "/"), "", x, fixed = TRUE)
   x <- gsub(ref, ".", x, fixed = TRUE); x <- gsub(tgt, ".", x, fixed = TRUE)
   for (k in names(renames)) x <- gsub(k, renames[[k]], x, fixed = TRUE)
-  gsub("data/raw/raw/", "data/raw/", gsub("data/data/", "data/", x, fixed = TRUE), fixed = TRUE)
+  x <- gsub("data/raw/raw/", "data/raw/", gsub("data/data/", "data/", x, fixed = TRUE), fixed = TRUE)
+  sub("^cached$", "built", x)   # shard status: reused from an earlier run of the same code
 }
 volatile <- "md5|sha256|hash|signature|elapsed|started|finished|retrieved|session|^seconds$|_seconds$|^time$|timestamp|generated"
 sets <- list(
@@ -95,7 +96,7 @@ compare_text <- function(a, b) {
 compare_rds <- function(a, b) {
   x <- readRDS(a); y <- readRDS(b)
   strip <- function(o) {
-    if (is.list(o) && !is.data.frame(o)) { o[intersect(names(o), c("signature", "source_files", "created", "session_info", "elapsed_seconds", "model_md5"))] <- NULL; lapply(o, strip) } else o
+    if (is.list(o) && !is.data.frame(o)) { o[intersect(names(o), c("signature", "source_files", "source_hashes", "created", "session_info", "elapsed_seconds", "model_md5"))] <- NULL; lapply(o, strip) } else o
   }
   if (isTRUE(all.equal(strip(x), strip(y), tolerance = 1e-9, check.attributes = TRUE))) return(list(class = "equivalent", detail = ""))
   # Child-band shards: compare the data only.

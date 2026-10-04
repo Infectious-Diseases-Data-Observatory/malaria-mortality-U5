@@ -10,7 +10,7 @@
 #            --hiv=refit   use today's refitted HIV panels instead of the paper's frozen panels (default frozen)
 #            --ignore-versions  run with package versions that differ from the recorded ones
 #
-# The full run takes about 5.5 hours (the imputed-covariate sensitivity alone about 2.5 hours);
+# The full run takes about 4 hours (the imputed-covariate sensitivity about 1 hour);
 # run it detached: ./run_detached.sh --all   (logs in logs/, completion markers in logs/state/).
 # No stage downloads anything: network access is blocked for every step (fetch scripts are in
 # R_inputs/fetch/ and are run by hand). Only one pipeline process may run at a time, because the
@@ -52,8 +52,8 @@ stages <- list(
                         "06_report.R"), function(f) R(file.path("R_cbh/sensitivity/imputation_dhsmics", f))),
   validate = list(R("R_cbh/reporting/10_validate_reporting.R")),
   export = list(PY("R_cbh/reporting/export_paper.py", "--destination", "paper", "--copy")))
-minutes <- c(restore = 1, inputs = 12, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 25, mics = 30, primary = 25,
-             subgroups = 15, nutrition = 50, imputation = 150, validate = 1, export = 1)
+minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 20, mics = 30, primary = 20,
+             subgroups = 15, nutrition = 20, imputation = 65, validate = 1, export = 1)
 
 state_dir <- "logs/state"; dir.create(state_dir, recursive = TRUE, showWarnings = FALSE)
 done <- function(s) file.exists(file.path(state_dir, paste0(s, ".done")))
@@ -114,6 +114,7 @@ dirty <- length(tryCatch(system2("git", c("status", "--porcelain", "--untracked-
                          error = function(e) character())) > 0
 
 ## Run --------------------------------------------------------------------------------------------------
+dir.create("paper", showWarnings = FALSE)   # export destination (export_paper.py requires an existing folder)
 stamp <- format(Sys.time(), "%Y%m%dT%H%M%S")
 times <- "logs/stage_times.csv"
 message(sprintf("Running %s (about %d minutes); commit %s%s", paste(run, collapse = ", "), sum(minutes[run]),

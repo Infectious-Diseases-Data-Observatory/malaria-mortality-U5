@@ -7,6 +7,7 @@
 #   Rscript run_pipeline.R --only=STAGE           run one stage (re-running it)
 #   Rscript run_pipeline.R --to=STAGE             with --all or --from: stop after STAGE
 #   options: --map=frozen  use the frozen survey-region MAP tables instead of recomputing them
+#            --hiv=refit   use today's refitted HIV panels instead of the paper's frozen panels (default frozen)
 #            --ignore-versions  run with package versions that differ from the recorded ones
 #
 # The full run takes about 5.5 hours (the imputed-covariate sensitivity alone about 2.5 hours);
@@ -16,14 +17,15 @@
 # prepared dataset needs about 3 GB of memory per process.
 args <- commandArgs(trailingOnly = TRUE)
 opt <- function(name) { a <- grep(paste0("^--", name, "="), args, value = TRUE); if (length(a)) sub("^[^=]+=", "", a[1]) else NULL }
-known <- "^--(list|all|ignore-versions|from=.+|only=.+|to=.+|map=(recompute|frozen))$"
+known <- "^--(list|all|ignore-versions|from=.+|only=.+|to=.+|map=(recompute|frozen)|hiv=(frozen|refit))$"
 if (!length(args) || any(!grepl(known, args))) {
-  cat("Usage: Rscript run_pipeline.R --list | --all | --from=STAGE | --only=STAGE [--to=STAGE] [--map=frozen] [--ignore-versions]\n")
+  cat("Usage: Rscript run_pipeline.R --list | --all | --from=STAGE | --only=STAGE [--to=STAGE] [--map=frozen] [--hiv=refit] [--ignore-versions]\n")
   quit(status = if (!length(args)) 0 else 1)
 }
 if (!file.exists("run_pipeline.R") || !file.exists("R_cbh/00_config.R")) stop("Run from the repository root.")
 if (grepl("MIS:DHS malaria prevalence", getwd(), fixed = TRUE)) stop("This is the analysis project, not this repository.")
 map_frozen <- identical(opt("map"), "frozen")
+hiv_refit <- identical(opt("hiv"), "refit")
 
 R <- function(script, ...) list(cmd = file.path(R.home("bin"), "Rscript"), args = c(script, ...), script = script)
 PY <- function(script, ...) list(cmd = "python3", args = c(script, ...), script = script)
@@ -32,8 +34,9 @@ stages <- list(
   inputs = c(if (!map_frozen) list(R("R_inputs/02_extract_map_pfpr.R"), R("R_inputs/41_extract_map_window_years.R")),
              list(R("R_inputs/02b_extract_unicef_immunisation.R"), R("R_inputs/dhs_region_centroids.R"),
                   R("R_inputs/who_wmr2025_tables.R"))),
-  hiv = list(R("R_cbh/hiv/01_fit_incidence.R"), R("R_cbh/hiv/01_fit_incidence.R", "--extended"),
-             R("R_cbh/hiv/03_add_liberia_aidsinfo.R")),
+  # The HIV model is refitted as a check; by default the paper's frozen panels are then used (stage hiv_panels).
+  hiv = list(R("R_cbh/hiv/01_fit_incidence.R"), R("R_cbh/hiv/01_fit_incidence.R", "--extended")),
+  hiv_panels = c(if (!hiv_refit) list(R("tools/use_frozen_hiv.R")), list(R("R_cbh/hiv/03_add_liberia_aidsinfo.R"))),
   dhs_bands = list(R("R_cbh/01_make_analysis_data.R")),
   covariates = list(R("R_cbh/covariates/01_fetch_published.R"), PY("R_cbh/covariates/12_fetch_nutrition.py"),
                     R("R_cbh/covariates/run.R"), R("R_cbh/covariates/11_extract_first_birth_age.R"),
@@ -49,7 +52,7 @@ stages <- list(
                         "06_report.R"), function(f) R(file.path("R_cbh/sensitivity/imputation_dhsmics", f))),
   validate = list(R("R_cbh/reporting/10_validate_reporting.R")),
   export = list(PY("R_cbh/reporting/export_paper.py", "--destination", "paper", "--copy")))
-minutes <- c(restore = 1, inputs = 12, hiv = 30, dhs_bands = 6, covariates = 25, mics = 30, primary = 25,
+minutes <- c(restore = 1, inputs = 12, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 25, mics = 30, primary = 25,
              subgroups = 15, nutrition = 50, imputation = 150, validate = 1, export = 1)
 
 state_dir <- "logs/state"; dir.create(state_dir, recursive = TRUE, showWarnings = FALSE)

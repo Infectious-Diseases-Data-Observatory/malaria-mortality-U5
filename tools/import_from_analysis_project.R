@@ -71,11 +71,16 @@ log[[length(log) + 1L]] <- data.frame(role = "frozen_restore", file = f, bytes =
 
 ## Fallbacks for checkpoints (committed; used only with run_pipeline.R --map=frozen / --hiv=frozen) --
 fallback <- c("data/derived_dhs/map_pfpr_by_survey_region.csv", "data/derived_dhs/map_pfpr_window_years.csv",
-  "data/derived_cbh/hiv_incidence/child_incidence_country_year.csv",
-  "data/derived_cbh/hiv_incidence/child_incidence_country_year_extended.csv",
   "data/derived_cbh/hiv_incidence/child_incidence_country_year_lbr.csv",
   "data/derived_cbh/hiv_incidence/child_incidence_country_year_extended_lbr.csv")
 for (f in fallback) put(S(f), file.path("data/frozen", f), "frozen_fallback")
+# The child HIV incidence panels and draws used by the paper (base panel fitted 8 September 2026, extended
+# panel 18 September 2026). The analysis project froze the base panel: the current Stan code does not
+# reproduce it, and refits differ in imputed country-years by MCMC error. run_pipeline.R restores these
+# (stage hiv_panels) after refitting the model as a check; the Liberia panels are then rebuilt from them.
+hiv_frozen <- file.path("data/derived_cbh/hiv_incidence", c("child_incidence_country_year.csv",
+  "child_incidence_country_year_extended.csv", "child_incidence_draws.rds", "child_incidence_draws_extended.rds"))
+for (f in hiv_frozen) put(S(f), file.path("data/frozen", f), "frozen_hiv")
 
 all <- do.call(rbind, log)
 raw <- all$role %in% c("raw_dhs_recode", "raw_mics_download", "unicef_original")

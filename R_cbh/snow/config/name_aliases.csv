@@ -1,0 +1,29 @@
+country,value_key,snow_name,note
+AGO,huile,Huila,spelling
+AGO,malange,Malanje,spelling
+AGO,kwanzasul,Cuanza Sul,spelling
+AGO,kwanzanorte,Kuanza Norte,spelling
+AGO,kuandokubango,Cuando Cubango,spelling
+COD,tanganyka,Tanganyika,spelling
+LBR,rivergee,River Ghee,spelling (Snow spells River Gee as River Ghee)
+NGA,nasarawa,Nassarawa,spelling
+NGA,zamfora,Zamfara,spelling
+NGA,fct,"FCT, Abuja",Federal Capital Territory
+NGA,abuja,"FCT, Abuja",Federal Capital Territory
+NGA,abujafct,"FCT, Abuja",Federal Capital Territory
+NGA,ncfctabuja,"FCT, Abuja",Federal Capital Territory (zone prefix)
+TZA,daressalam,Dar es Salaam,spelling
+SOM,lowershabelle,Shabelle Hoose,English name of the Somali region
+SOM,middleshabelle,Shabelle Dhexe & Banadir,English name; Snow combines Middle Shabelle and Banadir
+SOM,banadir,Shabelle Dhexe & Banadir,Snow combines Middle Shabelle and Banadir
+SOM,wgalbeed,Woqooyi Galbeed,abbreviation
+SOM,nugal,Nugaal,spelling
+SOM,lowerjuba,Juba Hoose,English name of the Somali region
+SOM,middlejuba,Juba Dhexe,English name of the Somali region
+SOM,galguduud,Galgaduud,spelling
+SOM,hiran,Hiraan,spelling
+SOM,togdhere,Togdheer,spelling
+SLE,falaba,Koinadugu,district created in 2017 from Koinadugu (contained in it)
+MRT,tirsezemour,Tiris Zemmour,spelling; malaria-free Snow unit
+MRT,tiriszemour,Tiris Zemmour,spelling; malaria-free Snow unit
+MRT,inchiri,Inchiri,malaria-free Snow unit

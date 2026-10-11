@@ -1,0 +1,11 @@
+survey,variable,label,value,note
+CG51FL,hv201,protected surface water {cg},1,reproduces the published national improved-water value (59.2 -> 66.2; published 66.3)
+CM44FL,hv201,protected without pump,0,reproduces the published national improved-water value (66.2 -> 59.6; published 59.6)
+MD42FL,hv205,pit latrine with drainage,0,reproduces the published national improved-sanitation value (52.4 -> 3.0; published 3.1)
+TZ7BFL,hv205,pit latrine without slab non-washable,1,mislabelled non-washable slab; reproduces the published value (35.5 -> 74.9; published 74.9)
+CD51FL,hv205,traditional pit toilet (covered),1,reproduces the published national value (7.7 -> 37.8; published 37.8)
+SN4AFL,hv205,flush toilet with drainage,0,reproduces the published national value (47.9 -> 18.7; published 18.7)
+MW81FL,hv205,pit latrine with log/rock,1,reproduces the published national value (47.9 -> 69.0; published 69.0)
+ZA71FL,hv205,pit latrine without ventilation pipe,1,reproduces the published national value (75.7 -> 95.6; published 95.6)
+MZ62FL,hv205,"toilet without flush, don't know where",1,reproduces the published national value (23.3 -> 26.1; published 26.1)
+MW4EFL,m15,traditional birth attendant,1,coded in the private-sector range in this survey; reproduces the published facility-delivery value (57.2 -> 69.3; published 69.4)

@@ -1,0 +1,8 @@
+survey,antigen,variables,note
+ZM51FL,dtp,sdhh1;sdhh2;sdhh3,DPT-HepB+Hib (pentavalent) doses held outside h3/h5/h7
+GA61FL,dtp,s506e1;s506e2;s506e3,Pentacoq doses held outside h3/h5/h7
+TZ4IFL,dtp,hb1;hb2;hb3,DPT-HB doses held outside h3/h5/h7
+UG52FL,dtp,sdh1;sdh2;sdh3,DPT-HepB-Hib doses held outside h3/h5/h7
+CG61FL,dtp,s506t1;s506t2;s506t3,Pentacoq doses held outside h3/h5/h7
+GA71FL,dtp,s508n1;s508n2;s508n3,Pentacoq/Pentaxim doses (private sector) held outside h3/h5/h7; h51-h53 duplicate h3/h5/h7 and are not added
+RW70FL,measles,s506mr,MMR doses held outside h9

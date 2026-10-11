@@ -54,6 +54,8 @@ data/derived_cbh/
 data/derived_dhs/
 data/derived_mics/
 data/unicef/original/
+data/dhs/
+data/snow_prevalence_model/
 *.sav
 *.SAV
 *.dta

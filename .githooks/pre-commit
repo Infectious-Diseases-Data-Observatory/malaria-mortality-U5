@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Pre-commit hook: refuses commits that would add microdata (tools/check_no_microdata.sh).
+# Enable once per clone with:  git config core.hooksPath .githooks
+exec "$(git rev-parse --show-toplevel)/tools/check_no_microdata.sh"

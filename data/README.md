@@ -9,7 +9,7 @@ DHS, MIS and MICS microdata cannot be redistributed. Register with the programme
 | What | Where | How to obtain |
 |---|---|---|
 | 124 DHS/MIS Births Recodes (BR), as `.rds` files named by the DHS file name, e.g. `NGBR8BFL.rds` | `data/raw/dhs/` | [DHS Program](https://dhsprogram.com/data/) (registration and project approval). The files were read with `rdhs` (`R_inputs/fetch/01_access_dhs_data.R --download` saves them in this form). |
-| Sierra Leone 2013 household member recode, `SLPR61FL.rds` | `data/raw/dhs/` | As above. Used only to recompute Sierra Leone 2013 regional values. |
+| DHS/MIS Household Member Recodes (PR, flat), e.g. `NGPR8BFL.rds`, for every DHS survey, and WHO height/weight recodes (HW, Stata), e.g. `BFHW43DT.rds`, for the older surveys whose BR files lack WHO z-scores; the list is `R_cbh/snow/config/dhs_pr_hw_files.csv` | `data/raw/dhs/` | As above (`R_inputs/fetch/download_pr_hw.R`). Used for the Snow-unit covariates; SLPR61FL also recomputes the Sierra Leone 2013 regional values of v9. |
 | 93 UNICEF MICS survey downloads (zip archives in `<ISO>_<year>_MICS<n>_v01_M/` folders) | `data/raw/MICS_Datasets/` | [UNICEF MICS](https://mics.unicef.org/surveys) (registration). `R_mics/00a_extract.R` extracts the SPSS files to `data/raw/MICS_extracted/`. |
 | Full UNICEF data dump `fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv` (563 MB) | `data/unicef/original/` | [UNICEF data warehouse](https://data.unicef.org/), global dataflow. Optional: only needed to remake the committed extract (`R_inputs/trim_unicef_fusion.R`). |
 
@@ -23,7 +23,7 @@ Every file derived from microdata (child-band files, prepared datasets, model fi
 | GPW v4 population density 2020, 2.5 arc-minutes | `pop/gpw_v4_population_density_rev11_2020_2.5m.tif` | CIESIN/SEDAC. CC BY 4.0. |
 | National boundaries | `africa_admin0.rds` | `geodata`/GADM via `R_inputs/fetch/01_fetch_data.R`. |
 | DHS survey-region boundaries | `dhs_boundaries/<SurveyId>.rds` (128) | [DHS Spatial Data Repository](https://spatialdata.dhsprogram.com/), via `rdhs::download_boundaries`. |
-| Africa admin-1 boundaries (Guinea-Bissau and CAR MICS regions; some MICS region labels) | `external/snow_admin1/Africa_New_Admin.*` | Snow malaria prevalence project (KEMRI-Wellcome). **Check terms before publishing.** |
+| Snow et al. (2017) sub-national polygons: the 520 malaria-endemic units of analysis (plus 29 malaria-free and 2 island units); also Guinea-Bissau and CAR MICS regions and some MICS region labels | `external/snow_admin1/Africa_New_Admin.*` | Snow malaria prevalence project (KEMRI-Wellcome), released open access with the original publication (Snow et al. 2017, *Nature* 550:515–518; per the authors of this repository, 11 October 2026). |
 | UNICEF/WHO immunisation estimates (WUENIC) | `unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_immunisation_subset.csv`, `unicef/CHECKSUMS.csv` | Header plus every `IM_` line of the UNICEF data dump, unchanged (`R_inputs/trim_unicef_fusion.R`). |
 | Child HIV epidemiology (UNAIDS 2025 estimates, via UNICEF) | `HIV_Epidemiology_Children_Adolescents_2025.xlsx` | [UNICEF data](https://data.unicef.org/topic/hivaids/). |
 | New HIV infections, children 0–14, Liberia | `unaids_aidsinfo/liberia_new_hiv_infections_children_0_14.csv` | [UNAIDS AIDSinfo](https://aidsinfo.unaids.org/). |

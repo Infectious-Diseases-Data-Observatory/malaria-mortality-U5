@@ -12,10 +12,15 @@ dir.create(out,recursive=TRUE,showWarnings=FALSE)
 # burden comparison becomes Figure 3.
 # Figure 4 (added 24 September 2026): probability of dying before age 5 by country, all causes
 # and caused by malaria, with national PfPR in a left panel (R_cbh/reporting/13_under5_death_probability.R).
+# Snow-unit primary (12 October 2026, author request): Figure 1 is the map of complete birth histories by analysis
+# unit (R_cbh/reporting/23_analysis_units_map.R); the survey map and timing moves to the supplement.
+snow <- identical(cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$unit,"snow")
+fig1 <- if(snow) c(file="fig1_analysis_units_map.png",source="analysis_units_map/analysis_units_map.png") else
+  c(file="fig1_survey_map_and_timing.png",source="survey_map/survey_map_and_timing.png")
 figures <- data.frame(figure=1:4,
-  filename=c("fig1_survey_map_and_timing.png","fig2_malaria_attributable_fraction_by_age.png",
+  filename=c(fig1[["file"]],"fig2_malaria_attributable_fraction_by_age.png",
     "fig3_burden_comparison.png","fig4_under5_death_probability.png"),
-  source=file.path(root,c("survey_map/survey_map_and_timing.png",
+  source=file.path(root,c(fig1[["source"]],
     "attributable_fraction_by_age.png","burden_comparison/fig4_burden_comparison.png",
     "under5_probability/under5_death_probability_2024.png")))
 stopifnot(all(file.exists(figures$source)))
@@ -23,9 +28,12 @@ figures$md5 <- vapply(figures$source,cbh_file_hash,"")
 cbh_atomic_csv(figures,file.path(out,"manifest.csv"))
 writeLines(c("# Main-paper figures and draft captions","",
   "Figures contain no title, subtitle or embedded caption. Axis labels, age/year facet labels and legends remain. File numbering here does not alter the order of figures in TeX.","",
-  "## Figure 1 — survey map and timing","",
-  "File: `fig1_survey_map_and_timing.png` (source `survey_map/survey_map_and_timing.png`).","",
-  readLines(file.path(root,"survey_map/CAPTION.md"))[-c(1,2)],"",
+  if(snow) c("## Figure 1 — complete birth histories used, by analysis unit","",
+    "File: `fig1_analysis_units_map.png` (source `analysis_units_map/analysis_units_map.png`; values in `analysis_units_map/analysis_units_by_polygon.csv`).","",
+    readLines(file.path(root,"analysis_units_map/CAPTION.md"))[-c(1,2)],"") else
+  c("## Figure 1 — survey map and timing","",
+    "File: `fig1_survey_map_and_timing.png` (source `survey_map/survey_map_and_timing.png`).","",
+    readLines(file.path(root,"survey_map/CAPTION.md"))[-c(1,2)],""),
   "## Figure 2 — malaria-attributable fraction by age","",
   "File: `fig2_malaria_attributable_fraction_by_age.png`.","",
   paste0(cbh_paper_model_label(), ": estimated share of all-cause deaths attributable to malaria within each completed-month age band, at MAP PfPR[2–10] levels of 10%, 20%, 30% and 40%. Points show 100 × {1 − exp[f_g(0) − f_g(P)]}, using the seven separate primary MAP gamma=2 models; lines connect discrete age-band estimates and do not imply a continuous-age fit. The denominator is all-cause deaths within each band, not all under-five deaths pooled across bands. The hazard-based attributable fraction follows the primary burden convention of holding annual person-time fixed; no country-specific IHME inputs are used here. Zero prevalence lies below observed exposure support, so the counterfactual requires extrapolation. Vertical bars show conditional pointwise 95% intervals, dodged by prevalence level; the interval limits and support flags are retained in attributable_fraction_by_age.csv."),"",
@@ -35,6 +43,9 @@ writeLines(c("# Main-paper figures and draft captions","",
   "## Figure 4 — national PfPR and probability of dying before age 5, all causes and caused by malaria","",
   "File: `fig4_under5_death_probability.png` (source `under5_probability/under5_death_probability_2024.png`; values in `under5_probability/under5_death_probability.csv`).","",
   readLines(file.path(root,"under5_probability/CAPTION.md"))[-c(1,2)],"",
+  if(snow) c("## Supplementary figure — survey map and timing (formerly Figure 1)","",
+    "File: `sfig_survey_map_and_timing.png` (exported to the manuscript's `Supplementary Figures/` folder; source `survey_map/survey_map_and_timing.png`).","",
+    readLines(file.path(root,"survey_map/CAPTION.md"))[-c(1,2)],"") else character(),
   "## Supplementary figure — PfPR and mortality by age (formerly Figure 2)","",
   "File: `sfig_pfpr_mortality_by_age.png` (exported to the manuscript's `Supplementary Figures/` folder; source `pfpr_splines.png`).","",
   paste0(cbh_paper_model_label(), ": age-specific associations between MAP PfPR[2–10] and all-cause mortality, estimated in seven separate age-band models at gamma=2. Curves show log mortality hazard ratios relative to PfPR=20% across the central 95% of each band's exposure distribution. Shading denotes conditional pointwise 95% intervals. Models use cr splines for PfPR (k=5) and calendar year (k=6), 17 survey-region/national annual covariates, including maternal age at first birth, urban percentage, DTP3/measles, delivery, birth interval, WASH, electricity, wasting and stunting, and survey/country/region random effects. Intervals condition on fitted smoothing parameters, exposure, the fixed posterior-median child HIV imputation and filled regional covariates. Sex, multiple births, birth order, Hib3, PCV, rotavirus and exclusive breastfeeding are excluded."),"",

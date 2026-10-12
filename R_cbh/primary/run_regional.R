@@ -20,7 +20,9 @@ stages <- c(prepare=settings$prepare,fit="R_cbh/primary/01_fit.R",
   effects="R_cbh/primary/02_effects.R",diagnostics="R_cbh/primary/04_diagnostics.R",
   report="R_cbh/primary/03_report.R",
   flow=if(identical(settings$unit,"snow")) "R_cbh/reporting/01_study_flow_snow.R" else "R_cbh/reporting/01_study_flow.R",
-  survey_map="R_cbh/reporting/03_survey_map.R",age_fractions="R_cbh/reporting/06_attributable_fraction_by_age.R",
+  survey_map="R_cbh/reporting/03_survey_map.R",
+  units_map=if(identical(settings$unit,"snow")) "R_cbh/reporting/23_analysis_units_map.R" else NA_character_,
+  age_fractions="R_cbh/reporting/06_attributable_fraction_by_age.R",
   annual_burden="R_cbh/burden/04_annual_comparison.R",annual_plot="R_cbh/reporting/07_annual_mortality_comparison.R",
   nigeria_burden="R_cbh/burden/05_nigeria_state_burden.R",nigeria_plot="R_cbh/reporting/08_nigeria_state_comparison.R",
   burden_figure="R_cbh/reporting/11_burden_comparison_figure.R",
@@ -29,6 +31,8 @@ stages <- c(prepare=settings$prepare,fit="R_cbh/primary/01_fit.R",
   u5_probability="R_cbh/reporting/13_under5_death_probability.R",
   malaria_share="R_cbh/reporting/20_malaria_share_vs_pfpr.R",
   paper_manifest="R_cbh/reporting/04_paper_figures.R")
+# Figure 1 of the Snow-unit primary (12 October 2026, author request): complete birth histories by analysis unit.
+stages <- stages[!is.na(stages)]
 if("--report-only" %in% args) stages <- stages[!names(stages) %in% c("prepare","fit")]
 dir.create(settings$out,recursive=TRUE,showWarnings=FALSE)
 log <- list()

@@ -73,6 +73,11 @@ if snow:
         (snow_maps / "CAPTION_boundary_agreement_map.md", Path("Supplementary Figures/sfig_snow_boundary_agreement_map_caption.md")),
         (root / "comparison_v9/pfpr_hr_curves_v9_vs_snow.png", Path("Supplementary Figures/sfig_pfpr_curves_v9_vs_snow.png")),
         (root / "comparison_v9/COMPARISON.md", Path("tables/comparison_v9_vs_snow.md")),
+        # Figure 1 is the map of complete birth histories by analysis unit; the survey map and timing (Figure 1 of
+        # v9) moves to the supplement (author request, 12 October 2026).
+        (root / "analysis_units_map/CAPTION.md", Path("figures/fig1_analysis_units_map_caption.md")),
+        (root / "survey_map/survey_map_and_timing.png", Path("Supplementary Figures/sfig_survey_map_and_timing.png")),
+        (root / "survey_map/CAPTION.md", Path("Supplementary Figures/sfig_survey_map_and_timing_caption.md")),
     ])
     for png in sorted((snow_maps / "merge_units").glob("*_merge_units.png")):
         assets.append((png, Path("Supplementary Figures/snow_merge_units") / png.name))
@@ -182,9 +187,11 @@ if v6.is_file():
     v6_text = (f"{', which retains every ' + kept if retained else ''}: {fmt(s6['records'])} records, {fmt(s6['deaths'])} deaths, "
                f"{s6['surveys']} surveys and {s6['countries']} countries")
 title = "Updated primary results (DHS and MICS surveys)" if mics["surveys"] else "Updated primary results"
+fig1_text = ("Figure 1 is the map of complete birth histories used, by analysis unit (`figures/fig1_analysis_units_map.png`); "
+             "the former Figure 1, the survey map and timing, is now `Supplementary Figures/sfig_survey_map_and_timing.png`.\n\n") if snow else ""
 handoff.write_text(f"""# {title}
 
-Figures 1–4 (Figure 3 combines the 2024 country comparison, the Nigerian state
+{fig1_text}Figures 1–4 (Figure 3 combines the 2024 country comparison, the Nigerian state
 comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
 under-five child-years;
 Figure 4 is the probability of dying before age 5 by country, all causes and caused

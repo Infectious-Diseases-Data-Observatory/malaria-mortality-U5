@@ -49,7 +49,7 @@ cbh_subgroup_settings <- function(sample = c("dhsmics", "dhs")) {
                      early = "Surveys up to median survey year", late = "Surveys after median survey year",
                      records_early = "Records up to median calendar year", records_late = "Records after median calendar year")
       st$colours <- c(map_full = "#222222", sahel = "#C34D26", west_africa = "#0072B2", central_africa = "#CC79A7",
-                      east_africa = "#009E73", early = "#7B4FA3", late = "#E69F00", records_early = "#56B4E9", records_late = "#D55E00")
+                      east_africa = "#009E73", early = "#7B4FA3", late = "#E69F00", records_early = "#56B4E9", records_late = "#8C8C2A")
       st$figures <- list(sfig_pfpr_splines_by_subgroup = c("sahel"),
                          sfig_pfpr_splines_by_subregion = c("west_africa", "central_africa", "east_africa"),
                          sfig_pfpr_splines_by_period = c("early", "late", "records_early", "records_late"))

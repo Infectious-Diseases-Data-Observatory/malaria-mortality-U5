@@ -79,9 +79,10 @@ pc <- ggplot(cz, aes(hazard_ratio, age_label, colour = series)) +
   geom_vline(xintercept = 1, colour = "grey60", linetype = 2) +
   geom_pointrange(aes(xmin = lower_95, xmax = upper_95), position = position_dodge(width = .7), size = .5) +
   scale_x_log10(breaks = c(.5, .7, .8, .9, 1, 1.1, 1.25)) + scale_colour_manual(values = colours) +
-  guides(colour = guide_legend(nrow = 2)) +
+  guides(colour = guide_legend(nrow = if (length(st$labels) > 5) 3 else 2)) +
   labs(x = "Hazard ratio, PfPR 40% to 20% (95% interval, log scale)", y = "Age (completed months)") + paper
-ggsave(file.path(st$out, "pfpr_40_to_20_by_subgroup.png"), pc, width = 10, height = 7, dpi = 240,
+ggsave(file.path(st$out, "pfpr_40_to_20_by_subgroup.png"), pc, width = if (length(st$labels) > 5) 14 else 10,
+       height = if (length(st$labels) > 5) 9 else 7, dpi = 240,
        device = ragg::agg_png, bg = "white")
 
 ## ---- caption and report --------------------------------------------------------------

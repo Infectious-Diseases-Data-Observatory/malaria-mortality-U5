@@ -170,7 +170,7 @@ if(mics) {
     sprintf(" and %s MICS surveys",cov_mics),
     if(cov_mics) "; the MICS surveys lack anthropometry or a child HIV incidence series, or their band-entry years precede a national series" else "")
   nudge_text <- if(length(nudged)) sprintf(" Where a MICS survey shares a country and year with a DHS or MIS survey (%s), the MICS symbol is drawn slightly above the line.",paste(nudged,collapse=", ")) else ""
-  writeLines(c("# Figure 1 caption","",
+  writeLines(c(if(snow) "# Supplementary figure caption: survey map and timing" else "# Figure 1 caption","",
     sprintf("Geographic coverage and timing of the %s DHS and MIS surveys and %s MICS surveys with complete birth histories (%s countries). Circles are DHS and MIS surveys and triangles MICS surveys; filled symbols are the %s DHS and %s MICS surveys that contribute to the primary analysis (%s countries), and open symbols the %s excluded surveys: %s %s, and %s for which a required covariate was unavailable for every %s after the declared substitutions (%s). Country shading indicates the number of included surveys; grey countries have none. Timeline rows are grouped by UN sub-region (Central Africa: UN Middle Africa), and n is the number of mothers (complete birth histories) contributing at least one child to the primary analysis, summed over the country's included surveys (%s in total).%s The %s MICS surveys without a complete birth history are not shown.",
       nd,nm,length(unique(all$country)),inc_d,inc_m,nrow(summary),n_map+n_cov,n_map,
       if(snow) with(list(m=table(all$country[all$status==status_levels[2]])), sprintf("in Lesotho (%s; malaria free, not processed), the Comoros (%s) and São Tomé and Príncipe (%s), which have no Snow et al. malaria-endemic polygon",

@@ -55,7 +55,9 @@ cbh_snow_primary_settings <- function(version) {
     hiv_panel = "data/derived_cbh/hiv_incidence/child_incidence_country_year_lbr.csv",
     # Expected counts are set from the verified run (verification/reference_key_numbers.csv); NULL = not yet fixed.
     expected_records = NULL, expected_deaths = NULL, expected_regions = NULL,
-    mics_output_dir = "data/derived_mics/cbh_build",
+    mics_output_dir = "data/derived_mics/cbh_build", expected_mics_surveys = NULL,
+    sensitivity_dirs = c(subgroups = "results/cbh/subgroups_snow520_merge_gamma2_v5",
+                         nutrition = "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v5"),
     unit = "snow", snow_variant = if (identical(version, "snow_merge")) "merge" else "split_repro",
     prepare = "R_cbh/primary/00_prepare_snow.R")
 }

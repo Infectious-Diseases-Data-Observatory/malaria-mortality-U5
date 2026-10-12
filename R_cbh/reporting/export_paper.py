@@ -5,6 +5,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -12,7 +13,11 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("--destination", type=Path, required=True)
 parser.add_argument("--copy", action="store_true", help="Copy after validating; default is a local export manifest only")
-parser.add_argument("--root", type=Path, default=Path("results/cbh/primary_map_regional17_dhsmics_gamma2_v9"))
+# The primary version (CBH_PRIMARY_VERSION, set by run_pipeline.R): snow_merge = the Snow-unit primary (since
+# 11 October 2026), regional_mics = the v9 survey-region primary.
+snow = os.environ.get("CBH_PRIMARY_VERSION", "regional_mics") == "snow_merge"
+default_root = "results/cbh/primary_snow520_merge_dhsmics_gamma2_v11" if snow else "results/cbh/primary_map_regional17_dhsmics_gamma2_v9"
+parser.add_argument("--root", type=Path, default=Path(default_root))
 args = parser.parse_args()
 root = args.root
 out = root / "paper_refresh"
@@ -20,9 +25,9 @@ out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
 assert destination.is_dir()
 # Sensitivities refitted on the DHS and MICS sample; the DHS-only versions are kept as history.
-subgroups = Path("results/cbh/subgroups_dhsmics_map_gamma2_v4")
-nutrition = Path("results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
-imputed = Path("results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10")
+subgroups = Path("results/cbh/subgroups_snow520_merge_gamma2_v5" if snow else "results/cbh/subgroups_dhsmics_map_gamma2_v4")
+nutrition = Path("results/cbh/nutrition_adjustment_snow520_merge_gamma2_v5" if snow else "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
+imputed = Path("results/cbh/primary_snow520_merge_imputed_gamma2_v12" if snow else "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10")
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -101,12 +106,12 @@ def part(kind):
     rows = [row for row in coverage if row["type"] == kind]
     return dict(surveys=len(rows), countries={row["country"] for row in rows},
                 regions=sum(int(row["regions"]) for row in rows),
-                records=sum(int(selection[row["survey"]]["records"]) for row in rows),
-                deaths=sum(int(selection[row["survey"]]["deaths"]) for row in rows))
+                records=sum(round(float(selection[row["survey"]]["records"])) for row in rows),
+                deaths=sum(round(float(selection[row["survey"]]["deaths"])) for row in rows))
 
 dhs, mics = part("DHS"), part("MICS")
-assert dhs["records"] + mics["records"] == int(sample["records"])
-assert dhs["deaths"] + mics["deaths"] == int(sample["deaths"])
+assert dhs["records"] + mics["records"] == round(float(sample["records"]))
+assert dhs["deaths"] + mics["deaths"] == round(float(sample["deaths"]))
 assert dhs["regions"] + mics["regions"] == int(sample["regions"])
 survey_countries = dhs["countries"] | mics["countries"]
 assert len(survey_countries) == int(sample["countries"]) and int(annual["countries"]) == len(burden_countries)
@@ -114,7 +119,18 @@ fmt = lambda x: f"{float(x):,.0f}"
 codes = lambda x: ", ".join(sorted(x))
 mis_total = sum(row["type"] == "MIS" for row in timeline)
 outside = survey_countries - burden_countries
-if mics["surveys"]:
+if snow:
+    composition = (
+        f"It combines {dhs['surveys']} DHS and {mics['surveys']} UNICEF MICS surveys, with records placed in the "
+        f"malaria-endemic polygons of Snow et al. (2017): {fmt(dhs['records'])} DHS records and {fmt(dhs['deaths'])} deaths in "
+        f"{fmt(dhs['regions'])} survey x unit areas, and {fmt(mics['records'])} MICS records and {fmt(mics['deaths'])} deaths in "
+        f"{fmt(mics['regions'])} survey x unit areas."
+        + (f" None of the {mis_total} MIS surveys passes complete-case selection." if mis_total and not any(
+            row["type"] == "MIS" and row["status"].startswith("Included") for row in timeline) else ""))
+    predictors = ("All 13 survey-level predictors are summaries for each survey x unit area (a Snow et al. polygon or a "
+                  "union of polygons), computed from the DHS and MICS recodes with the DHS definitions, then the same "
+                  "WUENIC and within-survey fallbacks as before.")
+elif mics["surveys"]:
     # The DHS part is declared by the primary's settings and checked by the preparation.
     assert (root / "dhs_part.csv").is_file(), "dhs_part.csv missing; rerun R_cbh/primary/00_prepare_regional.R"
     reference = read_csv(root / "dhs_part.csv")[0]

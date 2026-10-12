@@ -37,6 +37,7 @@ suffix <- if (length(only)) "_subset" else ""
 if (length(only)) surveys <- intersect(surveys, strsplit(only, ",")[[1]])
 R <- snow_rules(S)
 series <- fread("R_cbh/snow/config/vaccine_series.csv"); overrides <- fread("R_cbh/snow/config/label_overrides.csv")
+overrides[, label := gsub('""', '"', label, fixed = TRUE)]   # CSV-escaped quotes as read by fread; labels carry single quotes
 # Reviewed survey-specific label decisions take precedence; the general rules (f) classify the remaining labels, so a
 # label covered by an override need not be known to label_rules.R (labels of the surveys added for the Snow units).
 override <- function(sv, item, x, f) {

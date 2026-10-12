@@ -8,7 +8,9 @@ source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/label_rules.R")
 S <- snow_settings(); out <- file.path(S$out, "labels")
 lab <- rbind(fread(file.path(out, "br_labels.csv"), na.strings = NULL), fread(file.path(out, "pr_labels.csv"), na.strings = NULL))
 lab[is.na(label), label := ""]
-ov <- fread("R_cbh/snow/config/label_overrides.csv")
+# Labels as 09_covariates_dhs.R reads them (single quotes); the CSV-escaped quotes of the files are undone.
+lab[, label := gsub('""', '"', label, fixed = TRUE)]
+ov <- fread("R_cbh/snow/config/label_overrides.csv")[, label := gsub('""', '"', label, fixed = TRUE)]
 classify <- function(v, x) switch(v,
   h3 = , h5 = , h7 = , h9 = snow_vacc(x), m15 = snow_facility(x), hv201 = snow_water(x), hv205 = snow_sanitation(x),
   hv206 = snow_yesno(x, "electricity"), hv103 = snow_yesno(x, "de facto"), hc70 = , hc72 = rep(0, length(x)))

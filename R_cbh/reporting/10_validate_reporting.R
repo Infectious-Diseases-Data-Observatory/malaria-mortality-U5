@@ -23,18 +23,21 @@ coverage <- read("survey_map/survey_coverage.csv")
 stopifnot(counts[["primary"]]==sample$records,counts[["deaths"]]==sample$deaths,
   counts[["primary_distinct_children"]]==sample$distinct_children,
   counts[["surveys"]]==sample$surveys,nrow(coverage)==sample$surveys,
-  sum(coverage$regions)==st$expected_regions,all(coverage$type %in% if(isTRUE(st$mics)) c("DHS","MICS") else "DHS"))
+  is.null(st$expected_regions) || sum(coverage$regions)==st$expected_regions,
+  all(coverage$type %in% if(isTRUE(st$mics)) c("DHS","MICS") else "DHS"))
+snow <- identical(st$unit,"snow")   # Snow-unit primary: no fixed DHS part; counts checked against the key numbers
 mics_lines <- character()
 if(isTRUE(st$mics)) {
   # The DHS part must equal its declared sample (settings$dhs_part_note), and the DHS+MICS
   # sensitivity refits must have been fitted to this primary's prepared data (checked from CSVs only).
-  expected_mics_surveys <- 37L
+  expected_mics_surveys <- if(snow) st$expected_mics_surveys else 37L
   by_survey <- read("prepared_selection_by_survey.csv")
-  by_survey <- merge(by_survey,coverage[c("survey","type","regions")],by="survey")
+  by_survey <- merge(by_survey[setdiff(names(by_survey),"units")],coverage[c("survey","type","regions")],by="survey")
   dhs <- by_survey[by_survey$type=="DHS",];n_mics <- sum(by_survey$type=="MICS")
-  stopifnot(nrow(by_survey)==nrow(coverage),sum(by_survey$records)==sample$records,sum(by_survey$deaths)==sample$deaths,
-    sum(dhs$records)==st$expected_dhs_records,sum(dhs$deaths)==st$expected_dhs_deaths,
-    sum(dhs$regions)==st$expected_dhs_regions,n_mics==expected_mics_surveys)
+  stopifnot(nrow(by_survey)==nrow(coverage),abs(sum(by_survey$records)-sample$records)<1e-6,abs(sum(by_survey$deaths)-sample$deaths)<1e-6,
+    is.null(expected_mics_surveys) || n_mics==expected_mics_surveys)
+  if(!snow) stopifnot(sum(dhs$records)==st$expected_dhs_records,sum(dhs$deaths)==st$expected_dhs_deaths,
+    sum(dhs$regions)==st$expected_dhs_regions)
   if(file.exists(file.path(root,"dhs_part.csv"))) { dp <- read("dhs_part.csv")
     stopifnot(dp$records==sum(dhs$records),dp$deaths==sum(dhs$deaths),dp$note==st$dhs_part_note) }
   prepared_md5 <- unique(manifest$prepared_data_md5)
@@ -44,7 +47,10 @@ if(isTRUE(st$mics)) {
     if(length(prepared_md5)!=1L || fp$file[1]!=st$data || fp$md5[1]!=prepared_md5)
       stop("Sensitivity refit in ",d," was not fitted to the prepared data of ",st$id)
   }
-  mics_lines <- c(sprintf("PASS: DHS part matches %s (%s records, %s deaths, %d survey-regions); %d MICS surveys add %s records and %s deaths.",
+  mics_lines <- c(if(snow) sprintf("PASS: %d DHS surveys (%s records, %s deaths, %d survey x unit areas) and %d MICS surveys (%s records, %s deaths).",
+      nrow(dhs),format(sum(dhs$records),big.mark=","),format(sum(dhs$deaths),big.mark=","),sum(dhs$regions),n_mics,
+      format(sample$records-sum(dhs$records),big.mark=","),format(sample$deaths-sum(dhs$deaths),big.mark=","))
+    else sprintf("PASS: DHS part matches %s (%s records, %s deaths, %d survey-regions); %d MICS surveys add %s records and %s deaths.",
       st$dhs_part_note,format(sum(dhs$records),big.mark=","),format(sum(dhs$deaths),big.mark=","),sum(dhs$regions),n_mics,
       format(sample$records-sum(dhs$records),big.mark=","),format(sample$deaths-sum(dhs$deaths),big.mark=",")),
     sprintf("PASS: subgroup and no-nutrition refits (%s) were fitted to this primary's prepared data (md5 %s).",
@@ -82,7 +88,7 @@ for(p in file.path(root,"tables",c("age_band_results.latex.txt","country_compari
 }
 writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state and annual comparisons; Figure 4 under-5 death probability) reference the revised primary version and match their hashes.",nrow(figures)),
   "PASS: seven fitted model hashes, convergence flags and gamma=2 verified.",
-  sprintf("PASS: flow, %s, %d survey-regions, child-band/death/child totals reconcile.",
+  sprintf(paste0("PASS: flow, %s, %d ",if(snow) "survey x unit areas" else "survey-regions",", child-band/death/child totals reconcile."),
     if(isTRUE(st$mics)) sprintf("%d DHS and MICS surveys (%d DHS, %d MICS)",sample$surveys,sum(coverage$type=="DHS"),sum(coverage$type=="MICS"))
     else sprintf("%d DHS surveys",sample$surveys),sum(coverage$regions)),
   mics_lines,

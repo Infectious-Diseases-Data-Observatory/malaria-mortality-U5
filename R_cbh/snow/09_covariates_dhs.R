@@ -37,8 +37,11 @@ suffix <- if (length(only)) "_subset" else ""
 if (length(only)) surveys <- intersect(surveys, strsplit(only, ",")[[1]])
 R <- snow_rules(S)
 series <- fread("R_cbh/snow/config/vaccine_series.csv"); overrides <- fread("R_cbh/snow/config/label_overrides.csv")
-override <- function(sv, item, x, out) {   # reviewed survey-specific label decisions
+# Reviewed survey-specific label decisions take precedence; the general rules (f) classify the remaining labels, so a
+# label covered by an override need not be known to label_rules.R (labels of the surveys added for the Snow units).
+override <- function(sv, item, x, f) {
   o <- overrides[survey == sv & variable == item]; hit <- x %in% o$label
+  out <- rep(NA_real_, length(x)); if (any(!hit)) out[!hit] <- f(x[!hit])
   out[hit] <- o$value[match(x[hit], o$label)]; out
 }
 extra_vars <- function(sv, ag) { v <- series[survey == sv & antigen == ag, variables]; if (length(v)) strsplit(v, ";", fixed = TRUE)[[1]] else character() }
@@ -99,7 +102,7 @@ for (sv in surveys) {
   hm <- lapply(c("h9", xm), function(v) snow_vacc(lab(br, v)))
   asked <- Reduce(`|`, lapply(hd, Negate(is.na))); asked_m <- Reduce(`|`, lapply(hm, Negate(is.na)))
   dtp_doses <- Reduce(`+`, lapply(hd, function(z) z %in% 1)); measles_any <- Reduce(`|`, lapply(hm, function(z) z %in% 1))
-  b11 <- num(br, "b11"); m15 <- lab(br, "m15"); fac <- override(sv, "m15", m15, snow_facility(m15))
+  b11 <- num(br, "b11"); m15 <- lab(br, "m15"); fac <- override(sv, "m15", m15, snow_facility)
   bv <- list(mean_maternal_age_first_birth = afb, mean_maternal_education_years = educ, mean_wealth_quintile = wealth,
     urban_pct = 100 * (urban == 1), dtp3_pct = ifelse(asked, 100 * (dtp_doses >= 3), NA),
     measles_pct = ifelse(asked_m, 100 * measles_any, NA), facility_delivery_pct = 100 * fac, short_birth_interval_pct = ifelse(is.finite(b11), 100 * (b11 >= 7 & b11 <= 23), NA))
@@ -125,11 +128,11 @@ for (sv in surveys) {
   hh <- !duplicated(paste(hv001, num(pr, "hv002")))
   wl <- lab(pr, "hv201"); pubv <- published(s$SurveyId)
   opts <- CJ(spring = if (any(wl[hh] == "spring", na.rm = TRUE)) c(0, 1) else 0, vendor = if (any(wl[hh] == "water vendor", na.rm = TRUE)) c(1, 0) else 1)
-  opts[, nat := mapply(function(a, b) wmean(ifelse(hh, 100 * override(sv, "hv201", wl, snow_water(wl, a, b)), NA), w_pr), spring, vendor)]
+  opts[, nat := mapply(function(a, b) wmean(ifelse(hh, 100 * override(sv, "hv201", wl, function(z) snow_water(z, a, b)), NA), w_pr), spring, vendor)]
   pick <- if (nrow(opts) > 1 && is.finite(pubv[["improved_water_pct"]])) which.min(abs(opts$nat - pubv[["improved_water_pct"]])) else 1L
   sl <- lab(pr, "hv205")
-  pv <- list(improved_water_pct = 100 * override(sv, "hv201", wl, snow_water(wl, opts$spring[pick], opts$vendor[pick])),
-    improved_sanitation_pct = 100 * override(sv, "hv205", sl, snow_sanitation(sl)), electricity_pct = 100 * snow_yesno(lab(pr, "hv206"), paste(sv, "hv206")))
+  pv <- list(improved_water_pct = 100 * override(sv, "hv201", wl, function(z) snow_water(z, opts$spring[pick], opts$vendor[pick])),
+    improved_sanitation_pct = 100 * override(sv, "hv205", sl, snow_sanitation), electricity_pct = 100 * snow_yesno(lab(pr, "hv206"), paste(sv, "hv206")))
   # WHO z-scores: PR hc70/hc72 when labelled WHO; otherwise the HW file (hwhhid, hwline = hhid, hvidx).
   zsrc <- "none"; z70 <- z72 <- rep(NA_real_, nrow(pr))
   lab70 <- attr(pr$hc70, "label"); if (is.null(lab70)) lab70 <- ""

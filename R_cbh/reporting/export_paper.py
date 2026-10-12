@@ -59,6 +59,23 @@ assets.extend([
     (root / "malaria_share/sfig_malaria_share_vs_pfpr.png", Path("Supplementary Figures/sfig_malaria_share_vs_pfpr.png")),
     (root / "malaria_share/CAPTION.md", Path("Supplementary Figures/sfig_malaria_share_vs_pfpr_caption.md")),
 ])
+if snow:
+    # Snow-unit primary: the extended subgroup suite (12 October 2026), the maps of survey-regions against the Snow
+    # polygons (one per country where units had to be merged) and the comparison with the v9 survey-region primary.
+    snow_maps = Path("results/cbh/snow_units/merge/maps")
+    assets.extend([
+        (subgroups / "sfig_pfpr_splines_by_subregion.png", Path("Supplementary Figures/sfig_pfpr_splines_by_subregion.png")),
+        (subgroups / "CAPTION_sfig_pfpr_splines_by_subregion.md", Path("Supplementary Figures/sfig_pfpr_splines_by_subregion_caption.md")),
+        (subgroups / "sfig_pfpr_splines_by_period.png", Path("Supplementary Figures/sfig_pfpr_splines_by_period.png")),
+        (subgroups / "CAPTION_sfig_pfpr_splines_by_period.md", Path("Supplementary Figures/sfig_pfpr_splines_by_period_caption.md")),
+        (subgroups / "pfpr_40_to_20_by_subgroup.png", Path("Supplementary Figures/sfig_pfpr_40_to_20_by_subgroup.png")),
+        (snow_maps / "boundary_agreement_map.png", Path("Supplementary Figures/sfig_snow_boundary_agreement_map.png")),
+        (snow_maps / "CAPTION_boundary_agreement_map.md", Path("Supplementary Figures/sfig_snow_boundary_agreement_map_caption.md")),
+        (root / "comparison_v9/pfpr_hr_curves_v9_vs_snow.png", Path("Supplementary Figures/sfig_pfpr_curves_v9_vs_snow.png")),
+        (root / "comparison_v9/COMPARISON.md", Path("tables/comparison_v9_vs_snow.md")),
+    ])
+    for png in sorted((snow_maps / "merge_units").glob("*_merge_units.png")):
+        assets.append((png, Path("Supplementary Figures/snow_merge_units") / png.name))
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
     assets.append((root / "tables" / name, Path("tables") / name))

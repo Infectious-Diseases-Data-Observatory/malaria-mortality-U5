@@ -177,8 +177,9 @@ v6_text = ""
 if v6.is_file():
     s6 = read_csv(v6)[0]
     flow = {row["item"]: int(row["count"]) for row in read_csv(root / "study_flow/flow_counts.csv")}
-    retained = int(s6["records"]) == flow["eligible"] - flow["missing_map"]
-    v6_text = (f"{', which retains every MAP-eligible record' if retained else ''}: {fmt(s6['records'])} records, {fmt(s6['deaths'])} deaths, "
+    retained = int(s6["records"]) == (flow["placed"] if snow else flow["eligible"] - flow["missing_map"])
+    kept = "record placed in a Snow et al. unit" if snow else "MAP-eligible record"
+    v6_text = (f"{', which retains every ' + kept if retained else ''}: {fmt(s6['records'])} records, {fmt(s6['deaths'])} deaths, "
                f"{s6['surveys']} surveys and {s6['countries']} countries")
 title = "Updated primary results (DHS and MICS surveys)" if mics["surveys"] else "Updated primary results"
 handoff.write_text(f"""# {title}
@@ -192,7 +193,7 @@ national PfPR in a narrow left panel) and the
 supplementary inclusion flow use the {n_covariates}-variable
 regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
 {fmt(sample['children'])} children, {fmt(sample['records'])} child-band records and
-{fmt(sample['deaths'])} deaths in {fmt(sample['regions'])} survey-regions,
+{fmt(sample['deaths'])} deaths in {fmt(sample['regions'])} {'survey x unit areas' if snow else 'survey-regions'},
 {fmt(sample['surveys'])} surveys and {fmt(sample['countries'])} countries.
 
 {composition}
@@ -225,7 +226,7 @@ are not fully propagated.
 
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
 subgroups (`{subgroups.name}`) and no nutrition covariates (`{nutrition.name}`)
-on this sample, and imputed covariates on the larger MAP-eligible sample
+on this sample, and imputed covariates on the larger {'sample of every placed record' if snow else 'MAP-eligible sample'}
 (`{imputed.name}`{v6_text}). Malaria's share of under-five deaths against national
 PfPR in 2024 (`Supplementary Figures/sfig_malaria_share_vs_pfpr.png`) compares IHME and
 UN IGME (CA-CODE) with the PfPR-ACM model. Their captions are exported to

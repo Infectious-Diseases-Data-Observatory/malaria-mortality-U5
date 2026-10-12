@@ -27,6 +27,11 @@ cbh_subgroup_settings <- function(sample = c("dhsmics", "dhs")) {
   if (sample == "dhsmics") {
     st$id <- "subgroups_dhsmics_map_gamma2_v4"   # v9 primary; v3 = v7 and v2 = v5, kept as history
     st$primary_version <- "regional_mics"
+    # The Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge): the same subgroups; Sahel membership by the record's
+    # source survey-region centroid, as in v9 (user plan default, 11 October 2026).
+    if (identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")) {
+      st$id <- "subgroups_snow520_merge_gamma2_v5"; st$primary_version <- "snow_merge"
+    }
     st$centroids <- c(st$centroids, "data/derived_mics/mics_region_centroids.csv")
     st$registry <- c(st$registry, "data/derived_mics/survey_registry_mics.csv")
   }

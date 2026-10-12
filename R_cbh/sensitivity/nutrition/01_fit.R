@@ -15,10 +15,12 @@ source("R_cbh/primary/specification.R")
 library(mgcv); library(data.table)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% c("--force", "--dhs-only")))
 dhs_only <- "--dhs-only" %in% args
-st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else "nutrition_adjustment_dhsmics_map_gamma2_v4",
+# The Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge) has its own refit (11 October 2026).
+snow <- !dhs_only && identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")
+st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else if (snow) "nutrition_adjustment_snow520_merge_gamma2_v5" else "nutrition_adjustment_dhsmics_map_gamma2_v4",
            dropped = c("wasting_pct", "stunting_pct"))
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
-primary <- cbh_primary_settings(if (dhs_only) "regional" else "regional_mics"); stopifnot(isTRUE(primary$nutrition))
+primary <- cbh_primary_settings(if (dhs_only) "regional" else if (snow) "snow_merge" else "regional_mics"); stopifnot(isTRUE(primary$nutrition))
 for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 
@@ -33,7 +35,7 @@ write_csv(provenance, "fit_input_provenance.csv")
 prepared <- readRDS(primary$data)
 input <- as.data.table(prepared$data); input_signature <- prepared$signature
 write_csv(prepared$scaling, "covariate_scaling.csv"); rm(prepared); gc(FALSE)
-stopifnot(nrow(input) == primary$expected_records, sum(input$death) == primary$expected_deaths,
+if (!is.null(primary$expected_records)) stopifnot(nrow(input) == primary$expected_records, sum(input$death) == primary$expected_deaths,
           uniqueN(input$region) == primary$expected_regions)
 
 # Same formula as the primary minus the two nutrition terms.

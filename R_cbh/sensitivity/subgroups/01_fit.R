@@ -31,9 +31,13 @@ input <- as.data.table(prepared$data)
 write_csv(prepared$scaling, "covariate_scaling.csv")
 input_signature <- prepared$signature
 rm(prepared); gc(FALSE)
-stopifnot(nrow(input) == primary$expected_records, sum(input$death) == primary$expected_deaths,
-          uniqueN(input$region) == primary$expected_regions,
-          uniqueN(input, by = c("child_id", "age_band")) == nrow(input))
+if (!is.null(primary$expected_records)) stopifnot(nrow(input) == primary$expected_records, sum(input$death) == primary$expected_deaths,
+          uniqueN(input$region) == primary$expected_regions)
+stopifnot(uniqueN(input, by = c("child_id", "age_band")) == nrow(input))
+# Subgroup membership is assigned by the record's source survey-region (country:survey:regkey). In v9 this is the
+# random-effect region itself; under the Snow-unit primary the random effect is the survey x unit.
+input[, src_region := paste(as.character(country), as.character(survey), regkey, sep = ":")]
+if (!identical(primary$unit, "snow")) stopifnot(all(input$src_region == as.character(input$region)))
 
 ## ---- survey and region attributes ------------------------------------------------
 surveys <- unique(as.data.frame(input[, .(survey = as.character(survey), country = as.character(country), survey_year)]))
@@ -56,7 +60,7 @@ centroids$survey <- registry$svkey[j]
 centroids$region <- paste(centroids$iso3, centroids$survey, centroids$regkey, sep = ":")
 cbh_unique(centroids, "region", "Survey region centroids")
 regions <- as.data.frame(input[, .(records = .N, deaths = sum(death), distinct_children = uniqueN(child_id)),
-  by = .(survey = as.character(survey), country = as.character(country), region = as.character(region))])
+  by = .(survey = as.character(survey), country = as.character(country), region = src_region)])
 j <- match(regions$region, centroids$region)
 stopifnot(!anyNA(j), all(regions$survey == centroids$survey[j]))
 regions$lat <- centroids$lat[j]; regions$lon <- centroids$lon[j]
@@ -74,7 +78,7 @@ summary_sample <- function(d, subgroup) data.frame(subgroup, records = nrow(d), 
   distinct_children = uniqueN(d$child_id), surveys = uniqueN(d$survey), countries = uniqueN(d$country),
   survey_regions = uniqueN(d$region), countries_list = paste(sort(unique(as.character(d$country))), collapse = " "))
 sample <- rbind(summary_sample(input, "map_full"), do.call(rbind, lapply(subgroups, function(s)
-  summary_sample(input[region %in% regions$region[regions[[s]]]], s))))
+  summary_sample(input[src_region %in% regions$region[regions[[s]]]], s))))
 write_csv(sample, "sample_summary.csv")
 print(sample[, setdiff(names(sample), "countries_list")])
 writeLines(c(sprintf("median_survey_year,%d", as.integer(cutoff)),
@@ -87,7 +91,7 @@ writeLines(c(sprintf("median_survey_year,%d", as.integer(cutoff)),
 
 ## ---- fits ---------------------------------------------------------------------------
 form <- cbh_primary_regional_formula(primary)
-input <- as.data.frame(input[, unique(c(all.vars(form), "age_band", "region")), with = FALSE])
+input <- as.data.frame(input[, unique(c(all.vars(form), "age_band", "region", "src_region")), with = FALSE])
 stopifnot(!anyNA(input))
 writeLines(deparse(form), file.path(st$out, "model_formula.txt"))
 run <- function(d, knots, initial = NULL, strict = FALSE) {
@@ -104,7 +108,7 @@ ages <- cbh_config()$age_bands$age_band
 widths <- c(1, 5, 6, 12, 12, 12, 12) / 12
 diags <- curves <- knots_saved <- manifests <- smooths <- restarts <- list()
 for (s in subgroups) {
-  sub <- droplevels(input[input$region %in% regions$region[regions[[s]]], , drop = FALSE])
+  sub <- droplevels(input[input$src_region %in% regions$region[regions[[s]]], , drop = FALSE])
   for (i in seq_along(ages)) {
     age <- ages[i]; id <- paste0(s, "_age_", i)
     d <- droplevels(sub[sub$age_band == age, , drop = FALSE])

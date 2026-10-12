@@ -229,3 +229,4 @@
 "frozen_hiv","data/frozen/data/derived_cbh/hiv_incidence/child_incidence_country_year_extended.csv",654126,"f4f40f5311b87f614427d6d733be63c3","<analysis project>/data/derived_cbh/hiv_incidence/child_incidence_country_year_extended.csv"
 "frozen_hiv","data/frozen/data/derived_cbh/hiv_incidence/child_incidence_draws.rds",2227634,"a0aae0100bd474594b23783e26d5d797","<analysis project>/data/derived_cbh/hiv_incidence/child_incidence_draws.rds"
 "frozen_hiv","data/frozen/data/derived_cbh/hiv_incidence/child_incidence_draws_extended.rds",2306269,"5829100cc74e552d4cb830d23a138c28","<analysis project>/data/derived_cbh/hiv_incidence/child_incidence_draws_extended.rds"
+"public_input","data/external/natural_earth/ne_10m_lakes.geojson",5043554,"d81daa882cd349f059abf4293bd9edf7","https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_lakes.geojson (downloaded 12 October 2026, user approval)"

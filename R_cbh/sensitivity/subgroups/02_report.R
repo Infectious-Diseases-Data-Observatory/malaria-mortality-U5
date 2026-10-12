@@ -87,6 +87,8 @@ ggsave(file.path(st$out, "pfpr_40_to_20_by_subgroup.png"), pc, width = 10, heigh
 ## ---- caption and report --------------------------------------------------------------
 sample <- read("sample_summary.csv"); defs <- readLines(file.path(st$out, "subgroup_definitions.csv"))
 cutoff <- as.integer(sub("median_survey_year,", "", defs[1]))
+cc <- grep("^records_period_cutoff,", defs, value = TRUE)
+calendar_cutoff <- if (length(cc)) as.numeric(sub("^records_period_cutoff,([0-9.]+).*$", "\\1", cc)) else NA_real_
 fmt <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
 row <- function(s) sample[sample$subgroup == s, ]
 describe <- function(s) sprintf(paste0("%s: %s children, %s records, %s deaths, %d ", if (identical(primary$unit, "snow")) "survey × unit areas" else "survey-regions", ", %d surveys, %d countries"),
@@ -95,7 +97,9 @@ describe <- function(s) sprintf(paste0("%s: %s children, %s records, %s deaths, 
 subset_text <- c(sahel = "records whose survey-region boundary centroid lies at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel)",
   east_africa = "UN M49 Eastern Africa countries", west_africa = "UN M49 Western Africa countries",
   central_africa = "UN M49 Middle (Central) Africa countries",
-  early = paste0("surveys conducted up to the median survey year (", cutoff, ")"), late = "surveys conducted after it")
+  early = paste0("surveys conducted up to the median survey year (", cutoff, ")"), late = "surveys conducted after it",
+  records_early = sprintf("child-band records with calendar year up to the median calendar year of the records (%.1f)", calendar_cutoff),
+  records_late = "records after it")
 not_fitted_text <- if (length(st$not_fitted)) { nf <- read("subregions_not_fitted.csv")
   sprintf(" Southern Africa (UN M49) is not refitted: it has %s deaths in %d surveys from %d countries and PfPR[2–10] never exceeds %.1f%% (95%% of records below %.1f%%), so its curve at 20%% and 40%% would be an extrapolation.",
     fmt(nf$deaths[1]), nf$surveys[1], nf$countries[1], nf$pfpr_max[1], nf$pfpr_p95[1]) } else ""

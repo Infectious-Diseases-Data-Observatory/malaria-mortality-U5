@@ -73,6 +73,10 @@ regions$east_africa <- surveys$east_africa[k]
 regions$west_africa <- regions$country %in% st$west_africa
 regions$central_africa <- regions$country %in% st$central_africa
 regions$southern_africa <- regions$country %in% st$southern_africa
+# Record-level period split (st$record_subsets): child-band calendar year up to / after the records' median.
+calendar_cutoff <- median(input$calendar_year)
+in_subset <- function(z, s) if (s == "records_early") z$calendar_year <= calendar_cutoff else if (s == "records_late")
+  z$calendar_year > calendar_cutoff else z$src_region %in% regions$region[regions[[s]]]
 regions$early <- surveys$period[k] == "early"
 regions$late <- surveys$period[k] == "late"
 write_csv(regions, "region_selection.csv")
@@ -81,7 +85,7 @@ summary_sample <- function(d, subgroup) data.frame(subgroup, records = nrow(d), 
   distinct_children = uniqueN(d$child_id), surveys = uniqueN(d$survey), countries = uniqueN(d$country),
   survey_regions = uniqueN(d$region), countries_list = paste(sort(unique(as.character(d$country))), collapse = " "))
 sample <- rbind(summary_sample(input, "map_full"), do.call(rbind, lapply(subgroups, function(s)
-  summary_sample(input[src_region %in% regions$region[regions[[s]]]], s))))
+  summary_sample(input[in_subset(input, s)], s))))
 write_csv(sample, "sample_summary.csv")
 # Subsets reported but not refitted (st$not_fitted): size and exposure range, with the reason in settings.R.
 if (length(st$not_fitted)) {
@@ -101,12 +105,13 @@ writeLines(c(sprintf("median_survey_year,%d", as.integer(cutoff)),
   sprintf("east_africa_definition,UN M49 Eastern Africa: %s", paste(st$east_africa, collapse = " ")),
   if ("west_africa" %in% subgroups) sprintf("west_africa_definition,UN M49 Western Africa: %s", paste(st$west_africa, collapse = " ")),
   if ("central_africa" %in% subgroups) sprintf("central_africa_definition,UN M49 Middle Africa: %s", paste(st$central_africa, collapse = " ")),
-  if (length(st$not_fitted)) sprintf("not_fitted,%s (subregions_not_fitted.csv)", paste(st$not_fitted, collapse = " "))),
+  if (length(st$not_fitted)) sprintf("not_fitted,%s (subregions_not_fitted.csv)", paste(st$not_fitted, collapse = " ")),
+  if (length(st$record_subsets)) sprintf("records_period_cutoff,%.3f (median child-band calendar year; records_early <= cutoff < records_late)", calendar_cutoff)),
   file.path(st$out, "subgroup_definitions.csv"))
 
 ## ---- fits ---------------------------------------------------------------------------
 form <- cbh_primary_regional_formula(primary)
-input <- as.data.frame(input[, unique(c(all.vars(form), "age_band", "region", "src_region")), with = FALSE])
+input <- as.data.frame(input[, unique(c(all.vars(form), "age_band", "region", "src_region", "calendar_year")), with = FALSE])
 stopifnot(!anyNA(input))
 writeLines(deparse(form), file.path(st$out, "model_formula.txt"))
 run <- function(d, knots, initial = NULL, strict = FALSE) {
@@ -123,7 +128,7 @@ ages <- cbh_config()$age_bands$age_band
 widths <- c(1, 5, 6, 12, 12, 12, 12) / 12
 diags <- curves <- knots_saved <- manifests <- smooths <- restarts <- list()
 for (s in subgroups) {
-  sub <- droplevels(input[input$src_region %in% regions$region[regions[[s]]], , drop = FALSE])
+  sub <- droplevels(input[in_subset(input, s), , drop = FALSE])
   for (i in seq_along(ages)) {
     age <- ages[i]; id <- paste0(s, "_age_", i)
     d <- droplevels(sub[sub$age_band == age, , drop = FALSE])

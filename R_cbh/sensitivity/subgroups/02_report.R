@@ -10,9 +10,9 @@ st <- cbh_subgroup_settings(cbh_subgroup_sample(args)); primary <- cbh_primary_s
 read <- function(x) cbh_read_csv(file.path(st$out, x))
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 ages <- cbh_config()$age_bands$age_band
-subgroups <- c("sahel", "east_africa", "early", "late")
+subgroups <- st$subgroups
 diag <- read("fit_diagnostics.csv")
-stopifnot(nrow(diag) == 28L, all(diag$converged), all(diag$input_verified), all(diag$gamma == 2),
+stopifnot(nrow(diag) == 7L * length(subgroups), all(diag$converged), all(diag$input_verified), all(diag$gamma == 2),
   all(diag$rank == diag$coefficients), all(diag$min_smoothing_hessian_eigenvalue > 0))
 sub <- read("pfpr_curves.csv")
 full_path <- file.path(primary$out, "pfpr_curves.csv")
@@ -35,7 +35,11 @@ paper <- theme_minimal(base_size = 18) + theme(panel.grid.minor = element_blank(
   strip.text = element_text(size = 16, face = "bold"), legend.position = "bottom",
   legend.text = element_text(size = 15), legend.title = element_blank(),
   panel.spacing = grid::unit(20, "pt"), plot.margin = margin(10, 24, 10, 10))
-shown <- d[d$within_central_support, ]
+# One spline figure per group of subsets (st$figures): v9 one figure with every subset; the Snow-unit suite one figure
+# for Sahel and the survey periods and one for the UN M49 sub-regions.
+for (fig_name in names(st$figures)) {
+shown <- d[d$within_central_support & d$subgroup %in% c("map_full", st$figures[[fig_name]]), ]
+shown$series <- droplevels(shown$series)
 # PfPR axis 0-80%, as in the other supplementary spline figures; every curve's central support lies inside it.
 stopifnot(max(shown$pfpr_pct) <= 80)
 shown$is_full <- shown$subgroup == "map_full"
@@ -52,8 +56,9 @@ p <- ggplot(shown, aes(pfpr_pct, log_hazard_ratio, colour = series)) +
   guides(colour = guide_legend(nrow = 2, override.aes = list(linewidth = 1.3))) +
   labs(x = "PfPR[2–10] (%)", y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle))
-ggsave(file.path(st$out, "sfig_pfpr_splines_by_subgroup.png"), p, width = 15, height = 8.5,
+ggsave(file.path(st$out, paste0(fig_name, ".png")), p, width = 15, height = 8.5,
        dpi = 240, device = ragg::agg_png, bg = "white")
+}
 
 # Contrasts identified directly from each curve; the subgroups are nested in the full sample.
 contrasts <- do.call(rbind, lapply(c(0, 40), function(x) {
@@ -84,15 +89,27 @@ sample <- read("sample_summary.csv"); defs <- readLines(file.path(st$out, "subgr
 cutoff <- as.integer(sub("median_survey_year,", "", defs[1]))
 fmt <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
 row <- function(s) sample[sample$subgroup == s, ]
-describe <- function(s) sprintf("%s: %s children, %s records, %s deaths, %d survey-regions, %d surveys, %d countries",
+describe <- function(s) sprintf(paste0("%s: %s children, %s records, %s deaths, %d ", if (identical(primary$unit, "snow")) "survey × unit areas" else "survey-regions", ", %d surveys, %d countries"),
   st$labels[[s]], fmt(row(s)$distinct_children), fmt(row(s)$records), fmt(row(s)$deaths),
   row(s)$survey_regions, row(s)$surveys, row(s)$countries)
-caption <- paste(
-  paste0("Sensitivity of the fitted PfPR–mortality relationship to the analysis subset. Log mortality hazard ratios relative to PfPR[2–10] = 20% by completed-month age band, from the ", cbh_paper_model_label(), " fitted to the full primary sample (black, with its pointwise 95% conditional interval shaded) and refitted separately in four subsets: survey regions with boundary centroids at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel); UN M49 Eastern Africa countries; surveys conducted up to the median survey year (", cutoff, "); and surveys conducted after it."),
+subset_text <- c(sahel = "records whose survey-region boundary centroid lies at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel)",
+  east_africa = "UN M49 Eastern Africa countries", west_africa = "UN M49 Western Africa countries",
+  central_africa = "UN M49 Middle (Central) Africa countries",
+  early = paste0("surveys conducted up to the median survey year (", cutoff, ")"), late = "surveys conducted after it")
+not_fitted_text <- if (length(st$not_fitted)) { nf <- read("subregions_not_fitted.csv")
+  sprintf(" Southern Africa (UN M49) is not refitted: it has %s deaths in %d surveys from %d countries and PfPR[2–10] never exceeds %.1f%% (95%% of records below %.1f%%), so its curve at 20%% and 40%% would be an extrapolation.",
+    fmt(nf$deaths[1]), nf$surveys[1], nf$countries[1], nf$pfpr_max[1], nf$pfpr_p95[1]) } else ""
+caption_for <- function(groups) paste(
+  paste0("Sensitivity of the fitted PfPR–mortality relationship to the analysis subset. Log mortality hazard ratios relative to PfPR[2–10] = 20% by completed-month age band, from the ", cbh_paper_model_label(), " fitted to the full primary sample (black, with its pointwise 95% conditional interval shaded) and refitted separately in ", length(groups), " subsets: ",
+    paste(subset_text[groups], collapse = "; "), ".", if (any(groups %in% c("west_africa", "central_africa", "east_africa"))) not_fitted_text else ""),
   "Each subset refit uses the same seven separate age-band models, 17 standardised covariates with the full-sample scaling, fixed HIV incidence imputation, gamma = 2 and basis dimensions as the primary analysis, with knots placed at quantiles of the subset's own predictor values. Each curve is drawn over the central 95% of its own exposure distribution.",
-  paste0("Subset sizes. ", paste(vapply(subgroups, describe, ""), collapse = "; "), "."),
+  paste0("Subset sizes. ", paste(vapply(groups, describe, ""), collapse = "; "), "."),
   "The subsets overlap the full sample and one another, so the curves are not independent and their differences are descriptive; the comparison does not constitute a test of effect modification. Subset intervals are omitted for legibility and are available in the saved curve table.")
+caption <- caption_for(st$figures[[1]])
 writeLines(c("# Supplementary figure caption: PfPR splines by subgroup", "", caption), file.path(st$out, "CAPTION.md"))
+if (length(st$figures) > 1) for (k in 2:length(st$figures))
+  writeLines(c(paste("# Supplementary figure caption:", sub("^sfig_", "", names(st$figures)[k])), "", caption_for(st$figures[[k]])),
+             file.path(st$out, paste0("CAPTION_", names(st$figures)[k], ".md")))
 hr <- function(x) sprintf("%.2f (%.2f–%.2f)", x$hazard_ratio, x$lower_95, x$upper_95)
 table_lines <- c(paste0("| Age (months) | ", paste(unname(st$labels), collapse = " | "), " |"),
   paste0("|---|", paste(rep("---:", length(st$labels)), collapse = "|"), "|"))
@@ -102,17 +119,17 @@ for (age in ages) {
     paste(vapply(names(st$labels), function(s) hr(a[a$subgroup == s, ]), ""), collapse = " | "), " |"))
 }
 lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
-  paste0("Seven separate MAP gamma=2 age-band models refitted in four subsets of the fitted 17-variable sample (`", primary$id, "`). Reference: the full primary fits in `", primary$out, "`."), "",
+  paste0("Seven separate MAP gamma=2 age-band models refitted in ", length(subgroups), " subsets of the fitted 17-variable sample (`", primary$id, "`). Reference: the full primary fits in `", primary$out, "`.", not_fitted_text), "",
   "## Subsets", "", paste0("- ", vapply(subgroups, describe, "")), "",
   paste0("Definitions: ", paste(defs[-1], collapse = "; "), ". Survey regions enter whole; centroids are survey-specific boundary centroids (DHS: the cached shapefile summary; MICS: the analysis-region polygons, `R_mics/11_region_centroids.R`). The period split counts each survey once."), "",
   "## Figures", "",
-  "![Splines by subgroup](sfig_pfpr_splines_by_subgroup.png)", "", caption, "",
+  unlist(lapply(names(st$figures), function(f) c(sprintf("![%s](%s.png)", f, f), "", caption_for(st$figures[[f]]), ""))),
   "![40% to 20% contrasts](pfpr_40_to_20_by_subgroup.png)", "",
   "## Hazard ratios, PfPR 40% to 20%", "", "Values below one indicate lower mortality at 20% than at 40%. Intervals are pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   table_lines, "",
   "## Validation", "",
-  sprintf("All 28 subgroup fits converged with full rank, finite coefficients and covariances and positive smoothing-Hessian eigenvalues; %d needed the tighter-tolerance restart (see restarts.csv where present). Fitted model columns were checked against the selected input rows; curves are anchored at zero at 20%% PfPR. Total pure fitting time %.0f seconds.",
-    sum(grepl("strict", cbh_read_csv(file.path(st$out, "fit_manifest.csv"))$selected_version)), sum(diag$elapsed_seconds)), "",
+  sprintf("All %d subgroup fits converged with full rank, finite coefficients and covariances and positive smoothing-Hessian eigenvalues; %d needed the tighter-tolerance restart (see restarts.csv where present). Fitted model columns were checked against the selected input rows; curves are anchored at zero at 20%% PfPR. Total pure fitting time %.0f seconds.",
+    nrow(diag), sum(grepl("strict", cbh_read_csv(file.path(st$out, "fit_manifest.csv"))$selected_version)), sum(diag$elapsed_seconds)), "",
   paste0("Reproduce: `Rscript R_cbh/sensitivity/subgroups/01_fit.R` then `Rscript R_cbh/sensitivity/subgroups/02_report.R`", if (st$sample == "dhs") " (both with `--dhs-only`)" else "", ". Only aggregate tables and figures are published; fitted objects stay under the ignored data directory. Primary fits, burden estimates and manuscript files are unchanged."))
 writeLines(lines, file.path(st$out, "REPORT.md"))
 source_files <- c(full_path, file.path(primary$out, "fit_diagnostics.csv"),

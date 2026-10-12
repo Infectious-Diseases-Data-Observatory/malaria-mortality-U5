@@ -19,6 +19,11 @@ cbh_subgroup_settings <- function(sample = c("dhsmics", "dhs")) {
     # countries that can appear in the DHS/MIS/MICS sample.
     east_africa = c("BDI", "COM", "DJI", "ERI", "ETH", "KEN", "MDG", "MOZ", "MWI", "RWA",
                     "SOM", "SSD", "TZA", "UGA", "ZMB", "ZWE"),
+    # UN M49 Western, Middle ("Central") and Southern Africa, as grouped in Figure 1 (R_cbh/reporting/03_survey_map.R).
+    west_africa = c("BEN", "BFA", "CIV", "CPV", "GHA", "GIN", "GMB", "GNB", "LBR", "MLI", "MRT", "NER", "NGA", "SEN", "SLE", "TGO"),
+    central_africa = c("AGO", "CAF", "CMR", "COD", "COG", "GAB", "GNQ", "STP", "TCD"),
+    southern_africa = c("BWA", "LSO", "NAM", "SWZ", "ZAF"),
+    subgroups = c("sahel", "east_africa", "early", "late"),
     labels = c(map_full = "Full analysis", sahel = "Sahel (≥12°N)",
                east_africa = "Eastern Africa", early = "Surveys up to median year",
                late = "Surveys after median year"),
@@ -31,10 +36,23 @@ cbh_subgroup_settings <- function(sample = c("dhsmics", "dhs")) {
     # source survey-region centroid, as in v9 (user plan default, 11 October 2026).
     if (identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")) {
       st$id <- "subgroups_snow520_merge_gamma2_v5"; st$primary_version <- "snow_merge"
+      # Full suite (user request, 12 October 2026): Sahel, the UN M49 sub-regions of Figure 1, and the survey-period
+      # split. Southern Africa is not refitted: 1,061 deaths in 7 surveys and PfPR below 10.3% (95% of records below
+      # 7.4%), so the curve at 20% and 40% would be an extrapolation (its size is reported in subregions_not_fitted.csv).
+      st$subgroups <- c("sahel", "west_africa", "central_africa", "east_africa", "early", "late")
+      st$labels <- c(map_full = "Full analysis", sahel = "Sahel (≥12°N)", west_africa = "West Africa",
+                     central_africa = "Central Africa", east_africa = "East Africa",
+                     early = "Surveys up to median year", late = "Surveys after median year")
+      st$colours <- c(map_full = "#222222", sahel = "#C34D26", west_africa = "#0072B2", central_africa = "#CC79A7",
+                      east_africa = "#009E73", early = "#7B4FA3", late = "#E69F00")
+      st$figures <- list(sfig_pfpr_splines_by_subgroup = c("sahel", "early", "late"),
+                         sfig_pfpr_splines_by_subregion = c("west_africa", "central_africa", "east_africa"))
+      st$not_fitted <- c("southern_africa")
     }
     st$centroids <- c(st$centroids, "data/derived_mics/mics_region_centroids.csv")
     st$registry <- c(st$registry, "data/derived_mics/survey_registry_mics.csv")
   }
+  if (is.null(st$figures)) st$figures <- list(sfig_pfpr_splines_by_subgroup = st$subgroups)
   st$out <- file.path("results/cbh", st$id)
   st$private <- file.path("data/derived_cbh/models", st$id)
   st

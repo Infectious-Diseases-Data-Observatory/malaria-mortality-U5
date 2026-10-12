@@ -70,23 +70,38 @@ regions$survey_year <- surveys$survey_year[k]
 regions$sahel <- regions$lat >= st$sahel$latitude_min & regions$lon < st$sahel$longitude_max &
   !regions$country %in% st$sahel$exclude_countries
 regions$east_africa <- surveys$east_africa[k]
+regions$west_africa <- regions$country %in% st$west_africa
+regions$central_africa <- regions$country %in% st$central_africa
+regions$southern_africa <- regions$country %in% st$southern_africa
 regions$early <- surveys$period[k] == "early"
 regions$late <- surveys$period[k] == "late"
 write_csv(regions, "region_selection.csv")
-subgroups <- c("sahel", "east_africa", "early", "late")
+subgroups <- st$subgroups
 summary_sample <- function(d, subgroup) data.frame(subgroup, records = nrow(d), deaths = sum(d$death),
   distinct_children = uniqueN(d$child_id), surveys = uniqueN(d$survey), countries = uniqueN(d$country),
   survey_regions = uniqueN(d$region), countries_list = paste(sort(unique(as.character(d$country))), collapse = " "))
 sample <- rbind(summary_sample(input, "map_full"), do.call(rbind, lapply(subgroups, function(s)
   summary_sample(input[src_region %in% regions$region[regions[[s]]]], s))))
 write_csv(sample, "sample_summary.csv")
+# Subsets reported but not refitted (st$not_fitted): size and exposure range, with the reason in settings.R.
+if (length(st$not_fitted)) {
+  nf <- do.call(rbind, lapply(st$not_fitted, function(s) {
+    z <- input[src_region %in% regions$region[regions[[s]]]]
+    cbind(summary_sample(z, s), pfpr_p95 = unname(quantile(z$pfpr_pct, .95)), pfpr_max = max(z$pfpr_pct),
+          deaths_by_band = paste(z[, .N, by = .(age_band, death)][death == 1][order(age_band), sprintf("%s:%d", age_band, N)], collapse = " "))
+  }))
+  write_csv(nf, "subregions_not_fitted.csv")
+}
 print(sample[, setdiff(names(sample), "countries_list")])
 writeLines(c(sprintf("median_survey_year,%d", as.integer(cutoff)),
   sprintf("early_definition,survey_year <= %d", as.integer(cutoff)),
   sprintf("late_definition,survey_year > %d", as.integer(cutoff)),
   sprintf("sahel_definition,centroid latitude >= %s and longitude < %s and country not in %s",
     st$sahel$latitude_min, st$sahel$longitude_max, paste(st$sahel$exclude_countries, collapse = "/")),
-  sprintf("east_africa_definition,UN M49 Eastern Africa: %s", paste(st$east_africa, collapse = " "))),
+  sprintf("east_africa_definition,UN M49 Eastern Africa: %s", paste(st$east_africa, collapse = " ")),
+  if ("west_africa" %in% subgroups) sprintf("west_africa_definition,UN M49 Western Africa: %s", paste(st$west_africa, collapse = " ")),
+  if ("central_africa" %in% subgroups) sprintf("central_africa_definition,UN M49 Middle Africa: %s", paste(st$central_africa, collapse = " ")),
+  if (length(st$not_fitted)) sprintf("not_fitted,%s (subregions_not_fitted.csv)", paste(st$not_fitted, collapse = " "))),
   file.path(st$out, "subgroup_definitions.csv"))
 
 ## ---- fits ---------------------------------------------------------------------------
@@ -185,6 +200,6 @@ for (s in subgroups) {
   }
   rm(sub); gc(FALSE)
 }
-stopifnot(length(diags) == 28L, identical(provenance$md5, unname(vapply(files, cbh_file_hash, ""))))
+stopifnot(length(diags) == 7L * length(subgroups), identical(provenance$md5, unname(vapply(files, cbh_file_hash, ""))))
 writeLines(trimws(capture.output(sessionInfo()), which = "right"), file.path(st$out, "session_info.txt"))
-message("All 28 subgroup gamma=2 fits completed")
+message("All ", length(diags), " subgroup gamma=2 fits completed")

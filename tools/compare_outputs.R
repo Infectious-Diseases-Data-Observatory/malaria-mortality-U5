@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
 # Compare this repository's pipeline outputs with the analysis project's (opened read-only).
 #   Rscript tools/compare_outputs.R --reference="<analysis project>" --checkpoint=NAME [--overleaf="<dir>"]
-# Checkpoints follow the pipeline: inputs, hiv, dhs_bands, covariates, mics, primary, sensitivities, paper.
+# Checkpoints follow the pipeline: inputs, hiv, dhs_bands, covariates, mics, primary, sensitivities, paper; for the
+# Snow-unit primary also snow_units, snow_primary and snow_sensitivities (reference: a saved copy of this repository).
 # Each file is classed as
 #   identical   byte-for-byte
 #   equivalent  same after removing volatile columns (hashes, paths, timings) and normalising paths
@@ -16,6 +17,7 @@ stopifnot(!is.null(ref), dir.exists(ref), !is.null(cp))
 ref <- normalizePath(ref); tgt <- normalizePath(getwd())
 suppressPackageStartupMessages(library(data.table))
 v9 <- "results/cbh/primary_map_regional17_dhsmics_gamma2_v9"
+v11 <- "results/cbh/primary_snow520_merge_dhsmics_gamma2_v11"
 # Paths that differ only because of this repository's layout.
 renames <- c("/Users/jameswatson/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/", "~/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/",
   "data/dhs/" = "data/raw/dhs/", "data/MICS_extracted" = "data/raw/MICS_extracted", "data/MICS_Datasets" = "data/raw/MICS_Datasets",
@@ -44,6 +46,11 @@ sets <- list(
   primary = c(v9, "results/cbh/national_burden_inputs", file.path("data/derived_cbh/models", basename(v9), "pfpr_components.rds")),
   sensitivities = c("results/cbh/subgroups_dhsmics_map_gamma2_v4", "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4",
                     "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10", "results/cbh/covariate_imputation_dhsmics_v10"),
+  # Snow-unit primary: checked against a saved copy of this repository's own earlier outputs (--reference=<copy>).
+  snow_units = c("results/cbh/snow_units/merge", "data/derived_cbh/snow/merge"),
+  snow_primary = c(v11, file.path("data/derived_cbh/models", basename(v11), "pfpr_components.rds")),
+  snow_sensitivities = c("results/cbh/subgroups_snow520_merge_gamma2_v5", "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v5",
+                         "results/cbh/primary_snow520_merge_imputed_gamma2_v12", "results/cbh/covariate_imputation_snow_v12"),
   paper = "paper")
 stopifnot(cp %in% names(sets))
 skip <- "previous_overleaf|paper_refresh/export_|pipeline_stages[.]csv$|output_manifest[.]csv$|[.]log$|\\.DS_Store$|_cache/|/cache[.]rds$"

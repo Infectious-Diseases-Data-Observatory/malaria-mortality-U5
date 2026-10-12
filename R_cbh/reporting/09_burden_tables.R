@@ -24,7 +24,8 @@ header <- paste0("| Country | ",cbh_paper_model_label()," | IHME | UN IGME |")
 body <- function(d)sprintf("| %s | %s | %s | %s |",d$country,fmt(d$model_deaths),
   fmt(d$ihme_malaria_deaths),fmt(d$who_cacode_deaths))
 total_row <- sprintf("| **All 42 countries** | **%s** | **%s** | **%s** |",fmt(total[1]),fmt(total[2]),fmt(total[3]))
-note <- "Deaths before age five in 2024. Countries are ordered by the absolute difference between the PfPR-ACM model and IHME; the total always includes all 42 estimable countries. UN IGME is the direct under-five CA-CODE 2026 series, not a WHO all-age proxy. Model values use the revised 17-variable regional-adjustment MAP gamma=2 fits. Point estimates are rounded to the nearest death; totals are calculated before rounding. These sources estimate different quantities; their agreement is descriptive."
+snow <- identical(settings$unit,"snow")
+note <- paste0("Deaths before age five in 2024. Countries are ordered by the absolute difference between the PfPR-ACM model and IHME; the total always includes all 42 estimable countries. UN IGME is the direct under-five CA-CODE 2026 series, not a WHO all-age proxy. ",if(snow) "Model values use the 17-variable MAP gamma=2 fits on Snow et al. polygon units." else "Model values use the revised 17-variable regional-adjustment MAP gamma=2 fits."," Point estimates are rounded to the nearest death; totals are calculated before rounding. These sources estimate different quantities; their agreement is descriptive.")
 writeLines(c("# Country comparison, 2024","",header,"|---|---:|---:|---:|",body(x),total_row,"",note),
   file.path(out,"country_comparison_2024.md"))
 writeLines(c("# Ten largest country differences, 2024","",header,"|---|---:|---:|---:|",body(x[1:10,]),total_row,"",note),
@@ -42,7 +43,8 @@ tex <- c("% Replacement table source; saved as plain text. No manuscript file is
   sprintf("All 42 countries & %s & %s & %s \\\\",fmt(total[1]),fmt(total[2]),fmt(total[3])),
   "\\bottomrule","\\end{tabular}","\\par\\smallskip",
   "\\begin{minipage}{\\linewidth}\\footnotesize",
-  "UN IGME denotes the direct under-five CA-CODE 2026 series. Totals include all 42 estimable countries, not only the ten shown. Death counts are rounded after estimation. The model uses the revised regional-adjustment MAP fits with $\\gamma=2$.",
+  paste0("UN IGME denotes the direct under-five CA-CODE 2026 series. Totals include all 42 estimable countries, not only the ten shown. Death counts are rounded after estimation. ",
+    if(snow) "The model uses the MAP fits with $\\gamma=2$ on Snow et al. polygon units." else "The model uses the revised regional-adjustment MAP fits with $\\gamma=2$."),
   "\\end{minipage}","\\end{table}")
 writeLines(tex,file.path(out,"country_comparison_2024.latex.txt"))
 annual <- cbh_read_csv(paths[2]);states <- cbh_read_csv(paths[3])

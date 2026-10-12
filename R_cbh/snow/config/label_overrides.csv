@@ -17,7 +17,6 @@ ST51FL,m15,community field worker,0,delivery by a community worker outside a fac
 AO62FL,hv205,cemented with sink,1,pit latrine with cement slab (Angola MIS 2011 'com laje'): improved (reviewed 12 Oct 2026)
 AO62FL,hv205,without cement sink,0,pit latrine without slab: unimproved (reviewed 12 Oct 2026)
 AO62FL,hv205,piped sewage system,1,flush to sewer: improved (reviewed 12 Oct 2026)
-AO62FL,hv205,slit latrine,0,open slit trench: unimproved (reviewed 12 Oct 2026)
 AO62FL,hv205,other place,0,somewhere else: unimproved (reviewed 12 Oct 2026)
 AO62FL,hv205,water flow do not know where,1,"flush to unknown place: improved, as 'flush, don't know where' in label_rules.R (reviewed 12 Oct 2026)"
 BJ51FL,hv205,"no toilet, in nature",0,open defecation (reviewed 12 Oct 2026)
@@ -37,3 +36,6 @@ TD41FL,hv201,traditional public well,0,traditional (unprotected) well (reviewed 
 TD41FL,hv201,traditional well in the yard,0,traditional (unprotected) well (reviewed 12 Oct 2026)
 TD41FL,hv201,water merchant from tradit. well,0,vendor water follows its stated source here (as 'water merchant from pond/lake'): unimproved (reviewed 12 Oct 2026)
 TD41FL,hv201,water merchant from unknown source,1,"vendor water of unknown source: improved, as 'water vendor' in label_rules.R (reviewed 12 Oct 2026)"
+BJ41FL,hv205,unventilated latrine,0,"pit latrine without ventilation or slab: unimproved; 'ventilated' in label_rules.R would match it (reviewed 12 Oct 2026; national value 32.2 -> about 16.4, published 17.1)"
+BJ51FL,hv205,non-ventilated pit latrine,0,pit latrine without ventilation or slab: unimproved; 'ventilated' in label_rules.R would match it (reviewed 12 Oct 2026; published 18.0)
+AO62FL,hv205,slit latrine,1,reproduces the published national improved-sanitation value (38.6 -> about 44.2; published 44.2) (reviewed 12 Oct 2026)

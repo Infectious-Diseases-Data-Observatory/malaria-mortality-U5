@@ -20,6 +20,7 @@ stopifnot(identical(unname(vapply(provenance$file, cbh_file_hash, "")), provenan
 dmeta <- readRDS(file.path(cfg$output_dir, "manifest.rds")); mmeta <- readRDS(file.path(st$mics_output_dir, "manifest.rds"))
 stopifnot(dmeta$complete, mmeta$complete)
 source_files <- c(file.path(cfg$output_dir, "manifest.rds"), file.path(st$mics_output_dir, "manifest.rds"),
+  if (identical(st$unit, "snow")) c(st$snow_records, st$snow_pfpr),
   file.path(st$imputation_results, c("regional_imputation_provenance.csv", "national_imputation_provenance.csv")),
   st$imputed_overlay, st$imputed_national, st$hiv_panel,
   "R_cbh/sensitivity/imputation_dhsmics/03_prepare.R", "R_cbh/sensitivity/imputation_dhsmics/settings.R",
@@ -37,7 +38,7 @@ national <- cbh_read_csv(st$imputed_national); cbh_unique(national, c("iso3", "y
 hiv <- cbh_read_csv(st$hiv_panel)
 flag_cols <- grep("_model_imputed$", names(wide), value = TRUE); stopifnot(length(flag_cols) == 13L)
 required <- c("death", "age_band", "pfpr_pct", "calendar_year", "band_years", "survey", "country", "region", spec$covariates)
-keep_cols <- unique(c(required, "child_id", "entry_year", "survey_year", "regkey"))
+keep_cols <- unique(c(required, "child_id", "entry_year", "survey_year", "regkey", if (identical(st$unit, "snow")) "unit"))
 national_vars <- c(political_stability = "political_stability", log_gdp_pc = "log_gdp_pc",
                    log_health_expenditure_pc = "log_health_expenditure_pc")
 stopifnot(all(national_vars %in% spec$covariates))
@@ -46,12 +47,34 @@ shards <- rbind(
   data.frame(programme = "MICS", dir = st$mics_output_dir, mmeta$manifest[mmeta$manifest$status %in% c("built", "cached"), c("survey", "country", "file", "signature")]))
 pieces <- selections <- counts_by_survey <- list()
 max_diff <- setNames(numeric(length(national_vars)), national_vars)
+snow <- identical(st$unit, "snow")
+if (snow) {
+  # Snow-unit primary: every placed record (R_cbh/snow/08_units.R), keyed by survey x unit (column regkey of the
+  # imputed overlay holds the unit); exposure = PfPR of the unit at band entry (as R_cbh/primary/00_prepare_snow.R).
+  rec <- as.data.frame(readRDS(st$snow_records))
+  stopifnot(all(rec$w == 1))
+  shards <- unique(data.frame(programme = ifelse(startsWith(rec$survey, "MC_"), "MICS", "DHS"), survey = rec$survey, country = rec$country))
+  pf <- cbh_read_csv(st$snow_pfpr)
+  units <- unique(rec$unit)
+  um <- do.call(rbind, lapply(units, function(u) data.frame(unit = u, Admin_ID = strsplit(u, "+", fixed = TRUE)[[1]])))
+  um <- merge(um, pf[c("Admin_ID", "year", "pfpr2_10", "population_weight")], by = "Admin_ID")
+  up <- do.call(rbind, lapply(split(um, paste(um$unit, um$year)), function(z) data.frame(unit = z$unit[1], year = z$year[1],
+    pfpr_pct = sum(z$population_weight * z$pfpr2_10) / sum(z$population_weight))))
+}
 for (i in seq_len(nrow(shards))) {
   s <- shards[i, ]
+  if (snow) {
+    d <- cbh_attach_incidence(rec[rec$survey == s$survey, , drop = FALSE], hiv)
+    d$pfpr_pct <- up$pfpr_pct[match(paste(d$unit, d$entry_year), paste(up$unit, up$year))]
+    d$region <- paste(d$survey, d$unit, sep = ":")
+    ready <- rep(TRUE, nrow(d))
+    j <- match(paste(d$survey, d$unit), paste(wide$survey, wide$regkey))
+  } else {
   object <- readRDS(file.path(s$dir, s$file)); stopifnot(identical(object$signature, s$signature))
   d <- cbh_attach_incidence(object$data, hiv)
   ready <- d$model_ready
   j <- match(paste(d$survey, d$regkey), paste(wide$survey, wide$regkey))
+  }
   if (any(ready & is.na(j))) stop("Imputed overlay has no row for ", paste(unique(paste(d$survey, d$regkey)[ready & is.na(j)]), collapse = ", "))
   for (v in spec$regional) d[[v]] <- wide[[v]][j]
   k <- match(paste(d$country, d$entry_year), paste(national$iso3, national$year))
@@ -88,7 +111,7 @@ stopifnot(!anyNA(d[required]), all(d$death %in% 0:1), all(d$band_years > 0),
 counts <- data.frame(records = nrow(d), children = uniqueN(d$child_id), deaths = sum(d$death),
   regions = nlevels(d$region), surveys = nlevels(d$survey), countries = nlevels(d$country))
 dhs_rows <- !startsWith(as.character(d$survey), "MC_")
-stopifnot(sum(dhs_rows) == st$expected_dhs_records, sum(d$death[dhs_rows]) == st$expected_dhs_deaths,
+if (!is.null(st$expected_records)) stopifnot(sum(dhs_rows) == st$expected_dhs_records, sum(d$death[dhs_rows]) == st$expected_dhs_deaths,
   uniqueN(d$region[dhs_rows]) == st$expected_dhs_regions,
   counts$records == st$expected_records, counts$deaths == st$expected_deaths, counts$regions == st$expected_regions,
   counts$surveys == st$expected_surveys, counts$countries == st$expected_countries)

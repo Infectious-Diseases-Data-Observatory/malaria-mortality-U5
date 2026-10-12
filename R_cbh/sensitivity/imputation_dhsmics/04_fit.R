@@ -20,8 +20,9 @@ provenance <- data.frame(file = files, md5 = vapply(files, cbh_file_hash, ""))
 write_csv(provenance, "fit_input_provenance.csv")
 prepared <- readRDS(st$data)
 input <- prepared$data; input_signature <- prepared$signature; rm(prepared); gc(FALSE)
-stopifnot(nrow(input) == st$expected_records, sum(input$death) == st$expected_deaths,
+if (!is.null(st$expected_records)) stopifnot(nrow(input) == st$expected_records, sum(input$death) == st$expected_deaths,
           nlevels(input$region) == st$expected_regions)
+outside_knots <- list()
 form <- cbh_primary_regional_formula(st)
 writeLines(deparse(form), file.path(st$out, "model_formula.txt"))
 knot_table <- cbh_read_csv(st$knots)
@@ -45,8 +46,14 @@ for (i in seq_along(ages)) {
   stopifnot(nrow(d) > 0, all(d$death %in% 0:1), max(abs(d$band_years - widths[i])) < 1e-12)
   knots <- setNames(lapply(c("pfpr_pct", "calendar_year"), function(v) {
     k <- knot_table[knot_table$age_band == age & knot_table$variable == v, ]; k$value[order(k$index)] }), c("pfpr_pct", "calendar_year"))
-  stopifnot(length(knots$pfpr_pct) == 5L, length(knots$calendar_year) == 6L,
-            min(d$pfpr_pct) >= min(knots$pfpr_pct) - 1e-9, max(d$pfpr_pct) <= max(knots$pfpr_pct) + 1e-9)
+  stopifnot(length(knots$pfpr_pct) == 5L, length(knots$calendar_year) == 6L)
+  # v9: survey-region PfPR lies within the reference knots. Snow units reach slightly beyond them at both ends (unit
+  # PfPR 0.009-96.3 against 0.0165-94.76); the cr basis then extrapolates linearly, as in the primary fit, and the
+  # records outside are reported.
+  if (!identical(st$unit, "snow")) stopifnot(min(d$pfpr_pct) >= min(knots$pfpr_pct) - 1e-9, max(d$pfpr_pct) <= max(knots$pfpr_pct) + 1e-9)
+  outside_knots[[age]] <- data.frame(age_band = age, below_first_knot = sum(d$pfpr_pct < min(knots$pfpr_pct)),
+    above_last_knot = sum(d$pfpr_pct > max(knots$pfpr_pct)), records = nrow(d))
+  write_csv(do.call(rbind, outside_knots), "records_outside_knots.csv")
   # As in the DHS-only imputed version, 2024 entries (health expenditure now imputed)
   # lie beyond the last calendar-year knot; the cr basis continues linearly there.
   sig <- cbh_hash(list(provenance, st$gamma, st$seed, knots, deparse(form), R.version.string, as.character(packageVersion("mgcv"))))

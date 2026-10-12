@@ -37,5 +37,27 @@ cbh_imputed_dhsmics_settings <- function() {
   st$expected_records <- 8812458L; st$expected_deaths <- 123575L; st$expected_regions <- 1459L
   st$expected_surveys <- 166L; st$expected_countries <- 40L
   st$m <- 10L; st$maxit <- 20L; st$imputation_seed <- 20260918L
+  st$unit <- "region"
+  # The Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge, 11 October 2026): the same imputation and model on the
+  # survey x unit areas of the Snow primary. Every placed record is retained; units take the Snow primary's covariate
+  # table (after the WUENIC and within-survey fallbacks) and PfPR of the unit at the survey year.
+  if (identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")) {
+    snow <- cbh_primary_settings("snow_merge")
+    st$unit <- "snow"; st$snow_variant <- snow$snow_variant
+    st$id <- "primary_snow520_merge_imputed_gamma2_v12"
+    st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
+    st$data <- file.path(st$private, "complete_case_dataset.rds")
+    st$reference <- snow$out; st$reference_data <- snow$data
+    st$imputation_private <- "data/derived_cbh/regional_adjustment/imputed_snow_v12"
+    st$imputation_results <- "results/cbh/covariate_imputation_snow_v12"
+    st$imputed_overlay <- file.path(st$imputation_private, "regional_covariates_wide.csv")
+    st$imputed_national <- file.path(st$imputation_private, "national_covariates_imputed.csv")
+    st$snow_overlay <- file.path(snow$private, "regional_covariates_wide_snow.csv")
+    st$snow_records <- file.path("data/derived_cbh/snow", snow$snow_variant, "records_units.rds")
+    st$snow_pfpr <- file.path("results/cbh/snow_units", snow$snow_variant, "pfpr", "pfpr_polygon_year.csv")
+    st$comparison_labels <- c("Complete-case covariates, Snow units", "Imputed covariates, Snow units")
+    st$expected_dhs_records <- st$expected_dhs_deaths <- st$expected_dhs_regions <- NULL
+    st$expected_records <- st$expected_deaths <- st$expected_regions <- st$expected_surveys <- st$expected_countries <- NULL
+  }
   st
 }

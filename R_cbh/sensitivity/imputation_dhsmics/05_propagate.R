@@ -32,7 +32,8 @@ spec <- cbh_primary_regional_spec(st); form <- cbh_primary_regional_formula(st)
 ages <- cbh_config()$age_bands$age_band
 knot_table <- cbh_read_csv(st$knots)
 # Row lookups, computed once.
-rk <- match(paste(d0$survey, d0$regkey), paste(regional_imp$keys$survey, regional_imp$keys$regkey)); stopifnot(!anyNA(rk))
+# Keys: survey-region (v9) or survey x unit (Snow units; the imputation keys' regkey column holds the unit).
+rk <- match(paste(d0$survey, if (identical(st$unit, "snow")) d0$unit else d0$regkey), paste(regional_imp$keys$survey, regional_imp$keys$regkey)); stopifnot(!anyNA(rk))
 nkey <- paste(d0$country, d0$entry_year)
 nk <- lapply(setNames(national_vars, national_vars), function(v) match(nkey, paste(national_imp[[v]]$keys$iso3, national_imp[[v]]$keys$year)))
 hk <- match(nkey, paste(hiv_draws$keys$iso3, hiv_draws$keys$year)); stopifnot(!anyNA(hk))

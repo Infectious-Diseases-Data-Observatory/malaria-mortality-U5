@@ -21,7 +21,9 @@ pc <- read(1); pc <- pc[pc$series == "map_full", ]; pd <- read(2); ps <- read(3)
 nc <- read(4); nd <- read(5); ns <- read(6); counts <- read(7); by_survey <- read(8); selection <- read(9)
 pooled <- read(10)
 stopifnot(nrow(pd) == 7L, nrow(nd) == 7L, all(nd$converged), all(nd$gamma == 2), all(nd$input_verified),
-  all(nd$min_smoothing_hessian_eigenvalue > 0), ns$records == st$expected_records, ps$records == cbh_primary_settings("regional_mics")$expected_records,
+  all(nd$min_smoothing_hessian_eigenvalue > 0),
+  is.null(st$expected_records) || ns$records == st$expected_records,
+  identical(st$unit, "snow") || ps$records == cbh_primary_settings("regional_mics")$expected_records,
   counts$records[counts$programme == "All"] == ns$records)
 ages <- cbh_config()$age_bands$age_band
 labels <- setNames(st$comparison_labels, c("reference", "imputed"))

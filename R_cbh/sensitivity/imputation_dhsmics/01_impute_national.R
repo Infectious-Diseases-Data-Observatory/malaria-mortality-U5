@@ -21,7 +21,7 @@ years <- cfg$first_entry_year:cfg$last_entry_year
 manifests <- rbind(cbh_read_csv(st$dhs_manifest)[c("survey", "country", "status")],
                    cbh_read_csv(st$mics_manifest)[c("survey", "country", "status")])
 countries <- sort(unique(manifests$country[manifests$status %in% c("built", "cached")]))
-stopifnot(length(countries) == st$expected_countries)
+stopifnot(is.null(st$expected_countries) || length(countries) == st$expected_countries)
 polstab <- cbh_read_csv(cfg$annual_panels$governance$path)
 hexp <- cbh_read_csv(cfg$annual_panels$health_spending$path)
 gdp <- cbh_read_csv(cfg$annual_panels$gdp$path)

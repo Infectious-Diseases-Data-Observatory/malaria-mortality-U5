@@ -1,6 +1,6 @@
-# Manuscript text for the Snow-unit primary (draft, 12 October 2026)
+# Manuscript text for the Snow-unit primary (12 October 2026)
 
-Replacement text for Overleaf `main.tex`, given as text to paste. No manuscript file is edited. Line numbers refer to `main.tex` as of 12 October 2026. Numbers come from `results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/` and the Snow sensitivity folders. Unchanged numbers are not repeated. Placeholders in [square brackets] wait for the imputed-covariate sensitivity.
+Replacement text for Overleaf `main.tex`, given as text to paste. No manuscript file is edited. Line numbers refer to `main.tex` as of 12 October 2026. Numbers come from `results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/` and the Snow sensitivity folders. Unchanged numbers are not repeated. All numbers are final for the Snow primary and its sensitivities.
 
 ## Abstract (L52)
 
@@ -41,7 +41,9 @@ Replacement text for Overleaf `main.tex`, given as text to paste. No manuscript 
 > - Eastern Africa, where it was flat in neonates and flatter at 36–47 months;
 > - Central Africa, where fewer than 3\% of records had prevalence below 5\%, mortality did not increase between prevalences of 20\% and 40\% after the first month, and the curves were flatter than in the primary analysis at 24–59 months.
 >
-> A sensitivity analysis using multiple imputation for the missing covariates, retaining all 161 surveys with a Snow et al.\ area, in 38 countries (8,630,306 child age-band records and 122,092 deaths), gave [very similar] results to the primary analysis restricted to complete cases (Figure \ref{fig:MI}). Because acute or chronic malnutrition may mediate the relationship between malaria transmission and death as well as confound it, we refitted the models on the same sample without adjusting for wasting and stunting; the estimated prevalence–mortality relationship was essentially unchanged (Figure \ref{fig:without_malnutrition}).
+> A sensitivity analysis using multiple imputation for the missing covariates, retaining all 161 surveys with a Snow et al.\ area, in 38 countries (8,630,306 child age-band records and 122,092 deaths), gave very similar results to the primary analysis restricted to complete cases (Figure \ref{fig:MI}). Because acute or chronic malnutrition may mediate the relationship between malaria transmission and death as well as confound it, we refitted the models on the same sample without adjusting for wasting and stunting; the estimated prevalence–mortality relationship was essentially unchanged (Figure \ref{fig:without_malnutrition}).
+
+Imputed sensitivity: the 40%→20% hazard ratios are 0.94, 0.92, 0.84, 0.89, 0.89, 0.89 and 0.95, against 0.95, 0.93, 0.84, 0.87, 0.89, 0.89 and 0.94 for complete cases (largest change 0.018). Rubin's-rules pooling changed them by at most 0.001.
 
 The list layout is for review; paste it as running text. The paragraph needs two new figure labels, `fig:subgroups_region` and `fig:subgroups_period`, and their captions (see the Supplementary figures section below).
 

@@ -124,7 +124,7 @@ if (file.exists(lock)) {
 writeLines(as.character(Sys.getpid()), lock)
 if (!identical(Sys.getlocale("LC_COLLATE"), "en_GB"))
   stop("The paper's results were produced with collation locale en_GB (sorting and factor levels depend on it); got ",
-       Sys.getlocale("LC_COLLATE"), ". Set LANG=en_GB.UTF-8.")
+       Sys.getlocale("LC_COLLATE"), ". Set LANG=en_GB (on macOS, leaving LANG unset gives en_GB when the system region is the UK).")
 recorded <- c(R = "4.6.0", mgcv = "1.9.4", rstan = "2.32.7", StanHeaders = "2.32.10", terra = "1.9.34", sf = "1.1.1",
   exactextractr = "0.10.1", mice = "3.19.0", data.table = "1.18.4", haven = "2.5.5", ragg = "1.5.2", ggplot2 = "4.0.3",
   patchwork = "1.3.2", ggrepel = "0.9.8", countrycode = "1.8.0", readxl = "1.4.5", MASS = "7.3.65", dplyr = "1.2.1")

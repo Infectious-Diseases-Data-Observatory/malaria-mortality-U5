@@ -23,9 +23,11 @@ message("Loading existing prepared sample; no data setup or HIV refitting")
 prepared <- readRDS(settings$data)
 input_signature <- prepared$signature
 input <- prepared$data
-expected <- c(settings$expected_records,settings$expected_deaths)
-stopifnot(nrow(input)==expected[1],sum(input$death)==expected[2],
-  !anyNA(input$child_id),data.table::uniqueN(input,by=c("child_id","age_band"))==nrow(input))
+# Expected counts: fixed for v9; for the Snow primary they are set from the verified run (NULL until then).
+if(!is.null(settings$expected_records)) stopifnot(nrow(input)==settings$expected_records,sum(input$death)==settings$expected_deaths)
+stopifnot(!anyNA(input$child_id),data.table::uniqueN(input,by=c("child_id","age_band"))==nrow(input))
+# The Snow primary (merge rule) has one row per record with weight 1; weighted (split) data are not fitted here.
+if(identical(settings$unit,"snow")) stopifnot(all(input$w==1))
 cbh_atomic_csv(data.frame(distinct_children=data.table::uniqueN(input$child_id),records=nrow(input),
   deaths=sum(input$death),surveys=data.table::uniqueN(input$survey),countries=data.table::uniqueN(input$country)),
   file.path(out,"primary_sample.csv"))
@@ -38,7 +40,7 @@ input <- input[unique(c(all.vars(form),"age_band"))]
 rm(prepared);gc(FALSE)
 code <- c("R_cbh/primary/01_fit.R","R_cbh/primary/settings.R",settings$knots,
   "R_cbh/analysis/model.R","R_cbh/sensitivity/model.R")
-if(settings$regional) code <- c(code,"R_cbh/covariates/regional.R","R_cbh/primary/specification.R","R_cbh/primary/00_prepare_regional.R")
+if(settings$regional) code <- c(code,"R_cbh/covariates/regional.R","R_cbh/primary/specification.R",settings$prepare)
 code_hash <- vapply(code,cbh_file_hash,"")
 data_hash <- cbh_file_hash(settings$data)
 cbh_atomic_csv(data.frame(file=c(settings$data,code),md5=c(data_hash,unname(code_hash))),file.path(out,"fit_input_provenance.csv"))

@@ -65,7 +65,7 @@ n <- list(dhs_registry = sum(!startsWith(m$survey, "MC_")), mics_registry = nrow
   no_polygon = no_polygon, malaria_free_unit = malaria_free, placed = sum(sel$placed_rows),
   missing_covariates = sum(sel$excluded_incomplete), primary = sum(sel$complete_case_rows), deaths = sum(sel$complete_case_deaths),
   surveys = sum(sel$complete_case_rows > 0), countries = length(unique(sel$country[sel$complete_case_rows > 0])),
-  units = sample$regions %||% NA, primary_distinct_children = sample$distinct_children)
+  units = sum(un$units), primary_distinct_children = sample$distinct_children)   # survey x unit areas of the placed records
 n$mostly_malaria_free <- n$matched - n$placed - n$no_polygon - n$malaria_free_unit
 n$not_placed <- n$unmatched + n$no_polygon + n$malaria_free_unit + n$mostly_malaria_free
 n$excluded_eligibility <- n$incomplete + n$outside_year

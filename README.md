@@ -2,7 +2,7 @@
 
 Code and inputs for **"Reassessing the malaria mortality burden in African children"** (Watson, Darji, …, Guerin, Snow; manuscript in preparation).
 
-The paper treats malaria transmission intensity, measured as *P. falciparum* prevalence in children aged 2–10 (*Pf*PR₂₋₁₀, from the Malaria Atlas Project), as a risk factor for all-cause death in children under 5. Complete birth histories from 135 DHS and UNICEF MICS surveys in 37 sub-Saharan African countries are split into seven age bands from birth to age 5. Each band is linked to the population-weighted *Pf*PR₂₋₁₀ of the survey region in the band's calendar year. A separate binomial complementary log-log GAM is fitted to each band, with 17 adjustment covariates. The fitted age-band hazard ratios, contrasting current *Pf*PR with zero, are then applied to IHME all-cause death rates. This gives the share and number of under-five deaths attributable to malaria, directly and indirectly, which are compared with IHME and UN IGME (CA-CODE) cause-specific estimates.
+The paper treats malaria transmission intensity, measured as *P. falciparum* prevalence in children aged 2–10 (*Pf*PR₂₋₁₀, from the Malaria Atlas Project), as a risk factor for all-cause death in children under 5. Complete birth histories from 135 DHS and UNICEF MICS surveys in 36 sub-Saharan African countries are split into seven age bands from birth to age 5. Since 11 October 2026 the geographic unit is the sub-national polygons of Snow et al. (2017): each record is placed, through its smallest reported administrative unit, in one malaria-endemic polygon or in the smallest union of polygons containing that unit ([R_cbh/snow/README.md](R_cbh/snow/README.md)). Each band is linked to the population-weighted *Pf*PR₂₋₁₀ of that unit in the band's calendar year. A separate binomial complementary log-log GAM is fitted to each band, with 17 adjustment covariates computed for each survey × unit from the DHS and MICS files. The fitted age-band hazard ratios, contrasting current *Pf*PR with zero, are then applied to IHME all-cause death rates. This gives the share and number of under-five deaths attributable to malaria, directly and indirectly, which are compared with IHME and UN IGME (CA-CODE) cause-specific estimates.
 
 This repository contains only what the manuscript describes. The analysis was developed in a larger project; `docs/PAPER_CODE_FLAGS.md` lists:
 - what the code needs that the manuscript does not describe;
@@ -13,22 +13,24 @@ This repository contains only what the manuscript describes. The analysis was de
 
 | | |
 |---|---|
-| Primary analysis | Version **v9**, `primary_map_regional17_dhsmics_gamma2_v9`: DHS and MICS surveys, 17 covariates, MAP PfPR, γ = 2 |
-| Sample | 135 surveys (98 DHS, 37 MICS) in 37 countries; 1,229 survey-regions; 1,125,549 mothers; 2,329,388 children; 7,621,617 child-band records; 104,143 deaths |
-| Sensitivities in the paper | Subgroups (`subgroups_dhsmics_map_gamma2_v4`), without wasting and stunting (`nutrition_adjustment_dhsmics_map_gamma2_v4`), imputed covariates (`primary_map_regional17_dhsmics_imputed_gamma2_v10`) |
-| Verified | See [Verification](#verification): a full re-run from raw microdata reproduces the paper's figures, tables and numbers |
+| Primary analysis | **Snow-unit primary** (since 11 October 2026), `primary_snow520_merge_dhsmics_gamma2_v11`: DHS and MICS surveys placed in the Snow et al. (2017) polygons (merge rule), 17 covariates, MAP PfPR, γ = 2. Branch `snow-polygon-primary`. |
+| Sample | 135 surveys (99 DHS, 36 MICS) in 36 countries; 1,442 survey × unit areas (215 of them unions of polygons) in 455 polygons; 1,118,697 mothers; 2,318,724 children; 7,581,934 child-band records; 104,159 deaths |
+| Sensitivities | Sahel, UN M49 West, Central and East Africa, and period (by survey year and by record calendar year) refits (`subgroups_snow520_merge_gamma2_v5`); without wasting and stunting (`nutrition_adjustment_snow520_merge_gamma2_v5`); imputed covariates (`primary_snow520_merge_imputed_gamma2_v12`) |
+| Previous primary | v9 (`primary_map_regional17_dhsmics_gamma2_v9`, survey-regions; 629,136 attributable deaths in 2024) is kept as stage `primary_v9` and compared in `comparison_v9/` (576,400 under the Snow units, ratio 0.92) |
+| Verified | The Snow unit construction reproduces the analysis project record for record ([verification/snow_reproduction.md](verification/snow_reproduction.md)); see [Verification](#verification) |
 
 ## Repository layout
 
 ```
 run_pipeline.R      runs every stage in order (resumable; see below)
 run_detached.sh     runs the pipeline detached from the terminal
-R_inputs/           input producers: survey-region MAP PfPR, UNICEF immunisation panel, region centroids, WHO WMR tables
+R_inputs/           input producers: survey-region MAP PfPR (v9), UNICEF immunisation panel, region centroids, WHO WMR tables
   fetch/            network scripts that obtained the frozen inputs (not run by the pipeline)
 R_cbh/              DHS child-band builder, covariates, HIV model, primary model, burden, reporting, sensitivities
   R/                shared builder functions          config/   survey rules and region overrides
   hiv/              child HIV incidence model (Stan)  covariates/  DHS regional covariates
-  primary/          v9 settings, fits, effects, report  burden/  national inputs, annual and Nigerian-state burden
+  snow/             Snow et al. polygons: placement, analysis units (merge rule), unit PfPR and covariates, maps
+  primary/          settings (snow_merge, v9), fits, effects, report  burden/  national inputs, annual and Nigerian-state burden
   reporting/        figures, tables, paper export     sensitivity/  subgroups, nutrition, imputation_dhsmics
 R_mics/             MICS conversion to the DHS layout, boundaries, PfPR, child bands, covariates
 tools/              import, restore, comparison and pre-commit checks
@@ -48,13 +50,13 @@ docs/               PAPER_CODE_FLAGS.md
 - The fetch scripts also need rdhs, malariaAtlas, geodata, httr and jsonlite.
 - Python 3 (standard library only).
 - Collation locale `en_GB`, which the runner checks. Sorting, and so factor levels, depend on it.
-- About 16 GB of memory, since one fit uses about 3 GB, and about 15 GB of disk for the derived files.
+- About 16 GB of memory, since one fit uses about 3 GB, and about 20 GB of disk for the derived files.
 - `run_pipeline.R` stops if a package version differs from the recorded one (`--ignore-versions` overrides).
 
 ## Reproducing the analysis
 
-1. Place the DHS, MIS and MICS microdata in `data/raw/` as described in [data/README.md](data/README.md). Every other input is committed.
-2. Run the whole pipeline, detached; it takes about 4 hours:
+1. Place the DHS, MIS and MICS microdata in `data/raw/` as described in [data/README.md](data/README.md), including the DHS household (PR) and height/weight (HW) recodes that the Snow-unit covariates need. Every other input is committed.
+2. Run the whole pipeline, detached; it takes about 7 hours:
    ```bash
    ./run_detached.sh --all
    ```
@@ -72,12 +74,18 @@ docs/               PAPER_CODE_FLAGS.md
 | `dhs_bands` | DHS/MIS child-band records (`R_cbh/01_make_analysis_data.R`) | ~6 min |
 | `covariates` | DHS published indicators, recode summaries, WUENIC fallbacks, nutrition, first-birth age, complete-case audit | ~25 min |
 | `mics` | MICS extraction, inventory, regions and boundaries, PfPR, BR-layout recodes, child bands, covariates | ~30 min |
-| `primary` | v9 preparation, seven fits, effects, national burden, Figures 1–4, Tables 1, 2 and S1, Figs S1, S2 and S6 | ~25 min |
-| `subgroups` | Sahel, Eastern Africa and survey-period refits (Fig S3) | ~15 min |
+| `primary_v9` | The v9 survey-region primary (comparison) | ~20 min |
+| `snow_units` | Snow polygons, polygon PfPR, survey-region overlay, finer location units, label check, placement, analysis units | ~20 min |
+| `snow_covariates` | The 13 regional covariates per survey × unit from the DHS (BR/PR/HW) and MICS files, with a national validation | ~12 min |
+| `primary` | Snow-unit preparation, seven fits, effects, national burden, Figures 1–4, Tables 1, 2 and S1, Figs S1, S2 and S6 | ~25 min |
+| `snow_maps` | Per-country merge-unit maps, boundary-agreement map, comparison with v9 | ~2 min |
+| `subgroups` | Sahel, UN M49 West, Central and East Africa, and period refits (Fig S3 and supplementary figures) | ~45 min |
 | `nutrition` | Refits without wasting and stunting (Fig S5) | ~20 min |
-| `imputation` | Imputed-covariate refits and the multiple-imputation propagation (Fig S4) | ~65 min |
+| `imputation` | Imputed-covariate refits and the multiple-imputation propagation (Fig S4) | ~90 min |
 | `validate` | Cross-checks of the reported numbers and provenance hashes | <1 min |
 | `export` | Copies figures, tables and captions to `paper/` | <1 min |
+
+`snow_repro` (optional; `--only=snow_repro` with `SNOW_POLYGONS_GPKG` pointing at the analysis project's polygon file) rebuilds the analysis project's population-share split dataset to check the ported unit construction.
 
 `R_inputs/fetch/` contains the scripts that obtained the frozen inputs. They need network access, and some need DHS credentials. The pipeline never runs them.
 
@@ -93,17 +101,25 @@ docs/               PAPER_CODE_FLAGS.md
 | Table 1: country comparison | `tables/country_comparison_2024.latex.txt` | `R_cbh/reporting/09_burden_tables.R` |
 | Table 2: source comparison 2000–2024 | `tables/source_comparison.latex.txt` | `R_cbh/reporting/12_source_comparison_table.R` |
 | Table S1: age-band results | `tables/age_band_results.latex.txt` | `R_cbh/primary/03_report.R` |
-| Fig S1: study flow | `Supplementary Figures/sfig_study_flow.png` | `R_cbh/reporting/01_study_flow.R` |
+| Fig S1: study flow | `Supplementary Figures/sfig_study_flow.png` | `R_cbh/reporting/01_study_flow_snow.R` |
 | Fig S2: PfPR and mortality by age band | `Supplementary Figures/sfig_pfpr_mortality_by_age.png` | `R_cbh/primary/03_report.R` |
-| Fig S3: subgroups | `Supplementary Figures/sfig_pfpr_splines_by_subgroup.png` | `R_cbh/sensitivity/subgroups/02_report.R` |
+| Fig S3: Sahel subgroup | `Supplementary Figures/sfig_pfpr_splines_by_subgroup.png` | `R_cbh/sensitivity/subgroups/02_report.R` |
+| Supplementary: UN M49 sub-regions | `Supplementary Figures/sfig_pfpr_splines_by_subregion.png` | `R_cbh/sensitivity/subgroups/02_report.R` |
+| Supplementary: periods (survey year, record calendar year) | `Supplementary Figures/sfig_pfpr_splines_by_period.png` | `R_cbh/sensitivity/subgroups/02_report.R` |
+| Supplementary: PfPR 40% to 20% by subset | `Supplementary Figures/sfig_pfpr_40_to_20_by_subgroup.png` | `R_cbh/sensitivity/subgroups/02_report.R` |
 | Fig S4: imputed covariates | `Supplementary Figures/sfig_pfpr_splines_imputed_covariates.png` | `R_cbh/sensitivity/imputation_dhsmics/06_report.R` |
 | Fig S5: without wasting and stunting | `Supplementary Figures/sfig_pfpr_splines_without_nutrition.png` | `R_cbh/sensitivity/nutrition/02_report.R` |
 | Fig S6: malaria share against PfPR | `Supplementary Figures/sfig_malaria_share_vs_pfpr.png` | `R_cbh/reporting/20_malaria_share_vs_pfpr.R` |
-| Results text: 2024 agreement statistics | `results/cbh/…_v9/annual_comparison/country_agreement_2024.csv` | `R_cbh/reporting/21_country_agreement_2024.R` |
+| Supplementary: survey-regions against Snow polygons | `Supplementary Figures/sfig_snow_boundary_agreement_map.png` | `R_cbh/snow/22_map_boundary_agreement.R` |
+| Supplementary: merged units, one map per country | `Supplementary Figures/snow_merge_units/<ISO3>_merge_units.png` | `R_cbh/snow/21_map_merge_units.R` |
+| Supplementary: Snow units against v9 | `Supplementary Figures/sfig_pfpr_curves_v9_vs_snow.png`, `tables/comparison_v9_vs_snow.md` | `R_cbh/reporting/22_compare_v9_snow.R` |
+| Results text: 2024 agreement statistics | `results/cbh/…_v11/annual_comparison/country_agreement_2024.csv` | `R_cbh/reporting/21_country_agreement_2024.R` |
 
 ## Verification
 
-On 2–4 October 2026 the whole pipeline was re-run from the raw microdata and compared with the analysis project's outputs ([verification/VERIFICATION.md](verification/VERIFICATION.md)):
+**Snow-unit primary (11–12 October 2026).** The ported unit construction (`R_cbh/snow/`), run as `split_repro`, reproduces the analysis project's Snow dataset record for record: placement, units, covariates and the 9,690,169-row prepared dataset, with polygon PfPR within 6e-10 ([verification/snow_reproduction.md](verification/snow_reproduction.md)). The recode covariates of every DHS survey are checked against the published national values: 930 of 933 survey-indicator pairs agree within 2 points (median difference 0.03); the three exceptions (Benin 2006 sanitation, Mali 2001 water and sanitation) are surveys outside the complete-case sample. The paper's figures in `paper/` are still the v9 versions until the Snow run is exported and the manuscript is updated.
+
+**v9 (the previous primary).** On 2–4 October 2026 the whole pipeline was re-run from the raw microdata and compared with the analysis project's outputs ([verification/VERIFICATION.md](verification/VERIFICATION.md)):
 - every figure, table and caption that the manuscript uses is byte-identical to the Overleaf file (27 of 27);
 - the seven primary fits, the burden estimates (629,136 attributable under-five deaths in 2024 against 428,147 from IHME and 440,123 from UN IGME) and the three sensitivities are identical;
 - the 120 DHS/MIS child-band files and all 581 extracted MICS files match.
@@ -124,4 +140,4 @@ See `docs/PAPER_CODE_FLAGS.md`, section C.
 
 ## Licence
 
-The code is released under CC0 1.0 (`LICENSE`). The committed third-party inputs keep their own terms (see `data/README.md`), notably IHME's terms of use and those of the Snow admin-1 shapefile. DHS and MICS microdata are not redistributed.
+The code is released under CC0 1.0 (`LICENSE`). The committed third-party inputs keep their own terms (see `data/README.md`), notably IHME's terms of use; the Snow et al. polygons are open access with the original publication. DHS and MICS microdata are not redistributed.

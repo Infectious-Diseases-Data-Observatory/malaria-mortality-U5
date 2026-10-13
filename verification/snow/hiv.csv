@@ -1,0 +1,32 @@
+file,class,detail
+data/derived_cbh/hiv_incidence/child_incidence_country_year_extended_lbr.csv,identical,""
+data/derived_cbh/hiv_incidence/child_incidence_country_year_extended.csv,identical,""
+data/derived_cbh/hiv_incidence/child_incidence_country_year_lbr.csv,identical,""
+data/derived_cbh/hiv_incidence/child_incidence_country_year.csv,identical,""
+data/derived_cbh/hiv_incidence/child_incidence_draws_extended.rds,identical,""
+data/derived_cbh/hiv_incidence/child_incidence_draws.rds,identical,""
+data/derived_cbh/hiv_incidence/fit_extended.rds,DIFFERENT,"Component “fit”: Attributes: < Component “.MISC”: Component “stan_fit_instance”: Component “.refClassDef”: Attributes: < Component “className”: 1 string mismatch > >; Component “fit”: Attributes: < Component “.MISC”: Component “stan_fit_instance”: Component “.refClassDef”: Attributes: < Component “contains”: Component “C++Object”: Attributes: < Component “replace”: target, current do not match when deparsed > > >"
+data/derived_cbh/hiv_incidence/fit.rds,DIFFERENT,"Component “fit”: Attributes: < Component “.MISC”: Component “stan_fit_instance”: Component “.refClassDef”: Attributes: < Component “className”: 1 string mismatch > >; Component “fit”: Attributes: < Component “.MISC”: Component “stan_fit_instance”: Component “.refClassDef”: Attributes: < Component “contains”: Component “C++Object”: Attributes: < Component “replace”: target, current do not match when deparsed > > >"
+data/derived_cbh/hiv_incidence/refit_check/child_incidence_country_year_extended.csv,DIFFERENT,columns differ: hiv_incidence_per1000 lower_95 upper_95
+data/derived_cbh/hiv_incidence/refit_check/child_incidence_country_year.csv,DIFFERENT,columns differ: hiv_incidence_per1000 lower_95 upper_95
+data/derived_cbh/hiv_incidence/refit_check/child_incidence_draws_extended.rds,DIFFERENT,Component “log_incidence”: Mean relative difference: 0.1463711
+data/derived_cbh/hiv_incidence/refit_check/child_incidence_draws.rds,DIFFERENT,Component “log_incidence”: Mean relative difference: 0.1373196
+results/cbh/hiv_incidence/child_incidence_country_year_extended.csv,identical,""
+results/cbh/hiv_incidence/child_incidence_country_year.csv,identical,""
+results/cbh/hiv_incidence/extended_vs_base_panel.csv,DIFFERENT,columns differ: base extended log_ratio
+results/cbh/hiv_incidence/fit_diagnostics.csv,identical,""
+results/cbh/hiv_incidence/fit_extended_diagnostics.csv,identical,""
+results/cbh/hiv_incidence/imputed_no_adolescent_series.csv,DIFFERENT,columns differ: hiv_incidence_per1000 lower_95 upper_95
+results/cbh/hiv_incidence/liberia_aidsinfo/definition_check_by_country.csv,identical,""
+results/cbh/hiv_incidence/liberia_aidsinfo/definition_check_country_years.csv,identical,""
+results/cbh/hiv_incidence/liberia_aidsinfo/liberia_child_incidence.csv,identical,""
+results/cbh/hiv_incidence/liberia_aidsinfo/liberia_derived_vs_extended_model.csv,identical,""
+results/cbh/hiv_incidence/liberia_aidsinfo/provenance.csv,identical,""
+results/cbh/hiv_incidence/liberia_aidsinfo/REPORT.md,identical,""
+results/cbh/hiv_incidence/model_parameters_extended.csv,identical,""
+results/cbh/hiv_incidence/model_parameters.csv,identical,""
+results/cbh/hiv_incidence/refit_check/child_incidence_country_year_extended.csv,DIFFERENT,columns differ: hiv_incidence_per1000 lower_95 upper_95
+results/cbh/hiv_incidence/refit_check/child_incidence_country_year.csv,DIFFERENT,columns differ: hiv_incidence_per1000 lower_95 upper_95
+results/cbh/hiv_incidence/refit_vs_frozen.csv,DIFFERENT,columns differ: differ_over_5pct median_abs_log_ratio max_abs_log_ratio
+results/cbh/hiv_incidence/source_country_year_extended.csv,identical,""
+results/cbh/hiv_incidence/source_country_year.csv,identical,""

@@ -1,5 +1,7 @@
 # Updated primary results (DHS and MICS surveys)
 
+Figure 1 is the map of complete birth histories used, by analysis unit (`figures/fig1_analysis_units_map.png`); the former Figure 1, the survey map and timing, is now `Supplementary Figures/sfig_survey_map_and_timing.png`.
+
 Figures 1–4 (Figure 3 combines the 2024 country comparison, the Nigerian state
 comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
 under-five child-years;
@@ -7,17 +9,17 @@ Figure 4 is the probability of dying before age 5 by country, all causes and cau
 by malaria under the model and under IHME, ordered by the model's malaria value, with
 national PfPR in a narrow left panel) and the
 supplementary inclusion flow use the 17-variable
-regional-adjustment MAP gamma=2 models in `primary_map_regional17_dhsmics_gamma2_v9`. The analysis contains
-2,329,388 children, 7,621,617 child-band records and
-104,143 deaths in 1,229 survey-regions,
-135 surveys and 37 countries.
+regional-adjustment MAP gamma=2 models in `primary_snow520_merge_dhsmics_gamma2_v11`. The analysis contains
+2,335,868 children, 7,639,443 child-band records and
+105,114 deaths in 1,452 survey x unit areas,
+136 surveys and 37 countries.
 
-It combines 98 DHS and 37 UNICEF MICS surveys. The DHS part is the v7 DHS part plus Uganda 2016's north and south Buganda regions (5,588,463 records, 77,587 deaths, 934 survey-regions, 98 surveys, 35 countries); the MICS surveys add 2,033,154 records, 26,556 deaths, 295 survey-regions and 2 countries (CAF, GNB). None of the 5 MIS surveys passes complete-case selection.
+It combines 99 DHS and 37 UNICEF MICS surveys, with records placed in the malaria-endemic polygons of Snow et al. (2017): 5,598,304 DHS records and 77,966 deaths in 1,148 survey x unit areas, and 2,041,139 MICS records and 27,148 deaths in 304 survey x unit areas. None of the 5 MIS surveys passes complete-case selection.
 
 The revised adjustment removes sex, multiple births and birth order; replaces
 maternal age at each birth with regional mean age at first birth; and adds
-regional wasting and stunting prevalence. All 13 survey-level predictors are survey-region summaries: for DHS surveys, published regional indicators or weighted recode summaries; for MICS surveys, values computed from the microdata with the DHS definitions and the same WUENIC and within-survey fallbacks. The four national annual
-variables are unchanged.
+regional wasting and stunting prevalence. All 13 survey-level predictors are summaries for each survey x unit area (a Snow et al. polygon or a union of polygons), computed from the DHS and MICS recodes with the DHS definitions, then the same WUENIC and within-survey fallbacks as before. The four national annual
+variables are unchanged, except the declared substitution: SSD takes SDN's GDP per capita, health expenditure per capita and political stability for band-entry years before 2011 (2005–2010; 57,509 records).
 
 No TeX file has been edited. Update manuscript text and captions manually using:
 
@@ -33,7 +35,7 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).
 
-The 2024 totals are 629,136 PfPR-ACM deaths,
+The 2024 totals are 586,723 PfPR-ACM deaths,
 428,147 IHME deaths and
 440,123 UN IGME deaths, summed over the
 42 countries in the national burden comparison (36 of the 37 survey countries; ZAF contributes survey data but is outside the burden set).
@@ -41,9 +43,9 @@ These are conditional model-based estimates; source and imputation uncertainty
 are not fully propagated.
 
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
-subgroups (`subgroups_dhsmics_map_gamma2_v4`) and no nutrition covariates (`nutrition_adjustment_dhsmics_map_gamma2_v4`)
-on this sample, and imputed covariates on the larger MAP-eligible sample
-(`primary_map_regional17_dhsmics_imputed_gamma2_v10`, which retains every MAP-eligible record: 8,812,458 records, 123,575 deaths, 166 surveys and 40 countries). Malaria's share of under-five deaths against national
+subgroups (`subgroups_snow520_merge_gamma2_v5`) and no nutrition covariates (`nutrition_adjustment_snow520_merge_gamma2_v5`)
+on this sample, and imputed covariates on the larger sample of every placed record
+(`primary_snow520_merge_imputed_gamma2_v12`, which retains every record placed in a Snow et al. unit: 8,630,306 records, 122,092 deaths, 161 surveys and 38 countries). Malaria's share of under-five deaths against national
 PfPR in 2024 (`Supplementary Figures/sfig_malaria_share_vs_pfpr.png`) compares IHME and
 UN IGME (CA-CODE) with the PfPR-ACM model. Their captions are exported to
 `Supplementary Figures/`.

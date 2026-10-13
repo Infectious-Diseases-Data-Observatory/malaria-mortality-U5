@@ -1,0 +1,138 @@
+file,class,detail
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/analysis_units_map/analysis_units_by_polygon.csv,missing,not in reference
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/analysis_units_map/analysis_units_map.png,missing,not in reference
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/analysis_units_map/CAPTION.md,missing,not in reference
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/analysis_units_map/provenance.csv,missing,not in reference
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/agreement_with_existing_primary.csv,DIFFERENT,columns differ: death_difference
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/annual_totals_2000_2024.csv,DIFFERENT,columns differ: model_deaths model_rate_per100000
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/CAPTION.md,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/country_age_estimates_2000_2024.csv,DIFFERENT,columns differ: log_hr_zero_vs_current attributable_fraction attributable_deaths
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/country_agreement_2024.csv,DIFFERENT,columns differ: countries_above_ihme median_ratio_ihme spearman_rate_ihme countries_above_unigme median_ratio_unigme spearman_rate_unigme
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/country_agreement_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/country_estimates_2000_2024.csv,DIFFERENT,columns differ: model_deaths model_rate_per100000
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/country_year_input_audit.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/denominator_audit.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/fig5_annual_malaria_mortality.png,DIFFERENT,max pixel difference 0.914
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/figure_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/figure5_data.csv,DIFFERENT,columns differ: deaths rate_per100000
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/ihme_release_metadata.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/included_countries.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/input_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/map_input_audit.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/national_pfpr_2000_2024.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/README.md,DIFFERENT,lines 69 vs 69; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/annual_comparison/who_source.json,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/attributable_fraction_by_age_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/attributable_fraction_by_age.csv,DIFFERENT,columns differ: log_hr_zero_vs_current log_hr_se attributable_fraction af_lower_95 af_upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/attributable_fraction_by_age.png,DIFFERENT,max pixel difference 1
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/CAPTION_counts.md,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/CAPTION.md,DIFFERENT,lines 3 vs 3; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/country_rates_2024.csv,DIFFERENT,columns differ: model_deaths model_rate
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/fig4_burden_comparison.png,DIFFERENT,max pixel difference 1
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/figure_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/points_outside_display_limits.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/sfig_burden_comparison_counts.png,DIFFERENT,max pixel difference 1
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/source_comparison_2000_2024.csv,DIFFERENT,columns differ: y2000 y2004 y2015 y2024 decline_from_2000 decline_from_2004 decline_from_2015
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/source_comparison_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/source_comparison.latex.txt,DIFFERENT,lines 36 vs 36; first difference at line 15
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden_comparison/SOURCE_COMPARISON.md,DIFFERENT,lines 23 vs 23; first difference at line 12
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/country_age_estimates.csv,DIFFERENT,columns differ: log_hr_se log_hr_zero_vs_current hr_zero_vs_current hr_lower_95 hr_upper_95 attributable_fraction af_lower_95 af_upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/country_deaths_all_years.png,DIFFERENT,max pixel difference 0.871
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/country_totals.csv,DIFFERENT,columns differ: attributable_under5_deaths counterfactual_under5_deaths attributable_fraction
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/country_vs_ihme.png,DIFFERENT,max pixel difference 1
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/deaths_by_age.png,DIFFERENT,max pixel difference 0.871
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/drc_life_table.csv,DIFFERENT,columns differ: zero_pfpr_q zero_pfpr_survival
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/drc_survival.png,DIFFERENT,max pixel difference 0.871
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/log10_below_display_minimum.csv,DIFFERENT,columns differ: attributable_under5_deaths counterfactual_under5_deaths attributable_fraction
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/log10_plot_exclusions.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/burden/year_summary.csv,DIFFERENT,columns differ: attributable_under5_deaths counterfactual_under5_deaths
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/code_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/age_band_contrasts_v9_vs_snow.csv,DIFFERENT,columns differ: snow_af20 snow_af20_lo snow_af20_hi snow_hr40 snow_hr40_lo snow_hr40_hi snow_edf
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/annual_attributable_2000_2024_v9_vs_snow.csv,DIFFERENT,columns differ: snow
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/attributable_deaths_2005_2015_2024.csv,DIFFERENT,columns differ: snow_attributable ratio_snow_to_v9
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/COMPARISON.md,DIFFERENT,lines 27 vs 27; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/country_attributable_2024_v9_vs_snow.csv,DIFFERENT,columns differ: snow snow_af
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/pfpr_hr_curves_v9_vs_snow.png,DIFFERENT,max pixel difference 0.831
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/pfpr_hr_vs_zero_curves.csv,DIFFERENT,columns differ: log_hr se hr lower_95 upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/complete_case_losses.csv,DIFFERENT,rows 59 vs 61
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/covariate_fallbacks.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/covariate_scaling.csv,DIFFERENT,columns differ: mean sd
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/diagnostic_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/fit_diagnostics.csv,DIFFERENT,columns: countries surveys regions iterations rank coefficients finite_coefficients finite_covariance min_smoothing_hessian_eigenvalue max_smoothing_gradient warnings
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/fit_input_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/fit_manifest.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/fitted_outcome_checks.csv,DIFFERENT,columns differ: records observed_deaths fitted_deaths mean_observed_probability mean_fitted_probability brier_score bernoulli_log_loss
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/grouped_outcome_checks.csv,DIFFERENT,rows 1508 vs 1494
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/jobs.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/malaria_share/CAPTION.md,DIFFERENT,lines 3 vs 3; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/malaria_share/malaria_share_table_2024.csv,DIFFERENT,columns differ: pfpr_acm_share_pct pfpr_acm_lower95_pct pfpr_acm_upper95_pct
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/malaria_share/malaria_share_table_2024.latex.txt,DIFFERENT,lines 60 vs 60; first difference at line 10
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/malaria_share/malaria_share_table_2024.md,DIFFERENT,lines 49 vs 49; first difference at line 5
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/malaria_share/malaria_share_vs_pfpr_2024.csv,DIFFERENT,columns differ: pfpr_acm_share_pct pfpr_acm_share_lower95_pct pfpr_acm_share_upper95_pct
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/malaria_share/provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/malaria_share/sfig_malaria_share_vs_pfpr.png,DIFFERENT,max pixel difference 0.914
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/model_formula.txt,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/national_substitutions.csv,missing,not in reference
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/CAPTION.md,DIFFERENT,lines 3 vs 3; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/fig6_nigeria_states_vs_ihme.png,DIFFERENT,max pixel difference 1
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/figure_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/ihme_source.json,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/input_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/model_specification.txt,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/national_reconciliation_2024.csv,DIFFERENT,columns differ: national_attributable_deaths state_sum_attributable_deaths difference_deaths relative_difference national_attributable_fraction state_sum_attributable_fraction model_over_ihme_malaria_national
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/README.md,DIFFERENT,lines 69 vs 69; first difference at line 15
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/state_age_estimates_2024.csv,DIFFERENT,columns differ: log_hr_zero_vs_current log_hr_se hr_zero_vs_current hr_lower_95 hr_upper_95 attributable_fraction af_lower_95 af_upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/nigeria_states/state_totals_2024.csv,DIFFERENT,columns differ: attributable_under5_deaths counterfactual_under5_deaths attributable_fraction model_over_ihme_malaria attributable_rate_per100000
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/outcome_residuals_by_pfpr.png,DIFFERENT,max pixel difference 0.875
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/paper_figures/CAPTIONS.md,DIFFERENT,lines 53 vs 43; first difference at line 5
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/paper_figures/manifest.csv,DIFFERENT,columns differ: filename source
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/paper_refresh/OVERLEAF_UPDATE.md,DIFFERENT,lines 56 vs 54; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/paper_refresh/provenance_checks.csv,DIFFERENT,rows 22 vs 21
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/paper_refresh/validation.txt,DIFFERENT,lines 11 vs 10; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_20_to_zero_contrasts.csv,DIFFERENT,columns differ: log_hazard_ratio standard_error hazard_ratio_20_to_zero attributable_fraction_at_20pct lower_95 upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_40_to_20_contrasts.csv,DIFFERENT,columns differ: log_hazard_ratio standard_error pfpr_p025 pfpr_p975 hazard_ratio_40_to_20 lower_95 upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_40_to_20.png,DIFFERENT,max pixel difference 0.871
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_attributable_fraction_anchors.csv,DIFFERENT,columns differ: attributable_fraction lower_95 upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_curves.csv,DIFFERENT,columns differ: pfpr_pct log_hazard_ratio standard_error lower_95 upper_95 pfpr_p025 pfpr_p975 within_central_support
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_edf.csv,DIFFERENT,columns differ: edf
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_splines.png,DIFFERENT,max pixel difference 0.871
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/preparation_provenance.csv,DIFFERENT,rows 12 vs 8
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/prepared_sample.csv,DIFFERENT,columns differ: records children deaths regions surveys countries rows polygons
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/prepared_selection_by_survey.csv,DIFFERENT,rows 136 vs 135
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/primary_sample.csv,DIFFERENT,columns differ: distinct_children records deaths surveys countries
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/report_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/RESULTS.md,DIFFERENT,lines 36 vs 36; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/session_info.txt,DIFFERENT,lines 23 vs 23; first difference at line 10
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/smooth_summaries.csv,DIFFERENT,columns differ: edf Ref.df Chi.sq p-value
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/study_flow/CAPTION.md,DIFFERENT,lines 10 vs 10; first difference at line 5
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/study_flow/excluded_surveys.csv,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/study_flow/figure_labels.csv,DIFFERENT,columns differ: heading detail
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/study_flow/flow_counts.csv,DIFFERENT,rows 31 vs 30
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/study_flow/provenance.csv,DIFFERENT,rows 22 vs 21
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/study_flow/study_flow_diagram.png,DIFFERENT,max pixel difference 0.871
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/study_flow/survey_selection.csv,DIFFERENT,columns differ: complete_case_rows complete_case_deaths excluded_incomplete
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_coverage.csv,DIFFERENT,rows 136 vs 135
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_map/CAPTION.md,DIFFERENT,lines 5 vs 5; first difference at line 1
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_map/country_summary.csv,DIFFERENT,rows 37 vs 36
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_map/mothers_by_survey.csv,DIFFERENT,rows 136 vs 135
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_map/provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_map/survey_coverage.csv,DIFFERENT,rows 136 vs 135
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_map/survey_map_and_timing.png,DIFFERENT,max pixel difference 0.929
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/survey_map/survey_timeline_all.csv,DIFFERENT,columns differ: complete_case_rows regions status
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/age_band_results.csv,DIFFERENT,columns differ: records observed_deaths observed_u5_death_share_pct displayed_death_share_pct pfpr_edf hr_40_to_20 hr_40_to_20_lower_95 hr_40_to_20_upper_95
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/age_band_results.latex.txt,DIFFERENT,lines 35 vs 35; first difference at line 14
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/age_band_results.md,DIFFERENT,lines 14 vs 14; first difference at line 5
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/burden_table_provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/country_comparison_2024_top10.md,DIFFERENT,lines 17 vs 17; first difference at line 5
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/country_comparison_2024.csv,DIFFERENT,columns differ: iso3 country model_deaths ihme_malaria_deaths who_cacode_deaths difference_from_ihme
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/country_comparison_2024.latex.txt,DIFFERENT,lines 28 vs 28; first difference at line 10
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/country_comparison_2024.md,DIFFERENT,lines 49 vs 49; first difference at line 5
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/tables/README.md,identical,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/under5_probability/CAPTION.md,DIFFERENT,lines 3 vs 3; first difference at line 3
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/under5_probability/provenance.csv,equivalent,""
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/under5_probability/under5_death_probability_2024.png,DIFFERENT,max pixel difference 1
+results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/under5_probability/under5_death_probability.csv,DIFFERENT,columns differ: q5_no_malaria q5_no_malaria_lower q5_no_malaria_upper q5_attributable q5_attributable_lower q5_attributable_upper share_attributable
+data/derived_cbh/models/primary_snow520_merge_dhsmics_gamma2_v11/pfpr_components.rds,DIFFERENT,Component “map_full_age_1”: Component “smooth”: Component “S”: Component 1: Mean relative difference: 0.02295382; Component “map_full_age_1”: Component “coef”: Mean relative difference: 0.2133587

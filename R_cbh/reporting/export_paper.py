@@ -174,6 +174,16 @@ elif mics["surveys"]:
 else:
     composition = f"The analysis contains {dhs['surveys']} DHS surveys."
     predictors = "All 13 survey-level predictors are survey-region summaries."
+national = "The four national annual\nvariables are unchanged."
+if snow:
+    # Declared national substitutions of the Snow preparation (one row per country and covariate).
+    subs = sorted({(r["country"], r["source_country"], r["before_year"], r["years"], r["records_in_sample"])
+                   for r in read_csv(root / "national_substitutions.csv")})
+    if subs:
+        national = ("The four national annual\nvariables are unchanged, except the declared substitution"
+                    + ("s" if len(subs) > 1 else "") + ": " + "; ".join(
+                        f"{c} takes {src}'s GDP per capita, health expenditure per capita and political stability for "
+                        f"band-entry years before {y} ({yrs.replace('-', '–')}; {fmt(n)} records)" for c, src, y, yrs, n in subs) + ".")
 overlap = (f"{len(survey_countries & burden_countries)} of the {len(survey_countries)} survey countries"
            + (f"; {codes(outside)} contributes survey data but is outside the burden set" if len(outside) == 1 else
               f"; {codes(outside)} contribute survey data but are outside the burden set" if outside else ""))
@@ -207,8 +217,7 @@ regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
 
 The revised adjustment removes sex, multiple births and birth order; replaces
 maternal age at each birth with regional mean age at first birth; and adds
-regional wasting and stunting prevalence. {predictors} The four national annual
-variables are unchanged.
+regional wasting and stunting prevalence. {predictors} {national}
 
 No TeX file has been edited. Update manuscript text and captions manually using:
 

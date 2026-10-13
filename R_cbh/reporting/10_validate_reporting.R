@@ -26,6 +26,18 @@ stopifnot(counts[["primary"]]==sample$records,counts[["deaths"]]==sample$deaths,
   is.null(st$expected_regions) || sum(coverage$regions)==st$expected_regions,
   all(coverage$type %in% if(isTRUE(st$mics)) c("DHS","MICS") else "DHS"))
 snow <- identical(st$unit,"snow")   # Snow-unit primary: no fixed DHS part; counts checked against the key numbers
+subst_lines <- character()
+if(snow) {
+  # Declared national substitutions of the preparation: one row per country and covariate, within the country's sample
+  # records, and counted in the study flow.
+  ns <- read("national_substitutions.csv");nsc <- unique(ns[c("country","source_country","years","records_in_sample")])
+  selected <- read("prepared_selection_by_survey.csv")
+  stopifnot(!anyDuplicated(nsc$country),all(ns$variable %in% c("log_gdp_pc","log_health_expenditure_pc","political_stability")),
+    all(nsc$records_in_sample<=vapply(nsc$country,function(k)sum(selected$records[selected$country==k]),0)),
+    counts[["national_substituted"]]==sum(nsc$records_in_sample))
+  if(nrow(nsc)) subst_lines <- sprintf("PASS: declared national substitutions recorded and counted in the study flow (%s).",
+    paste(sprintf("%s from %s, band-entry years %s, %s records",nsc$country,nsc$source_country,nsc$years,format(nsc$records_in_sample,big.mark=",")),collapse="; "))
+}
 mics_lines <- character()
 if(isTRUE(st$mics)) {
   # The DHS part must equal its declared sample (settings$dhs_part_note), and the DHS+MICS
@@ -91,7 +103,7 @@ writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state a
   sprintf(paste0("PASS: flow, %s, %d ",if(snow) "survey x unit areas" else "survey-regions",", child-band/death/child totals reconcile."),
     if(isTRUE(st$mics)) sprintf("%d DHS and MICS surveys (%d DHS, %d MICS)",sample$surveys,sum(coverage$type=="DHS"),sum(coverage$type=="MICS"))
     else sprintf("%d DHS surveys",sample$surveys),sum(coverage$regions)),
-  mics_lines,
+  mics_lines,subst_lines,
   "PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.",
   sprintf("PASS: %d annual totals use 42 countries and reproduce the three national-burden years.",nrow(annual)),
   "PASS: 2024 country table reproduces all three Figure 3 panel C totals for 2024; 37 state totals reconcile.",

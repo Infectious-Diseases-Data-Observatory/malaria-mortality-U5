@@ -69,7 +69,7 @@ af <- function(x, lo, hi) sprintf("%.1f%% (%.1f to %.1f)", 100 * x, 100 * lo, 10
 hr <- function(x, lo, hi) sprintf("%.2f (%.2f to %.2f)", x, lo, hi)
 f0 <- function(x) format(round(x), big.mark = ",")
 lines <- c("# Snow-unit primary vs v9 survey-region primary: seven age-band models", "",
-  "Snow-unit fits: the v9 specification with survey x unit areas (a Snow et al. polygon or a union of polygons; R_cbh/snow/README.md).", "",
+  "Snow-unit fits: the v9 specification with survey x unit areas (a Snow et al. polygon or a union of polygons; R_cbh/snow/README.md). The Snow sample also takes South Sudan's GDP, health expenditure and political stability before independence (2011) from Sudan (R_cbh/primary/national_substitutions.R), which admits South Sudan MICS 2010; v9 has no record of that survey.", "",
   "## Effect of PfPR by age band", "",
   "| Age band | AF at PfPR 20% vs 0, v9 | Snow | HR for reducing PfPR from 40% to 20%, v9 | Snow | edf v9 | edf Snow |", "|---|---|---|---|---|---:|---:|",
   bands[, sprintf("| %s | %s | %s | %s | %s | %.2f | %.2f |", lab[age_band], af(v9_af20, v9_af20_lo, v9_af20_hi), af(snow_af20, snow_af20_lo, snow_af20_hi),

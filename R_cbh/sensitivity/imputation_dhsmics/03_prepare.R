@@ -6,12 +6,17 @@
 # panel by country and band entry year, and child HIV incidence from the extended
 # panel. Every MAP-eligible record must be retained. Covariates are re-standardised
 # on this sample. No TeX writes; the prepared data stay under the ignored data folder.
+# Snow-unit version: the records first take the primary's declared national substitutions
+# (R_cbh/primary/national_substitutions.R, as R_cbh/primary/00_prepare_snow.R), so the
+# observed-value check below also verifies that the imputed panel (01) holds the same values;
+# substituted records are counted separately (national_substituted), not as imputed.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/primary/specification.R")
 source("R_cbh/sensitivity/imputation_dhsmics/settings.R")
 library(data.table)
 st <- cbh_imputed_dhsmics_settings(); cfg <- cbh_config()
+if (identical(st$unit, "snow")) source("R_cbh/primary/national_substitutions.R")
 spec <- cbh_primary_regional_spec(st); stopifnot(length(spec$covariates) == 17L, "urban_pct" %in% spec$covariates)
 for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 provenance <- rbind(cbh_read_csv(file.path(st$imputation_results, "regional_imputation_provenance.csv")),
@@ -20,7 +25,7 @@ stopifnot(identical(unname(vapply(provenance$file, cbh_file_hash, "")), provenan
 dmeta <- readRDS(file.path(cfg$output_dir, "manifest.rds")); mmeta <- readRDS(file.path(st$mics_output_dir, "manifest.rds"))
 stopifnot(dmeta$complete, mmeta$complete)
 source_files <- c(file.path(cfg$output_dir, "manifest.rds"), file.path(st$mics_output_dir, "manifest.rds"),
-  if (identical(st$unit, "snow")) c(st$snow_records, st$snow_pfpr),
+  if (identical(st$unit, "snow")) c(st$snow_records, st$snow_pfpr, "R_cbh/primary/national_substitutions.R"),
   file.path(st$imputation_results, c("regional_imputation_provenance.csv", "national_imputation_provenance.csv")),
   st$imputed_overlay, st$imputed_national, st$hiv_panel,
   "R_cbh/sensitivity/imputation_dhsmics/03_prepare.R", "R_cbh/sensitivity/imputation_dhsmics/settings.R",
@@ -53,6 +58,8 @@ if (snow) {
   # imputed overlay holds the unit); exposure = PfPR of the unit at band entry (as R_cbh/primary/00_prepare_snow.R).
   rec <- as.data.frame(readRDS(st$snow_records))
   stopifnot(all(rec$w == 1))
+  ns <- cbh_national_substitute(rec$country, rec$entry_year, cfg)
+  for (v in national_vars) { stopifnot(all(is.finite(ns[[v]]))); rec[[v]][ns$row] <- ns[[v]] }
   shards <- unique(data.frame(programme = ifelse(startsWith(rec$survey, "MC_"), "MICS", "DHS"), survey = rec$survey, country = rec$country))
   pf <- cbh_read_csv(st$snow_pfpr)
   units <- unique(rec$unit)
@@ -79,6 +86,10 @@ for (i in seq_len(nrow(shards))) {
   for (v in spec$regional) d[[v]] <- wide[[v]][j]
   k <- match(paste(d$country, d$entry_year), paste(national$iso3, national$year))
   stopifnot(!anyNA(k[ready]))
+  # Snow-unit version: records under a declared substitution, whose values are never model fills.
+  substituted <- if (snow) cbh_national_substituted(d$country, d$entry_year) else rep(FALSE, nrow(d))
+  stopifnot(!any(vapply(paste0(national_vars, "_source"), function(v) any(startsWith(national[[v]][k[substituted & ready]], "gam_")), TRUE)))
+  imputed <- function(v, observed) { src <- national[[paste0(v, "_source")]][k[ready]]; sum(src != observed & !(snow & grepl("_substituted_", src))) }
   for (v in national_vars) {
     # Observed shard values must equal the panel's; only gaps change.
     both <- ready & is.finite(d[[v]])
@@ -87,10 +98,10 @@ for (i in seq_len(nrow(shards))) {
   }
   counts_by_survey[[i]] <- data.frame(programme = s$programme, survey = s$survey, country = s$country, records = sum(ready),
     regional_any_model_imputed = sum(rowSums(as.matrix(wide[j[ready], flag_cols, drop = FALSE])) > 0),
-    political_stability_imputed = sum(national$political_stability_source[k[ready]] != "wgi_observed"),
-    gdp_imputed = sum(national$log_gdp_pc_source[k[ready]] != "wdi_observed"),
-    health_expenditure_imputed = sum(national$log_health_expenditure_pc_source[k[ready]] != "ghed_observed"),
+    political_stability_imputed = imputed("political_stability", "wgi_observed"), gdp_imputed = imputed("log_gdp_pc", "wdi_observed"),
+    health_expenditure_imputed = imputed("log_health_expenditure_pc", "ghed_observed"),
     hiv_no_adolescent_series = sum(d$hiv_incidence_status[ready] == "imputed_no_adolescent_series"))
+  if (snow) counts_by_survey[[i]]$national_substituted <- sum(substituted[ready])
   complete <- ready & complete.cases(d[required])
   for (v in required) if (is.numeric(d[[v]])) complete <- complete & is.finite(d[[v]])
   selections[[i]] <- data.frame(programme = s$programme, survey = s$survey, country = s$country,

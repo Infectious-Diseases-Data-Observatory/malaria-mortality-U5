@@ -78,6 +78,7 @@ minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, 
 # marker whose recorded md5s differ from the current files is stale, so the stage is pending again.
 helpers <- c(list.files("R_cbh/R", "[.]R$", full.names = TRUE), "R_cbh/00_config.R", "R_cbh/load_pipeline.R",
   "R_cbh/analysis/model.R", "R_cbh/sensitivity/model.R", "R_cbh/primary/settings.R", "R_cbh/primary/specification.R",
+  "R_cbh/primary/national_substitutions.R",
   list.files("R_cbh/snow/R", "[.]R$", full.names = TRUE), list.files("R_cbh/snow/config", "[.]csv$", full.names = TRUE))
 deps <- function(s) {
   scripts <- unique(vapply(stages[[s]], `[[`, "", "script"))

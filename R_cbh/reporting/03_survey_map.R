@@ -168,6 +168,7 @@ if(mics) {
   cov_text <- paste0(sprintf("%s DHS, ",sum(cov_type=="DHS")),
     if(cov_mis==mis_total) sprintf("all %s MIS",mis_total) else sprintf("%s of the %s MIS",cov_mis,mis_total),
     sprintf(" and %s MICS surveys",cov_mics),
+    if(cov_mics && snow) "; for each, the first missing covariate is listed in the primary's complete_case_losses.csv" else
     if(cov_mics) "; the MICS surveys lack anthropometry or a child HIV incidence series, or their band-entry years precede a national series" else "")
   nudge_text <- if(length(nudged)) sprintf(" Where a MICS survey shares a country and year with a DHS or MIS survey (%s), the MICS symbol is drawn slightly above the line.",paste(nudged,collapse=", ")) else ""
   writeLines(c(if(snow) "# Supplementary figure caption: survey map and timing" else "# Figure 1 caption","",

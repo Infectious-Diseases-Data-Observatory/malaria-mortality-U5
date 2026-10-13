@@ -1,20 +1,20 @@
 # Paper and code: items to check
 
-This repository holds only what the manuscript (`main.tex` in the Overleaf project, as of 1 October 2026) describes, plus the move of the primary analysis to the Snow et al. polygons (section S, 11–12 October 2026). This note lists:
+This repository holds only what the manuscript (`main.tex` in the Overleaf project, as of 1 October 2026) describes, plus the move of the primary analysis to the Snow et al. polygons (section S, 11–13 October 2026). This note lists:
 
 - **A.** what the code needs that `main.tex` does not describe (kept, and flagged here);
 - **B.** where `main.tex` and the code disagree;
 - **C.** analyses left out because `main.tex` does not describe them.
 
-Line numbers refer to `main.tex` as of 1 October 2026.
+Line numbers in sections A and B refer to `main.tex` as of 1 October 2026. Line numbers in section S refer to `main.tex` as saved on 8 October 2026, as in `docs/PAPER_TEXT_SNOW.md`. For example, the data sharing statement is at L288 in B8 but at L306 in the 8 October version, and the model paragraph is at L267 in B10 but at L285 now.
 
-## S. The Snow-unit primary (11–12 October 2026): what main.tex does not yet describe
+## S. The Snow-unit primary (11–13 October 2026): what main.tex does not yet describe
 
 The primary analysis now uses the Snow et al. (2017) polygons as its unit (`R_cbh/snow/README.md`). `main.tex` still describes the survey-region (v9) analysis. The following changes need text, and are listed here until the manuscript is updated:
 
 1. **Unit of analysis** (main.tex L76–77, L87, L250–253, L267–271, L285–287).
    - A record's unit is the Snow polygon holding at least 90% of the population of its smallest reported admin unit, else the union of the polygons each holding at least 5% (merge rule).
-   - The random effect is survey × unit (1,442 areas, 215 of them unions).
+   - The random effect is survey × unit (1,452 areas, 215 of them unions).
    - Exposure is MAP PfPR averaged over the unit (GPW density × cell area weights).
 2. **Inclusion.**
    - Only records inside the 520 malaria-endemic polygons are analysed.
@@ -23,25 +23,37 @@ The primary analysis now uses the Snow et al. (2017) polygons as its unit (`R_cb
    - The survey-region MAP PfPR is no longer required; 75,588 eligible records lose their place because their survey-region is unmatched.
 3. **Survey universe.**
    - All 166 MAP-eligible surveys enter the unit construction.
-   - The complete-case sample is 135 surveys: v9's 135 without the 2 Comoros surveys, plus Benin 2012 and Ghana 2003, whose wasting values now come from the recodes.
+   - The complete-case sample is 136 surveys (99 DHS, 37 MICS) in 37 countries: v9's 135 without the 2 Comoros surveys, plus Benin 2012 and Ghana 2003, whose wasting values now come from the recodes, and South Sudan MICS 2010 (item 10).
+   - It holds 1,125,610 mothers, 2,335,868 children, 7,639,443 child-band records and 105,114 deaths, in 465 polygons.
    - The imputed-covariate sensitivity keeps all 161 surveys with a polygon.
 4. **Covariates.**
    - All 13 regional covariates are now computed from the recodes (DHS BR/PR/HW; MICS), including the 8 that v9 took from published DHS API regional indicators.
    - The national validation is `results/cbh/snow_units/merge/covariates/dhs_national_validation.csv`: 930 of 933 survey-indicator pairs are within 2 points; the exceptions, Benin 2006 sanitation and Mali 2001 water and sanitation, are outside the complete-case sample.
-   - Reviewed label decisions are in `R_cbh/snow/config/label_overrides.csv` (38) and `vaccine_series.csv` (8).
+   - Reviewed label decisions are in `R_cbh/snow/config/label_overrides.csv` (40) and `vaccine_series.csv` (8).
 5. **Data.**
    - DHS household (PR) and height/weight (HW) recodes are now required (120 PR, 25 HW).
    - 17 PR and 12 HW were downloaded on 11 October 2026 for the 22 surveys outside v9.
 6. **Countries with one unit per survey.** Rwanda's Snow shapefile has a single endemic polygon, so every Rwandan survey forms one unit (v9 had 5 regions). In the Mali, Ethiopia, Central African Republic, Niger and Côte d'Ivoire surveys, merged units are close to the survey's own regions.
-7. **Knots.** The frozen reference knots (PfPR 0.0165–94.76) are kept. At most 139 records per band (0.01%) lie outside them, and the cubic regression spline extrapolates linearly there.
+7. **Knots.** The frozen reference knots (PfPR 0.0165–94.76) are kept. At most 194 records per band lie outside them (<1 month: 56 below and 138 above), and the cubic regression spline extrapolates linearly there. These counts come from the imputed-covariate sample, which contains every primary record (`results/cbh/primary_snow520_merge_imputed_gamma2_v12/records_outside_knots.csv`); the primary has no such file, so its counts are at most these. That is at most 0.015% of a band's records in the imputed sample, and at most 0.016% of a band's primary records.
 8. **Sensitivities.**
    - Sahel membership is by the record's source survey-region centroid, as in v9.
    - New refits: UN M49 West, Central and East Africa, and a record calendar-year split (median 2012.8) next to the survey-year split (median 2014).
-   - Southern Africa is not refitted: 1,061 deaths, and PfPR at most 10.3%.
+   - Southern Africa (1,061 deaths) is not refitted because its PfPR never exceeds 10.3%.
 9. **Results.**
-   - Attributable deaths in 2024 are 576,400 against v9's 629,136 (ratio 0.92), and 19.5 million for 2000–2024 (v9 21.2 million).
-   - The AF at PfPR 20% is 23.7% at 6–11 months, against 31.6% in v9; the other bands are within 2 points.
+   - Attributable deaths in 2024 are 586,723 against v9's 629,136 (ratio 0.93), and 19.8 million for 2000–2024 (v9 21.2 million).
+   - The AF at PfPR 20% is 24.6% at 6–11 months, against 31.6% in v9; the other bands are within 2.2 points (36–47 months: 43.0% against 45.2%).
    - See `results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/COMPARISON.md`.
+10. **South Sudan before independence** (author decision, 12 October 2026; `R_cbh/primary/national_substitutions.R`).
+   - For band-entry years before 2011, South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability for the same year. This also replaces South Sudan's own 2008–2010 GDP (23,669 records).
+   - Its child HIV incidence is its own UNAIDS series.
+   - This admits South Sudan MICS 2010: 57,509 records and 955 deaths, band-entry years 2005–2010 (`results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/national_substitutions.csv`). v9 excluded this survey for missing covariates.
+   - In the imputed-covariate sensitivity, the 11 substituted country-years (2000–2010) are fixed, not imputed (`results/cbh/covariate_imputation_snow_v12/NATIONAL_IMPUTATION.md`). Sudan has no 2001 political stability, so South Sudan's 2001 value is the mean of Sudan's 2000 and 2002 values (`wgi_2001_interpolated`), as for every country's 2001 round. No record uses that year.
+   - The study-flow caption states the substitution; the methods need text. The v9 results are unchanged.
+11. **Figure 1** (author request, 12 October 2026).
+   - Figure 1 is now the map of complete birth histories (mothers) by Snow polygon, with lakes (`R_cbh/reporting/23_analysis_units_map.R`; `paper/figures/fig1_analysis_units_map.png` and `_caption.md`).
+   - The lakes are Natural Earth 1:10m (`data/external/natural_earth/ne_10m_lakes.geojson`).
+   - The former Figure 1, the survey map and timing (main.tex `fig:map`), is now a supplementary figure (`paper/Supplementary Figures/sfig_survey_map_and_timing.png` and `_caption.md`).
+   - main.tex still includes `figures/fig1_survey_map_and_timing.png` as Figure 1 and cites it (`fig:map`) in the first Results paragraph.
 
 ## A. Needed by the analysis but not described in main.tex
 
@@ -74,7 +86,7 @@ The primary analysis now uses the Snow et al. (2017) polygons as its unit (`R_cb
 |---|---|---|
 | B1 | Table S1 (L347–370) shows the DHS-only v3 values (5,465,305 records, 75,726 deaths). | The v9 table is `paper/tables/age_band_results.latex.txt` (7,621,617 records, 104,143 deaths), matching L77. |
 | B2 | L269 says the model equations are in SText 1, but `SText1_model_specification.tex` describes the archived negative-binomial "Method 2" (600 survey-regions, 1% floor). It also needs `figures/sfig1_spec_comparison.png`, which does not exist. | The current formula is `results/cbh/primary_map_regional17_dhsmics_gamma2_v9/model_formula.txt`. |
-| B3 | L188: "a larger 67% decrease between 2000 and 2015". | The 2000–2015 decline is 57%; 67% is 2000–2024 (Table 2). |
+| B3 | L188: "a larger 67% decrease between 2000 and 2015". | The 2000–2015 decline is 57%; 67% is 2000–2024 (Table 2). The 57% is smaller than UN IGME's 2000–2015 decline (60%), so "larger" holds only for 2000–2024 (67% against 53% and 62%). |
 | B4 | L273: estimates "annually for 2004–2024". | The series covers 2000–2024. |
 | B5 | Fig S1 caption (L307): "child HIV prevalence (UNAIDS 0–14 case counts divided by World Bank population)". | The model uses modelled child HIV *incidence* per 1,000 uninfected (`R_cbh/hiv/`). |
 | B6 | L278 (multiple imputation): Liberia and São Tomé both use the latent HIV series; the list of national imputations is incomplete. | In v10, Liberia uses AIDSinfo counts (held fixed) and only São Tomé is latent; see A16. |
@@ -85,7 +97,7 @@ The primary analysis now uses the Snow et al. (2017) polygons as its unit (`R_cb
 | B11 | Fig S2 caption typo: "log hazard ration". | — |
 | B12 | Figure 4 (`fig:cumulative_risk`) and Table S1 (`tab:primary-age-band-effects`) are never cited in the text. | — |
 | B13 | L277 lists sensitivity analyses ("seasonal vs non-seasonal, West Africa vs East Africa, earlier vs later") that do not match the subgroups reported. | The subgroups are Sahel, Eastern Africa, and surveys up to vs after the median year (2014). |
-| B14 | Licensing: the repository LICENSE is CC0. | CC0 can cover the code but not the third-party inputs (IHME, MAP, GPW, UNICEF/UNAIDS, World Bank, UN IGME, CA-CODE, Snow shapefile). See `data/README.md`. |
+| B14 | Licensing: the repository LICENSE is CC0. | CC0 can cover the code but not the third-party inputs (IHME, MAP, GPW, UNICEF/UNAIDS, World Bank, UN IGME, CA-CODE, Snow shapefile, and the committed GADM national boundaries and DHS survey-region boundaries). See `data/README.md`. |
 
 ## C. Analyses in the analysis project that are not in this repository
 

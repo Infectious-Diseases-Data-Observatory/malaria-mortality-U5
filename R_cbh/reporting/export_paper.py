@@ -69,6 +69,9 @@ if snow:
         (subgroups / "sfig_pfpr_splines_by_period.png", Path("Supplementary Figures/sfig_pfpr_splines_by_period.png")),
         (subgroups / "CAPTION_sfig_pfpr_splines_by_period.md", Path("Supplementary Figures/sfig_pfpr_splines_by_period_caption.md")),
         (subgroups / "pfpr_40_to_20_by_subgroup.png", Path("Supplementary Figures/sfig_pfpr_40_to_20_by_subgroup.png")),
+        # Raw survival against PfPR by UN sub-region with unadjusted spline fits (user request, 15 October 2026).
+        (subgroups / "sfig_survival_vs_pfpr_by_subregion.png", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion.png")),
+        (subgroups / "CAPTION_sfig_survival_vs_pfpr_by_subregion.md", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion_caption.md")),
         (snow_maps / "boundary_agreement_map.png", Path("Supplementary Figures/sfig_snow_boundary_agreement_map.png")),
         (snow_maps / "CAPTION_boundary_agreement_map.md", Path("Supplementary Figures/sfig_snow_boundary_agreement_map_caption.md")),
         (root / "comparison_v9/pfpr_hr_curves_v9_vs_snow.png", Path("Supplementary Figures/sfig_pfpr_curves_v9_vs_snow.png")),

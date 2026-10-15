@@ -1,5 +1,7 @@
 # Manuscript text for the Snow-unit primary (13 October 2026)
 
+> **15 October 2026:** for pasting into `main.tex`, use `docs/manuscript/` instead. It holds the full proposed manuscript (`main_proposed.tex`) and the change list (`PROPOSED_CHANGES.md`), anchored to the 14 October `main.tex` and checked again against the run. This note keeps the sources of the numbers.
+
 Replacement text for Overleaf `main.tex`, given as text to paste. No manuscript file is edited. Line numbers refer to `main.tex` as saved on 8 October 2026; it has not changed since the 12 October version of this note, so the line numbers are the same. Unchanged numbers are not repeated.
 
 All numbers are final for the Snow primary of 13 October 2026 (clean run at commit 3e2c721; validation all PASS) and its sensitivities. Since 12 October the primary includes two author decisions: Figure 1 is a map of complete birth histories per Snow et al. polygon, and South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability for band-entry years before independence (2011), which admits the 2010 South Sudan MICS (57,509 records, 955 deaths).

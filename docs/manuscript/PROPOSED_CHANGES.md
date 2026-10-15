@@ -1,6 +1,7 @@
 # Proposed changes to main.tex (Snow-unit primary)
 
-Generated on 15 October 2026 by a script that applies each change to a copy of the Overleaf `main.tex` (saved 14 October 2026). The script checks that every change matches the current text exactly once. `main.tex` itself is not edited.
+Generated on 15 October 2026 by a script that applies each change to a copy of the Overleaf `main.tex` (saved 15 October 2026, 18:05). The script checks that every change matches the current text exactly once. `main.tex` itself is not edited.
+- **Already applied:** the changes you have already made, or replaced by your own wording, are listed at the end. Corrections to your edits are E1–E5.
 - **Full proposed manuscript:** `docs/manuscript/main_proposed.tex`.
 - **Numbers:** from the verified run of 13 October 2026 (commit 3e2c721). Sources for each number are in `docs/PAPER_TEXT_SNOW.md`.
 - **Line numbers:** those of the current `main.tex`.
@@ -14,34 +15,15 @@ Kinds of change:
 
 | ID | Line | Section | Kind | Why |
 |---|---:|---|---|---|
-| A1 | 51 | Abstract | update | South Sudan MICS 2010 now enters (Sudan's national covariates before independence); 99 DHS + 37 MICS in 37 countries. |
-| A2 | 51 | Abstract | update | Snow primary sample (prepared_sample.csv). |
-| A3 | 51 | Abstract | update | Attributable fractions at PfPR 20% in the Snow primary: 4.4% (<1 month), 24.6% (6-11 months), 43.0-54.5% (12-59 months). |
-| A4 | 52 | Abstract | update | Pooled rates 10.12 (2000) and 4.33 (2015); the 57% decline is unchanged. |
-| A5 | 52 | Abstract | update | Pooled rate 3.31 in 2024; the further 24% decline is unchanged. |
-| A6 | 52 | Abstract | update | 2024: 586,723 model deaths against 428,147 (IHME, x1.370) and 440,123 (UN IGME, x1.333). |
-| R1 | 76 | Results, first paragraph | update | Figure 1 is now the map of complete birth histories; the survey map and timing moves to the supplement (new label fig:survey_timing). |
-| R2 | 76 | Results, first paragraph | update | The unit of analysis is now the Snow et al. polygon (or a union of polygons), not the survey region; two more countries drop out for having no polygon. |
-| R3 | 77 | Results, second paragraph | update | Snow primary sample. 171 = 136 included + 25 excluded for covariates + 10 without a malaria-endemic polygon (Lesotho, the Comoros, São Tomé and Príncipe). The neonatal (37%), first-year (66%) and second-year (13%) shares are unchanged. |
-| R4 | 83 | Figure 1 caption | update | Full caption, condensed from the generated caption (paper/figures/fig1_analysis_units_map_caption.md). |
-| R5 | 87 | Results, model paragraph | update | Area-level (survey x Snow unit) covariates replace survey-region ones. |
-| R6 | 87 | Results, model paragraph | fix | Table S1 is never cited in the text. |
-| R7 | 90 | Results, attributable fractions | update | At 10%: 30.8, 37.2, 27.8, 29.0% (12-59 months), 1.9% (neonates). At 40%: 53.1, 59.3, 49.5, 47.3%, so 'more than half' no longer holds at 36-59 months. Also adds the missing 'Figure' before the reference. |
-| R8 | 98 | Results, sensitivity paragraph | update | The sensitivity suite now has UN M49 sub-regions (West, Central, East; Southern not refitted) and two period splits (survey year, record year). Counts from the subgroup and imputation results. The Sahel is steeper only between 20% and 40% (40->20% hazard ratios 0.71-0.79 against 0.84-0.94 at 6-59 months; below 20% it is flatter at 12-47 months), and Eastern Africa's departures change direction with the prevalence range, so it is described in general terms. Without nutrition covariates, the largest change is 0.010 (40->20%) and 0.036 (20->0%, 1-5 months), hence 'very similar' rather than 'essentially unchanged'. |
-| R9 | 104 | Results, burden paragraph | update | Pooled rates 10.12, 4.33 and 3.31; declines 57.2% and 23.7%. |
-| R10 | 104 | Results, burden paragraph | update | 2024: 586,723 deaths. |
-| R11 | 107 | Results, country comparison | update | country_agreement_2024.csv: 34 of 42, median ratio 1.499; Spearman 0.911 (unchanged at 0.91). |
-| R12 | 108 | Results, Nigeria | update | Nigeria 206,863 against 138,111 (x1.498) and 165,329 (x1.251). |
-| R13 | 109 | Results, Chad | update | Chad 18,646 against 4,884 (x3.82) and 14,345 (x1.30). |
 | R14 | 110 | Results, Nigerian states | update | States: 35 of 37, medians 1.66 and 1.18. The added sentence cites Figure 4, which the text never cites (under5_death_probability.csv, 2024: median 12.3 per 1,000, share 19.9%, ratio to IHME 1.50). |
-| R15 | 115 | Figure 3 caption | fix | Consistent model name. |
 | R16 | 119 | Table 1 | update | Snow values (paper/tables/country_comparison_2024.latex.txt): the Central African Republic replaces DR Congo in the ten; total 586,723. The caption now says the ranking is by the difference from IHME. |
 | R17 | 145 | Table 2 | update | Snow values (paper/tables/source_comparison.latex.txt): model deaths 1,111,970 / 687,031 / 586,723; rates 10.12 / 4.33 / 3.31; adds a footnote on the shared denominator and estimands. |
 | R18 | – | Tables 1 and 2 | fix | Table 2 (source comparison) is cited before Table 1 (L104 before L107); swapping the two environments numbers them in citation order. References use labels, so nothing else changes. |
-| D1 | 187 | Discussion, progress | fix | 67% is the 2000-2024 decline; 2000-2015 is 57%, which is smaller than UN IGME's 60%, so 'larger' must refer to 2000-2024 (against 53% and 62% in the previous sentence). |
-| D2 | 192 | Discussion, indirect effects | update | 2024: 1 - 428,147/586,723 = 27% (IHME); 1 - 440,123/586,723 = 25% (UN IGME). 'A third' fitted v9 (629,136). |
-| D3 | 216 | Discussion, limitations | update | Computed on the Snow primary (records entering the first age band): 56.7% of the PfPR variance is between countries (v9: 59.0%); 93.5% is between survey x area units. |
-| D4 | 216 | Discussion, limitations | fix | Neonatal share of deaths is 36.7%. |
+| E1 | 76 | Results, first paragraph | fix | Placeholders filled for mainland sub-Saharan Africa and Madagascar: the registry's 171 surveys in 41 countries less the Comoros (1 DHS, 1 MICS) and São Tomé and Príncipe (1 DHS, 2 MICS); survey_map/survey_timeline_all.csv. Lesotho's five surveys are still in the 166, as the next sentences say. |
+| E2 | 85 | Figure 1 label | fix | The map was relabelled fig:survey_timing, so every \ref{fig:map} (L78) is undefined and the survey-count sentence (L76) points at the map. Restores fig:map; fig:survey_timing is the label of the supplementary survey map and timing (S1). |
+| E3 | 91 | Results, attributable fractions | fix | The word 'Figure' is missing before the reference. |
+| E4 | 99 | Results, sensitivity paragraph | fix | Southern Africa's maximum PfPR is 10.33% (subregions_not_fitted.csv), so 'never exceeded 10%' is false; its records are in the primary analysis, it is only not refitted. |
+| E5 | 99 | Results, sensitivity paragraph | update | Explains the flat Central Africa curves and cites the new raw-data figure (central_africa_low_prevalence.csv: Chad 32,860 of 56,959 records, survival 99.13%; other sub-regions 99.63%; Central Africa 40->20% hazard ratios 0.98-1.11 after the first month). |
 | D5 | 216 | Discussion, limitations | optional | Optional limitation on the new unit construction (Figure 1 caption: 161,042 of 1,125,610 mothers in unions). |
 | M1 | 224 | Methods, comment block | optional | The old notes are partly fixed by these changes; replaced by the items still open (comments only, no change to the PDF). |
 | M2 | 246 | Methods, DHS covariates | update | All 13 area-level covariates are now computed from the recodes for each survey x Snow area; the published survey-region indicator tables no longer fit the units. National validation: dhs_national_validation.csv. |
@@ -65,11 +47,41 @@ Kinds of change:
 | S2 | 325 | Supplementary: study flow caption | fix | The current caption describes child HIV prevalence; the model uses incidence. Adds the Snow placement and the South Sudan rule. |
 | S3 | 331 | Supplementary: PfPR by age caption | fix | Typo ('ration'), and states the reference and the plotted range. |
 | S4 | 336 | Supplementary: subgroup figures | update | The Snow suite has three figures: the Sahel (this file now shows the Sahel only), UN sub-regions and periods. Captions condensed from the caption files. |
+| S4b | – | Supplementary: raw survival by sub-region (new) | update | New supplementary figure (user request, 15 October 2026): the raw data behind the sub-region refits, with unadjusted spline fits; caption condensed from CAPTION_sfig_survival_vs_pfpr_by_subregion.md. |
 | S5 | 346 | Supplementary: imputation caption | update | Condensed from sfig_pfpr_splines_imputed_covariates_caption.md. |
 | S6 | 353 | Supplementary: no-nutrition caption | update | Condensed from sfig_pfpr_splines_without_nutrition_caption.md. |
 | S7 | 360 | Supplementary: malaria share caption | optional | Optional: states the difference in estimands shown in the figure. |
 | S9 | 361 | Supplementary: boundary agreement (optional) | optional | Optional new figure documenting how survey regions map to the Snow et al. polygons; placed last because it is first cited in Methods (drop it together with the last sentence of the geographic-units paragraph, M4). |
 | S8 | 365 | Table S1 | fix | The current Table S1 shows the old DHS-only values (5,465,305 records, 75,726 deaths); replaced by the Snow primary table (7,639,443 records, 105,114 deaths). |
+
+## Already done in main.tex (not repeated)
+
+| ID | Section | Status |
+|---|---|---|
+| A1 | Abstract | already in main.tex |
+| A2 | Abstract | already in main.tex |
+| A3 | Abstract | already in main.tex |
+| A4 | Abstract | already in main.tex |
+| A5 | Abstract | already in main.tex |
+| A6 | Abstract | already in main.tex |
+| R1 | Results, first paragraph | superseded by the author's edit |
+| R2 | Results, first paragraph | superseded by the author's edit |
+| R3 | Results, second paragraph | already in main.tex |
+| R4 | Figure 1 caption | superseded by the author's edit |
+| R5 | Results, model paragraph | superseded by the author's edit |
+| R6 | Results, model paragraph | superseded by the author's edit |
+| R7 | Results, attributable fractions | superseded by the author's edit |
+| R8 | Results, sensitivity paragraph | superseded by the author's edit |
+| R9 | Results, burden paragraph | already in main.tex |
+| R10 | Results, burden paragraph | already in main.tex |
+| R11 | Results, country comparison | already in main.tex |
+| R12 | Results, Nigeria | already in main.tex |
+| R13 | Results, Chad | already in main.tex |
+| R15 | Figure 3 caption | already in main.tex |
+| D1 | Discussion, progress | already in main.tex |
+| D2 | Discussion, indirect effects | already in main.tex |
+| D3 | Discussion, limitations | already in main.tex |
+| D4 | Discussion, limitations | already in main.tex |
 
 ## Not changed here
 
@@ -80,7 +92,7 @@ Kinds of change:
   - the Table 2 footnote's `12%` is not escaped, so LaTeX drops the rest of the line;
   - the Table 2 footnote's 'counts and rates move in opposite directions' is false for the model column;
   - the Table 1 caption calls IHME's cause-specific deaths 'malaria-attributable', and the Table S1 footnote says 'regional covariates'.
-- **Missing bibliography entries:** `ref.bib` has none for `mics`, `wdi` and `wgi`. The BibTeX is below.
+- **Bibliography:** `ref.bib` now has entries for `mics`, `wdi` and `wgi` (added 15 October); the BibTeX below is kept for reference.
 
 ```bibtex
 @misc{mics,
@@ -104,310 +116,6 @@ Kinds of change:
 
 ## Changes in full
 
-### A1 — Abstract (L51, update)
-
-South Sudan MICS 2010 now enters (Sudan's national covariates before independence); 99 DHS + 37 MICS in 37 countries.
-
-**Current:**
-
-```latex
-(135 surveys, 37 countries)
-```
-
-**Proposed:**
-
-```latex
-(136 surveys, 37 countries)
-```
-
-### A2 — Abstract (L51, update)
-
-Snow primary sample (prepared_sample.csv).
-
-**Current:**
-
-```latex
-in data from 2,329,388 children under 5 of whom 104,143 died
-```
-
-**Proposed:**
-
-```latex
-in data from 2,335,868 children under 5 of whom 105,114 died
-```
-
-### A3 — Abstract (L51, update)
-
-Attributable fractions at PfPR 20% in the Snow primary: 4.4% (<1 month), 24.6% (6-11 months), 43.0-54.5% (12-59 months).
-
-**Current:**
-
-```latex
-At 20\% prevalence, the model attributes 6\% of neonatal deaths, 32\% of deaths at 6-11 months and 43-54\% of deaths at 1-4 years to malaria.
-```
-
-**Proposed:**
-
-```latex
-At 20\% prevalence, the model attributes 4\% of neonatal deaths, 25\% of deaths at 6-11 months and 43-55\% of deaths at 1-4 years to malaria.
-```
-
-### A4 — Abstract (L52, update)
-
-Pooled rates 10.12 (2000) and 4.33 (2015); the 57% decline is unchanged.
-
-**Current:**
-
-```latex
-we estimate that under-5 malaria mortality fell from 10.8 to 4.6 deaths per 1,000 child-years
-```
-
-**Proposed:**
-
-```latex
-we estimate that under-5 malaria mortality fell from 10.1 to 4.3 deaths per 1,000 child-years
-```
-
-### A5 — Abstract (L52, update)
-
-Pooled rate 3.31 in 2024; the further 24% decline is unchanged.
-
-**Current:**
-
-```latex
-and then to 3.5 deaths per 1,000 child-years in 2024
-```
-
-**Proposed:**
-
-```latex
-and then to 3.3 deaths per 1,000 child-years in 2024
-```
-
-### A6 — Abstract (L52, update)
-
-2024: 586,723 model deaths against 428,147 (IHME, x1.370) and 440,123 (UN IGME, x1.333).
-
-**Current:**
-
-```latex
-were 47\% and 43\% higher than IHME and UN IGME estimate
-```
-
-**Proposed:**
-
-```latex
-were 37\% and 33\% higher than IHME and UN IGME estimate
-```
-
-### R1 — Results, first paragraph (L76, update)
-
-Figure 1 is now the map of complete birth histories; the survey map and timing moves to the supplement (new label fig:survey_timing).
-
-**Current:**
-
-```latex
-across 41 countries, Figure \ref{fig:map}.
-```
-
-**Proposed:**
-
-```latex
-across 41 countries (Figure \ref{fig:survey_timing}).
-```
-
-### R2 — Results, first paragraph (L76, update)
-
-The unit of analysis is now the Snow et al. polygon (or a union of polygons), not the survey region; two more countries drop out for having no polygon.
-
-**Current:**
-
-```latex
-Each age band was then merged with the population-weighted \textit{Pf}PR$_{2-10}$ estimate from the Malaria Atlas Project (MAP) for the survey region (mostly first-level administrative units) in the calendar year the band started \cite{map2025}, along with a series of national or subnational estimates of identified confounding variables. The five surveys from Lesotho (four DHS, one MICS) were excluded because Lesotho is not a malaria endemic country.
-```
-
-**Proposed:**
-
-```latex
-Each age band was then located in one of the sub-national malaria-endemic areas defined by Snow et al.\ \cite{snow:17} (provinces, regions, states or districts, or unions of them where a survey reports only a coarser region; see Methods) and merged with the population-weighted \textit{Pf}PR$_{2-10}$ estimate from the Malaria Atlas Project (MAP) for that area in the calendar year the band started \cite{map2025}, along with a series of national or subnational estimates of identified confounding variables. The five surveys from Lesotho (four DHS, one MICS) were excluded because Lesotho is not a malaria endemic country, and the five surveys from the Comoros (two) and São Tomé and Príncipe (three) because the Snow et al.\ shapefile has no polygon for these islands.
-```
-
-### R3 — Results, second paragraph (L77, update)
-
-Snow primary sample. 171 = 136 included + 25 excluded for covariates + 10 without a malaria-endemic polygon (Lesotho, the Comoros, São Tomé and Príncipe). The neonatal (37%), first-year (66%) and second-year (13%) shares are unchanged.
-
-**Current:**
-
-```latex
-Restricting the analysis to survey regions and years with all 17 confounding variables measured, a total of 135 surveys (98 DHS, 37 MICS) in 37 countries were included in the primary analysis representing the complete birth histories of 1,125,549 mothers (Figure \ref{fig:flow}); all five MIS surveys, 17 DHS surveys and 9 MICS surveys were excluded because of missing data on identified confounders. The included surveys contributed 7,621,617 child age band records from a total of 2,329,388 children with 104,143 deaths recorded.
-```
-
-**Proposed:**
-
-```latex
-Restricting the analysis to areas and years with all 17 confounding variables measured, a total of 136 surveys (99 DHS, 37 MICS) in 37 countries were included in the primary analysis, representing the complete birth histories of 1,125,610 mothers (Figures \ref{fig:map} and \ref{fig:flow}); all five MIS surveys, 14 DHS surveys and 6 MICS surveys were excluded because of missing data on identified confounders. The included surveys contributed 7,639,443 child age band records from a total of 2,335,868 children with 105,114 deaths recorded, in 1,452 survey-by-area units.
-```
-
-### R4 — Figure 1 caption (L83, update)
-
-Full caption, condensed from the generated caption (paper/figures/fig1_analysis_units_map_caption.md).
-
-**Current:**
-
-```latex
-\caption{Complete birth histories included in the primary analysis by administrative unit based on \cite{snow:17}.}
-```
-
-**Proposed:**
-
-```latex
-\caption{Complete birth histories included in the primary analysis, by sub-national malaria-endemic polygon of Snow et al.\ \cite{snow:17}. Colours show the number of mothers with at least one child age-band record in the analysis: in total 1,125,610 mothers from 136 surveys (99 DHS, 37 MICS; interviews 2003–2025) in 37 countries, contributing 7,639,443 child age-band records and 105,114 deaths. Records were placed in the polygon holding at least 90\% of the population of their reported area, and otherwise in the union of the malaria-endemic polygons each holding at least 5\%. In 215 of the 1,452 survey-by-area units this gives a union of polygons; the 161,042 mothers (14\%) in these unions are divided among their polygons by population share. The 465 polygons with data hold a median of 1,715 mothers (range 76–49,763). Light grey: the 55 malaria-endemic polygons without data, mostly in countries with no included survey (Botswana, Djibouti, Equatorial Guinea, Eritrea, Somalia and Sudan). Warm grey: malaria-free and island polygons, not analysed. Pale: outside the study area or without a polygon (for example the Comoros and Zanzibar). Blue: lakes and reservoirs of at least 300~km$^2$ (Natural Earth). Africa Albers equal-area projection. Survey years and exclusions by country are shown in Figure \ref{fig:survey_timing}.}
-```
-
-### R5 — Results, model paragraph (L87, update)
-
-Area-level (survey x Snow unit) covariates replace survey-region ones.
-
-**Current:**
-
-```latex
-adjusted for a set of 17 survey-region and national covariates
-```
-
-**Proposed:**
-
-```latex
-adjusted for a set of 17 area-level and national covariates
-```
-
-### R6 — Results, model paragraph (L87, fix)
-
-Table S1 is never cited in the text.
-
-**Current:**
-
-```latex
-varied substantially across age groups (Figure \ref{fig:main_result}).
-```
-
-**Proposed:**
-
-```latex
-varied substantially across age groups (Figure \ref{fig:main_result}; Table \ref{tab:primary-age-band-effects}).
-```
-
-### R7 — Results, attributable fractions (L90, update)
-
-At 10%: 30.8, 37.2, 27.8, 29.0% (12-59 months), 1.9% (neonates). At 40%: 53.1, 59.3, 49.5, 47.3%, so 'more than half' no longer holds at 36-59 months. Also adds the missing 'Figure' before the reference.
-
-**Current:**
-
-```latex
-Under this model, for an average \textit{Pf}PR$_{2-10}$ of 10\%, approximately 30\% of all deaths in children 1 year and older are caused by malaria, compared with less than 5\% in neonates (\ref{fig:main_result2}). For an average \textit{Pf}PR$_{2-10}$ of 40\% (upper end of prevalence estimates in sub-Saharan Africa now), there is a sharper age-dependent increase in malaria deaths with more than half of all deaths between 12 and 59 months attributable to malaria, peaking at $\sim$60\% between 24–35 months.
-```
-
-**Proposed:**
-
-```latex
-Under this model, for an average \textit{Pf}PR$_{2-10}$ of 10\%, approximately 30\% of all deaths in children 1 year and older are caused by malaria (28–37\% across the four yearly bands), compared with less than 5\% in neonates (Figure \ref{fig:main_result2}). For an average \textit{Pf}PR$_{2-10}$ of 40\% (upper end of prevalence estimates in sub-Saharan Africa now), there is a sharper age-dependent increase in malaria deaths, with around half of all deaths between 12 and 59 months attributable to malaria (47–59\%), peaking at 59\% between 24–35 months.
-```
-
-### R8 — Results, sensitivity paragraph (L98, update)
-
-The sensitivity suite now has UN M49 sub-regions (West, Central, East; Southern not refitted) and two period splits (survey year, record year). Counts from the subgroup and imputation results. The Sahel is steeper only between 20% and 40% (40->20% hazard ratios 0.71-0.79 against 0.84-0.94 at 6-59 months; below 20% it is flatter at 12-47 months), and Eastern Africa's departures change direction with the prevalence range, so it is described in general terms. Without nutrition covariates, the largest change is 0.010 (40->20%) and 0.036 (20->0%, 1-5 months), hence 'very similar' rather than 'essentially unchanged'.
-
-**Current:**
-
-```latex
-We conducted a series of sensitivity analyses in subgroups of the primary analysis datasets: survey regions in the Sahel region only (31 surveys in 8 countries, see Methods), where transmission is highly seasonal; countries in Eastern Africa only (51 surveys in 12 countries); and surveys conducted up to (72 surveys) or after (63 surveys) the median survey year, 2014. In general the subset fits gave very similar results, apart from the analysis restricted to the Sahel, where the estimated relationship between prevalence and all-cause mortality was steeper for children between 6 and 59 months, and Eastern Africa, where it was flatter in neonates and at 36-47 months (Figure \ref{fig:subgroups}). A sensitivity analysis using multiple imputation for the missing covariates, retaining all 166 surveys in 40 countries (8,812,458 child age-band records and 123,575 deaths), gave very similar results to the primary analysis restricted to complete cases (Figure \ref{fig:MI}). Because acute or chronic malnutrition may mediate the relationship between malaria transmission and death as well as confound it, we refitted the models on the same sample without adjusting for wasting and stunting; the …
-```
-
-**Proposed:**
-
-```latex
-We conducted a series of sensitivity analyses in subsets of the primary analysis dataset (see Methods): survey regions in the Sahel only (31 surveys in 8 countries), where transmission is highly seasonal; each UN sub-region of Africa except Southern Africa, namely Western Africa (61 surveys in 15 countries), Middle (Central) Africa (18 surveys in 7 countries) and Eastern Africa (50 surveys in 12 countries), Southern Africa (7 surveys in 3 countries) not being refitted because its \textit{Pf}PR$_{2-10}$ never exceeds 10.3\%; surveys conducted up to (74 surveys) or after (62 surveys) the median survey year, 2014; and child age bands entered up to or after the median calendar date of entry (late 2012). In general the subset fits gave similar results (Figures \ref{fig:subgroups}–\ref{fig:subgroups_period}). The exceptions were the Sahel, where mortality rose more steeply between prevalences of 20\% and 40\% for children between 6 and 59 months; Eastern Africa, where the relationship was flat in neonates and differed in shape at older ages; and Central Africa, where 97.5\% of records had a prevalence above 4\%, mortality did not increase between prevalences of 20\% and 40\% after the first month, and the curves were flatter than in the primary analysis at 24–59 months. A sensitivity analysis using multiple imputation for the missing covariates, retaining all 161 surveys with a Snow et al.\ area, in 38 countries (8,630,306 child age-band records and 122,092 deaths), gave very similar results to the primary analysis restricted to complete cases (Figure \ref{fig:MI}). Because acute or chronic malnutrition may mediate the relationship between malaria transmission and death as well as confound it, we refitted the models on the same sample without adjusting for wasting and stunting; the estimated prevalence-mortality relationship was very similar (hazard ratios changed by at most 0.04; Figure \ref{fig:without_malnutrition}).
-```
-
-### R9 — Results, burden paragraph (L104, update)
-
-Pooled rates 10.12, 4.33 and 3.31; declines 57.2% and 23.7%.
-
-**Current:**
-
-```latex
-fell from 10.8 to 4.6 deaths per 1,000 child-years between 2000 and 2015 (a 57\% decline) and to 3.5 in 2024
-```
-
-**Proposed:**
-
-```latex
-fell from 10.1 to 4.3 deaths per 1,000 child-years between 2000 and 2015 (a 57\% decline) and to 3.3 in 2024
-```
-
-### R10 — Results, burden paragraph (L104, update)
-
-2024: 586,723 deaths.
-
-**Current:**
-
-```latex
-estimates approximately 629,000 under-5 malaria deaths in these countries, 47\% more than IHME (428,000) and 43\% more than UN IGME (440,000).
-```
-
-**Proposed:**
-
-```latex
-estimates approximately 587,000 under-5 malaria deaths in these countries, 37\% more than IHME (428,000) and 33\% more than UN IGME (440,000).
-```
-
-### R11 — Results, country comparison (L107, update)
-
-country_agreement_2024.csv: 34 of 42, median ratio 1.499; Spearman 0.911 (unchanged at 0.91).
-
-**Current:**
-
-```latex
-exceeded IHME in 36 of the 42 countries (median ratio 1.6)
-```
-
-**Proposed:**
-
-```latex
-exceeded IHME in 34 of the 42 countries (median ratio 1.5)
-```
-
-### R12 — Results, Nigeria (L108, update)
-
-Nigeria 206,863 against 138,111 (x1.498) and 165,329 (x1.251).
-
-**Current:**
-
-```latex
-whereas our approach estimates 221 thousand deaths (60\% and 34\% higher, respectively).
-```
-
-**Proposed:**
-
-```latex
-whereas our approach estimates 207 thousand deaths (50\% and 25\% higher, respectively).
-```
-
-### R13 — Results, Chad (L109, update)
-
-Chad 18,646 against 4,884 (x3.82) and 14,345 (x1.30).
-
-**Current:**
-
-```latex
-In Chad we estimate a 4.1-fold higher total burden than IHME and 1.4-fold higher than UN IGME.
-```
-
-**Proposed:**
-
-```latex
-In Chad we estimate a 3.8-fold higher total burden than IHME and 1.3-fold higher than UN IGME.
-```
-
 ### R14 — Results, Nigerian states (L110, update)
 
 States: 35 of 37, medians 1.66 and 1.18. The added sentence cites Figure 4, which the text never cites (under5_death_probability.csv, 2024: median 12.3 per 1,000, share 19.9%, ratio to IHME 1.50).
@@ -422,22 +130,6 @@ greater than IHME's estimates in 36 of the 37 states (Figure \ref{fig:IHME_v_mod
 
 ```latex
 greater than IHME's estimates in 35 of the 37 states (Figure \ref{fig:IHME_v_model}B). The differences are concentrated in the northern states: the median state ratio is 1.7 in the three northern zones and 1.2 in the three southern zones. Expressed as the probability of dying before age 5 (Figure \ref{fig:cumulative_risk}), the model attributes a median of 12 deaths per 1,000 live births to malaria across the 42 countries in 2024 (a median 20\% of the all-cause probability), with the highest values in South Sudan (33 per 1,000), Sierra Leone (31) and the Central African Republic (31); this is a median 1.5 times the probability implied by IHME's cause-specific malaria death rates.
-```
-
-### R15 — Figure 3 caption (L115, fix)
-
-Consistent model name.
-
-**Current:**
-
-```latex
-between the prevalence-ACM model and IHME and UN IGME
-```
-
-**Proposed:**
-
-```latex
-between the PfPR-ACM model and IHME and UN IGME
 ```
 
 ### R16 — Table 1 (L119, update)
@@ -689,68 +381,90 @@ UN IGME denotes the direct under-five CA-CODE 2026 series. Totals include all 42
 \end{table}
 ```
 
-### D1 — Discussion, progress (L187, fix)
+### E1 — Results, first paragraph (L76, fix)
 
-67% is the 2000-2024 decline; 2000-2015 is 57%, which is smaller than UN IGME's 60%, so 'larger' must refer to 2000-2024 (against 53% and 62% in the previous sentence).
+Placeholders filled for mainland sub-Saharan Africa and Madagascar: the registry's 171 surveys in 41 countries less the Comoros (1 DHS, 1 MICS) and São Tomé and Príncipe (1 DHS, 2 MICS); survey_map/survey_timeline_all.csv. Lesotho's five surveys are still in the 166, as the next sentences say.
 
 **Current:**
 
 ```latex
-In comparison, our PfPR-ACM model estimates a larger 67\% decrease between 2000 and 2015 (slightly less than the RBM goal of 75\% reduction by 2015) and continued declines since 2015: a 24\% decrease between 2015 and 2024, against 8\% (IHME) and 6\% (UN IGME) (Table \ref{tab:source-comparison}).
+This gave a total of XXX eligible surveys (119 DHS, 5 MIS, 47 MICS) across XX countries
 ```
 
 **Proposed:**
 
 ```latex
-In comparison, our PfPR-ACM model estimates a larger 67\% decrease between 2000 and 2024 (57\% by 2015, against 49\% for IHME and 60\% for UN IGME; the RBM goal was a 75\% reduction by 2015) and continued declines since 2015: a 24\% decrease between 2015 and 2024, against 8\% (IHME) and 6\% (UN IGME) (Table \ref{tab:source-comparison}).
+This gave a total of 166 eligible surveys (117 DHS, 5 MIS, 44 MICS) across 39 countries
 ```
 
-### D2 — Discussion, indirect effects (L192, update)
+### E2 — Figure 1 label (L85, fix)
 
-2024: 1 - 428,147/586,723 = 27% (IHME); 1 - 440,123/586,723 = 25% (UN IGME). 'A third' fitted v9 (629,136).
+The map was relabelled fig:survey_timing, so every \ref{fig:map} (L78) is undefined and the survey-count sentence (L76) points at the map. Restores fig:map; fig:survey_timing is the label of the supplementary survey map and timing (S1).
 
 **Current:**
 
 ```latex
-This indirect effect could amount to a third of all deaths caused by malaria if we take the difference between our estimates and IHME/UN IGME at face value.
+\label{fig:survey_timing}
+\end{figure}
+
+We fitted separate models
 ```
 
 **Proposed:**
 
 ```latex
-This indirect effect could amount to around a quarter of all deaths caused by malaria if we take the difference between our estimates and IHME/UN IGME at face value.
+\label{fig:map}
+\end{figure}
+
+We fitted separate models
 ```
 
-### D3 — Discussion, limitations (L216, update)
+### E3 — Results, attributable fractions (L91, fix)
 
-Computed on the Snow primary (records entering the first age band): 56.7% of the PfPR variance is between countries (v9: 59.0%); 93.5% is between survey x area units.
+The word 'Figure' is missing before the reference.
 
 **Current:**
 
 ```latex
-Most of the variation in prevalence is across countries rather than within.
+compared with less than 5\% in neonates (\ref{fig:main_result2})
 ```
 
 **Proposed:**
 
 ```latex
-More than half of the variation in prevalence across child records (57\%) is between countries; the rest is within countries, between sub-national areas and over time.
+compared with less than 5\% in neonates (Figure \ref{fig:main_result2})
 ```
 
-### D4 — Discussion, limitations (L216, fix)
+### E4 — Results, sensitivity paragraph (L99, fix)
 
-Neonatal share of deaths is 36.7%.
+Southern Africa's maximum PfPR is 10.33% (subregions_not_fitted.csv), so 'never exceeded 10%' is false; its records are in the primary analysis, it is only not refitted.
 
 **Current:**
 
 ```latex
-there is only a weak association between \textit{PfPR}$_{2-10}$ and neonatal deaths (one third of all deaths)
+Southern Africa was excluded because  \textit{Pf}PR$_{2-10}$ never exceeded 10\%)
 ```
 
 **Proposed:**
 
 ```latex
-there is only a weak association between \textit{PfPR}$_{2-10}$ and neonatal deaths (37\% of all deaths)
+Southern Africa was not refitted because its \textit{Pf}PR$_{2-10}$ never exceeds 10.3\%)
+```
+
+### E5 — Results, sensitivity paragraph (L99, update)
+
+Explains the flat Central Africa curves and cites the new raw-data figure (central_africa_low_prevalence.csv: Chad 32,860 of 56,959 records, survival 99.13%; other sub-regions 99.63%; Central Africa 40->20% hazard ratios 0.98-1.11 after the first month).
+
+**Current:**
+
+```latex
+The exceptions were the Sahel region, where mortality rose more steeply between prevalences of 20\% and 40\% for children between 6 and 59 months.
+```
+
+**Proposed:**
+
+```latex
+The exceptions were the Sahel region, where mortality rose more steeply between prevalences of 20\% and 40\% for children between 6 and 59 months, and Central Africa, where mortality did not increase between prevalences of 20\% and 40\% after the first month. In the unadjusted data (Figure \ref{fig:survival_by_region}), most of Central Africa's records at low prevalence come from Chad (58\% of its records at 24–59 months with a prevalence below 10\%), where survival at these ages (99.1\%) is lower than at similar prevalence elsewhere (99.6\%).
 ```
 
 ### D5 — Discussion, limitations (L216, optional)
@@ -1173,6 +887,31 @@ The Snow suite has three figures: the Sahel (this file now shows the Sahel only)
     \includegraphics[width=0.95\linewidth]{Supplementary Figures/sfig_pfpr_splines_by_period.png}
     \caption{Sensitivity analysis: period. As Figure \ref{fig:subgroups}, refitted separately in surveys conducted up to (74 surveys) or after (62 surveys) the median survey year, 2014, and in child age bands entered up to (3,858,211 records) or after (3,781,232 records) the median calendar year of entry, 2012.8.}
     \label{fig:subgroups_period}
+\end{figure}
+```
+
+### S4b — Supplementary: raw survival by sub-region (new) (L–, update)
+
+New supplementary figure (user request, 15 October 2026): the raw data behind the sub-region refits, with unadjusted spline fits; caption condensed from CAPTION_sfig_survival_vs_pfpr_by_subregion.md.
+
+**Current:**
+
+```latex
+\label{fig:subgroups_period}
+\end{figure}
+```
+
+**Proposed:**
+
+```latex
+\label{fig:subgroups_period}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\linewidth]{Supplementary Figures/sfig_survival_vs_pfpr_by_subregion.png}
+    \caption{Survival through each age band against \textit{Pf}PR$_{2-10}$ in the primary analysis sample, by UN sub-region. Each point is one survey $\times$ area unit $\times$ band-entry year (size: children entering the band). Lines are unadjusted spline fits for each sub-region (binomial generalised additive model with a complementary log-log link and a penalised cubic regression spline of \textit{Pf}PR$_{2-10}$, basis dimension 5, no covariates), drawn over the central 95\% of the sub-region's exposure, with 95\% intervals shaded. Southern Africa, whose prevalence spans 0–10\%, is shown as points only. All panels share the same y-axis; points below 93\% (0.6\% of children) are drawn at the lower edge as open triangles. The fits are descriptive: unlike the age-band models, they are not adjusted for confounders, calendar time or survey and area effects.}
+    \label{fig:survival_by_region}
 \end{figure}
 ```
 

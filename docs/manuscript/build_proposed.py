@@ -39,7 +39,9 @@ def table_source(name, drop_comments):
 
 def block(start, end):
     """The exact text from the first line starting with `start` to the end of the following line equal to `end`."""
-    i = original.index(start)
+    i = original.find(start)
+    if i < 0:
+        return "\x00 not in main.tex: " + start   # never matches, so the change is skipped as already done
     j = original.index(end, i) + len(end)
     return original[i:j]
 
@@ -94,8 +96,8 @@ change("R7", "Results, attributable fractions", "update",
        "At 10%: 30.8, 37.2, 27.8, 29.0% (12-59 months), 1.9% (neonates). At 40%: 53.1, 59.3, 49.5, 47.3%, so 'more than half' no longer holds at 36-59 months. Also adds the missing 'Figure' before the reference.")
 change("R8", "Results, sensitivity paragraph", "update",
        block(r"We conducted a series of sensitivity analyses in subgroups", r"(Figure \ref{fig:without_malnutrition})."),
-       r"We conducted a series of sensitivity analyses in subsets of the primary analysis dataset (see Methods): survey regions in the Sahel only (31 surveys in 8 countries), where transmission is highly seasonal; each UN sub-region of Africa except Southern Africa, namely Western Africa (61 surveys in 15 countries), Middle (Central) Africa (18 surveys in 7 countries) and Eastern Africa (50 surveys in 12 countries), Southern Africa (7 surveys in 3 countries) not being refitted because its \textit{Pf}PR$_{2-10}$ never exceeds 10.3\%; surveys conducted up to (74 surveys) or after (62 surveys) the median survey year, 2014; and child age bands entered up to or after the median calendar date of entry (late 2012). In general the subset fits gave similar results (Figures \ref{fig:subgroups}–\ref{fig:subgroups_period}). The exceptions were the Sahel, where mortality rose more steeply between prevalences of 20\% and 40\% for children between 6 and 59 months; Eastern Africa, where the relationship was flat in neonates and differed in shape at older ages; and Central Africa, where 97.5\% of records had a prevalence above 4\%, mortality did not increase between prevalences of 20\% and 40\% after the first month, and the curves were flatter than in the primary analysis at 24–59 months. A sensitivity analysis using multiple imputation for the missing covariates, retaining all 161 surveys with a Snow et al.\ area, in 38 countries (8,630,306 child age-band records and 122,092 deaths), gave very similar results to the primary analysis restricted to complete cases (Figure \ref{fig:MI}). Because acute or chronic malnutrition may mediate the relationship between malaria transmission and death as well as confound it, we refitted the models on the same sample without adjusting for wasting and stunting; the estimated prevalence-mortality relationship was very similar (hazard ratios changed by at most 0.04; Figure \ref{fig:without_malnutrition}).",
-       "The sensitivity suite now has UN M49 sub-regions (West, Central, East; Southern not refitted) and two period splits (survey year, record year). Counts from the subgroup and imputation results. The Sahel is steeper only between 20% and 40% (40->20% hazard ratios 0.71-0.79 against 0.84-0.94 at 6-59 months; below 20% it is flatter at 12-47 months), and Eastern Africa's departures change direction with the prevalence range, so it is described in general terms. Without nutrition covariates, the largest change is 0.010 (40->20%) and 0.036 (20->0%, 1-5 months), hence 'very similar' rather than 'essentially unchanged'.")
+       r"We conducted a series of sensitivity analyses in subsets of the primary analysis dataset (see Methods): survey regions in the Sahel only (31 surveys in 8 countries), where transmission is highly seasonal; each UN sub-region of Africa except Southern Africa, namely Western Africa (61 surveys in 15 countries), Middle (Central) Africa (18 surveys in 7 countries) and Eastern Africa (50 surveys in 12 countries), Southern Africa (7 surveys in 3 countries) not being refitted because its \textit{Pf}PR$_{2-10}$ never exceeds 10.3\%; surveys conducted up to (74 surveys) or after (62 surveys) the median survey year, 2014; and child age bands entered up to or after the median calendar date of entry (late 2012). In general the subset fits gave similar results (Figures \ref{fig:subgroups}–\ref{fig:subgroups_period}). The exceptions were the Sahel, where mortality rose more steeply between prevalences of 20\% and 40\% for children between 6 and 59 months; Eastern Africa, where the relationship was flat in neonates and differed in shape at older ages; and Central Africa, where 97.5\% of records had a prevalence above 4\%, mortality did not increase between prevalences of 20\% and 40\% after the first month, and the curves were flatter than in the primary analysis at 24–59 months. In the unadjusted data (Figure \ref{fig:survival_by_region}), most of Central Africa's records at low prevalence come from Chad (58\% of its records at 24–59 months with a prevalence below 10\%), where survival at these ages (99.1\%) is lower than at similar prevalence elsewhere (99.6\%). A sensitivity analysis using multiple imputation for the missing covariates, retaining all 161 surveys with a Snow et al.\ area, in 38 countries (8,630,306 child age-band records and 122,092 deaths), gave very similar results to the primary analysis restricted to complete cases (Figure \ref{fig:MI}). Because acute or chronic malnutrition may mediate the relationship between malaria transmission and death as well as confound it, we refitted the models on the same sample without adjusting for wasting and stunting; the estimated prevalence-mortality relationship was very similar (hazard ratios changed by at most 0.04; Figure \ref{fig:without_malnutrition}).",
+       "The sensitivity suite now has UN M49 sub-regions (West, Central, East; Southern not refitted) and two period splits (survey year, record year). Counts from the subgroup and imputation results. The Sahel is steeper only between 20% and 40% (40->20% hazard ratios 0.71-0.79 against 0.84-0.94 at 6-59 months; below 20% it is flatter at 12-47 months), and Eastern Africa's departures change direction with the prevalence range, so it is described in general terms. Without nutrition covariates, the largest change is 0.010 (40->20%) and 0.036 (20->0%, 1-5 months), hence 'very similar' rather than 'essentially unchanged'. The Central Africa sentence on Chad cites the new raw-data figure (results/cbh/subgroups_snow520_merge_gamma2_v5/central_africa_low_prevalence.csv: Chad 32,860 of 56,959 records, survival 99.13%; other sub-regions 99.63%).")
 change("R9", "Results, burden paragraph", "update",
        r"fell from 10.8 to 4.6 deaths per 1,000 child-years between 2000 and 2015 (a 57\% decline) and to 3.5 in 2024",
        r"fell from 10.1 to 4.3 deaths per 1,000 child-years between 2000 and 2015 (a 57\% decline) and to 3.3 in 2024",
@@ -130,6 +132,27 @@ _t1 = table_source("country_comparison_2024.latex.txt", drop_comments=True)
 _t2 = table_source("source_comparison.latex.txt", drop_comments=True)
 change("R18", "Tables 1 and 2", "fix", _t1 + "\n\n\n" + _t2, _t2 + "\n\n\n" + _t1,
        "Table 2 (source comparison) is cited before Table 1 (L104 before L107); swapping the two environments numbers them in citation order. References use labels, so nothing else changes.")
+
+# ---------------------------------------------------------------- Corrections to the author's edits (main.tex of 15 October)
+change("E1", "Results, first paragraph", "fix",
+       r"This gave a total of XXX eligible surveys (119 DHS, 5 MIS, 47 MICS) across XX countries",
+       r"This gave a total of 166 eligible surveys (117 DHS, 5 MIS, 44 MICS) across 39 countries",
+       "Placeholders filled for mainland sub-Saharan Africa and Madagascar: the registry's 171 surveys in 41 countries less the Comoros (1 DHS, 1 MICS) and São Tomé and Príncipe (1 DHS, 2 MICS); survey_map/survey_timeline_all.csv. Lesotho's five surveys are still in the 166, as the next sentences say.")
+change("E2", "Figure 1 label", "fix",
+       "    \\label{fig:survey_timing}\n\\end{figure}\n\nWe fitted separate models",
+       "    \\label{fig:map}\n\\end{figure}\n\nWe fitted separate models",
+       "The map was relabelled fig:survey_timing, so every \\ref{fig:map} (L78) is undefined and the survey-count sentence (L76) points at the map. Restores fig:map; fig:survey_timing is the label of the supplementary survey map and timing (S1).")
+change("E3", "Results, attributable fractions", "fix",
+       r"compared with less than 5\% in neonates (\ref{fig:main_result2})",
+       r"compared with less than 5\% in neonates (Figure \ref{fig:main_result2})", "The word 'Figure' is missing before the reference.")
+change("E4", "Results, sensitivity paragraph", "fix",
+       r"Southern Africa was excluded because  \textit{Pf}PR$_{2-10}$ never exceeded 10\%)",
+       r"Southern Africa was not refitted because its \textit{Pf}PR$_{2-10}$ never exceeds 10.3\%)",
+       "Southern Africa's maximum PfPR is 10.33% (subregions_not_fitted.csv), so 'never exceeded 10%' is false; its records are in the primary analysis, it is only not refitted.")
+change("E5", "Results, sensitivity paragraph", "update",
+       r"The exceptions were the Sahel region, where mortality rose more steeply between prevalences of 20\% and 40\% for children between 6 and 59 months.",
+       r"The exceptions were the Sahel region, where mortality rose more steeply between prevalences of 20\% and 40\% for children between 6 and 59 months, and Central Africa, where mortality did not increase between prevalences of 20\% and 40\% after the first month. In the unadjusted data (Figure \ref{fig:survival_by_region}), most of Central Africa's records at low prevalence come from Chad (58\% of its records at 24–59 months with a prevalence below 10\%), where survival at these ages (99.1\%) is lower than at similar prevalence elsewhere (99.6\%).",
+       "Explains the flat Central Africa curves and cites the new raw-data figure (central_africa_low_prevalence.csv: Chad 32,860 of 56,959 records, survival 99.13%; other sub-regions 99.63%; Central Africa 40->20% hazard ratios 0.98-1.11 after the first month).")
 
 # ---------------------------------------------------------------- Discussion
 change("D1", "Discussion, progress", "fix",
@@ -261,6 +284,17 @@ change("S4", "Supplementary: subgroup figures", "update",
     \label{fig:subgroups_period}
 \end{figure}""",
        "The Snow suite has three figures: the Sahel (this file now shows the Sahel only), UN sub-regions and periods. Captions condensed from the caption files.")
+SURVIVAL_FIG = r"""
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\linewidth]{Supplementary Figures/sfig_survival_vs_pfpr_by_subregion.png}
+    \caption{Survival through each age band against \textit{Pf}PR$_{2-10}$ in the primary analysis sample, by UN sub-region. Each point is one survey $\times$ area unit $\times$ band-entry year (size: children entering the band). Lines are unadjusted spline fits for each sub-region (binomial generalised additive model with a complementary log-log link and a penalised cubic regression spline of \textit{Pf}PR$_{2-10}$, basis dimension 5, no covariates), drawn over the central 95\% of the sub-region's exposure, with 95\% intervals shaded. Southern Africa, whose prevalence spans 0–10\%, is shown as points only. All panels share the same y-axis; points below 93\% (0.6\% of children) are drawn at the lower edge as open triangles. The fits are descriptive: unlike the age-band models, they are not adjusted for confounders, calendar time or survey and area effects.}
+    \label{fig:survival_by_region}
+\end{figure}"""
+change("S4b", "Supplementary: raw survival by sub-region (new)", "update",
+       "\\label{fig:subgroups_period}\n\\end{figure}", "\\label{fig:subgroups_period}\n\\end{figure}" + SURVIVAL_FIG,
+       "New supplementary figure (user request, 15 October 2026): the raw data behind the sub-region refits, with unadjusted spline fits; caption condensed from CAPTION_sfig_survival_vs_pfpr_by_subregion.md.")
 change("S5", "Supplementary: imputation caption", "update", r"\caption{Results from multiply imputed datasets.}",
        r"\caption{Sensitivity analysis: imputed covariates. Log mortality hazard ratios relative to \textit{Pf}PR$_{2-10}$ = 20\% by age band, from the complete-case primary analysis (7,639,443 records, 136 surveys) and from all records with a Snow et al.\ area after imputing every remaining covariate gap (8,630,306 records, 161 surveys in 38 countries; see Methods). Shaded areas are 95\% confidence intervals; curves are drawn over the central 95\% of each sample's exposure. Pooling ten imputed datasets with Rubin's rules changed the 40\%-to-20\% hazard ratios by at most 0.001.}",
        "Condensed from sfig_pfpr_splines_imputed_covariates_caption.md.")
@@ -290,9 +324,13 @@ change("S8", "Table S1", "fix", block("\\begin{table}[tbp]\n\\centering\n\\capti
 def line_of(s, sub):
     return s[: s.index(sub)].count("\n") + 1
 
-applied = []
+norm = lambda t: " ".join(t.split())
+applied, skipped = [], []
 for c in C:
     n = text.count(c["old"])
+    if n == 0:
+        c["status"] = "already in main.tex" if c["new"].strip() and norm(c["new"]) in norm(text) else "superseded by the author's edit"
+        skipped.append(c); continue
     if n != 1:
         sys.exit(f"{c['id']}: expected one match, found {n}: {c['old'][:80]!r}")
     c["line"] = line_of(original, c["old"]) if original.count(c["old"]) == 1 else None
@@ -309,7 +347,8 @@ def show(s, limit=None):
 
 kinds = {"update": "updated approach or numbers", "fix": "error in the current text", "optional": "optional"}
 md = ["# Proposed changes to main.tex (Snow-unit primary)", "",
-      "Generated on 15 October 2026 by a script that applies each change to a copy of the Overleaf `main.tex` (saved 14 October 2026). The script checks that every change matches the current text exactly once. `main.tex` itself is not edited.",
+      "Generated on 15 October 2026 by a script that applies each change to a copy of the Overleaf `main.tex` (saved 15 October 2026, 18:05). The script checks that every change matches the current text exactly once. `main.tex` itself is not edited.",
+      "- **Already applied:** the changes you have already made, or replaced by your own wording, are listed at the end. Corrections to your edits are E1–E5.",
       "- **Full proposed manuscript:** `docs/manuscript/main_proposed.tex`.",
       "- **Numbers:** from the verified run of 13 October 2026 (commit 3e2c721). Sources for each number are in `docs/PAPER_TEXT_SNOW.md`.",
       "- **Line numbers:** those of the current `main.tex`.", "",
@@ -320,6 +359,9 @@ md = ["# Proposed changes to main.tex (Snow-unit primary)", "",
       "## Summary", "", "| ID | Line | Section | Kind | Why |", "|---|---:|---|---|---|"]
 for c in applied:
     md.append(f"| {c['id']} | {c['line'] or '–'} | {c['section']} | {c['kind']} | {c['reason']} |")
+md += ["", "## Already done in main.tex (not repeated)", "", "| ID | Section | Status |", "|---|---|---|"]
+for c in skipped:
+    md.append(f"| {c['id']} | {c['section']} | {c['status']} |")
 md += ["", "## Not changed here", "",
        "- **SText 1** (`SText1_model_specification.tex`, cited at L287) still describes the archived negative-binomial model. It needs rewriting from `results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/model_formula.txt`. I can draft it as a separate proposed file.",
        "- **Liberia's child HIV incidence.** The commented-out paragraph at L273 describes how it is derived from UNAIDS AIDSinfo counts, and is accurate. Uncommenting it would document flag A1.",
@@ -328,7 +370,7 @@ md += ["", "## Not changed here", "",
        "  - the Table 2 footnote's `12%` is not escaped, so LaTeX drops the rest of the line;",
        "  - the Table 2 footnote's 'counts and rates move in opposite directions' is false for the model column;",
        "  - the Table 1 caption calls IHME's cause-specific deaths 'malaria-attributable', and the Table S1 footnote says 'regional covariates'.",
-       "- **Missing bibliography entries:** `ref.bib` has none for `mics`, `wdi` and `wgi`. The BibTeX is below.", "",
+       "- **Bibliography:** `ref.bib` now has entries for `mics`, `wdi` and `wgi` (added 15 October); the BibTeX below is kept for reference.", "",
        "```bibtex",
        "@misc{mics,",
        "  author       = {{UNICEF}},",
@@ -353,5 +395,5 @@ for c in applied:
            "**Current:**", "", "```latex", show(c["old"], 1200) if c["old"].strip() else "(nothing)", "```", "",
            "**Proposed:**", "", "```latex", show(c["new"]) if c["new"].strip() else "(delete)", "```", ""]
 (OUT / "PROPOSED_CHANGES.md").write_text("\n".join(md) + "\n", encoding="utf-8")
-print(f"{len(applied)} changes applied -> {OUT / 'main_proposed.tex'} and PROPOSED_CHANGES.md")
+print(f"{len(applied)} changes applied, {len(skipped)} already done or superseded -> {OUT / 'main_proposed.tex'} and PROPOSED_CHANGES.md")
 print("by kind:", {k: sum(c['kind'] == k for c in applied) for k in kinds})

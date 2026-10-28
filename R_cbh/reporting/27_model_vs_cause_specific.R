@@ -34,17 +34,19 @@ label_min <- 2.5
 d[, label := fifelse(pmax(model, cause_specific) >= label_min, iso3, "")]
 cbh_atomic_csv(d, file.path(out, "figure_data.csv"))
 lim <- c(0, max(d$model, d$cause_specific) * 1.04)
-panel <- function(p, source_label, tag) ggplot(d[panel == p], aes(model, cause_specific)) +
+# PfPR-ACM on the y-axis, the cause-specific estimate on the x-axis (user request, 28 October 2026).
+panel <- function(p, source_label, tag) ggplot(d[panel == p], aes(cause_specific, model)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey55", linewidth = .35) +
   geom_point(aes(colour = region), size = 1.7) +
   ggrepel::geom_text_repel(aes(label = label), size = 9 / .pt, colour = "grey20", seed = 20261028L, max.overlaps = Inf,
-    min.segment.length = 0, segment.colour = "grey60", segment.size = .25, box.padding = .2, point.padding = .12) +
+    min.segment.length = 0, segment.colour = "grey60", segment.size = .25, box.padding = .3, point.padding = .15,
+    force = 3, max.iter = 1e5, max.time = 5) +
   scale_colour_manual(values = colours, drop = FALSE, name = NULL) +
   scale_x_continuous(limits = lim, breaks = seq(0, 8, 2), expand = expansion(mult = c(0, .02))) +
   scale_y_continuous(limits = lim, breaks = seq(0, 8, 2), expand = expansion(mult = c(0, .02))) +
   coord_equal() +
-  labs(x = "Malaria-attributable deaths\nper 1,000 child-years (PfPR-ACM)",
-       y = sprintf("Malaria-attributable deaths\nper 1,000 child-years (%s)", source_label), tag = tag) +
+  labs(x = sprintf("Malaria-attributable deaths\nper 1,000 child-years (%s)", source_label),
+       y = "Malaria-attributable deaths\nper 1,000 child-years (PfPR-ACM)", tag = tag) +
   theme_minimal(base_size = 9, base_line_size = .3) +
   theme(axis.title = element_text(size = 11), axis.text = element_text(size = 9), legend.text = element_text(size = 9),
     plot.tag = element_text(size = 12, face = "bold"), panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 4, 4))
@@ -57,8 +59,8 @@ rho <- d[, .(rho = cor(model, cause_specific, method = "spearman"), above = sum(
 writeLines(c("# Figure 5 caption — PfPR-ACM against cause-specific malaria mortality, by country", "",
   paste0(sprintf("**Figure. Malaria-attributable under-five mortality in %d: PfPR-ACM model against cause-specific estimates.** ", fig_year),
     "Each point is a country; rates are deaths per 1,000 child-years under 5. ",
-    "(A) PfPR-ACM estimates using UN IGME all-cause mortality against UN IGME (CA-CODE) malaria deaths, both over the UN WPP population under 5. ",
-    "(B) PfPR-ACM estimates using IHME all-cause mortality against IHME malaria deaths, both over IHME person-years. ",
+    "(A) PfPR-ACM estimates using UN IGME all-cause mortality (y) against UN IGME (CA-CODE) malaria deaths (x), both over the UN WPP population under 5. ",
+    "(B) PfPR-ACM estimates using IHME all-cause mortality (y) against IHME malaria deaths (x), both over IHME person-years. ",
     "The PfPR-ACM estimate counts all deaths averted if prevalence fell to zero (direct and indirect); the cause-specific estimates count deaths assigned to malaria as the underlying cause. ",
     "The dashed line is equality; countries are coloured by UN M49 sub-region (Middle Africa as Central Africa), and those at ", label_min, " or more per 1,000 on either axis are labelled with their ISO 3166-1 alpha-3 codes. ",
     sprintf("Spearman correlation: %.2f (A) and %.2f (B); the PfPR-ACM estimate is higher in %d (A) and %d (B) of %d countries. ",

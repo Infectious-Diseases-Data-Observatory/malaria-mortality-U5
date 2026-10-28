@@ -69,13 +69,13 @@ x_scale <- scale_x_continuous(breaks = c(0, boundaries[-1], 60), limits = c(0, 6
 x_lines <- geom_vline(xintercept = boundaries, colour = "grey88", linewidth = .23)
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in (printed at 0.95\linewidth = 6.18 in); line,
 # point and margin sizes are those of the former 11 in canvas scaled to 6.2 in.
-base <- theme_minimal(base_size = 13, base_line_size = .5) +
-  theme(axis.text = element_text(size = 11), axis.title = element_text(size = 13),
+base <- theme_minimal(base_size = 11.7, base_line_size = .5) +
+  theme(axis.text = element_text(size = 9.9), axis.title = element_text(size = 11.92),
     panel.grid.minor = element_blank(), panel.grid.major.x = element_blank())
 top <- ggplot(deaths) + x_lines +
   geom_rect(aes(xmin = mid - bar_width / 2, xmax = mid + bar_width / 2, ymin = 0, ymax = share), fill = "grey65") +
   geom_text(aes(x = label_x, y = share, label = label, hjust = label_hjust),
-            vjust = -.4, size = 11 / .pt, colour = "grey25") +
+            vjust = -.4, size = 9.9 / .pt, colour = "grey25") +
   x_scale +
   # No zero label: it would collide with the 100% label of the panel below.
   scale_y_continuous(breaks = function(l) setdiff(scales::extended_breaks()(l), 0),
@@ -100,8 +100,8 @@ bottom <- ggplot(d, aes(age_months, attributable_fraction, colour = prevalence, 
   coord_cartesian(ylim = c(y_floor, 1)) +
   labs(x = "Age (months)", y = "Malaria-attributable share\nof all-cause deaths",
        colour = "PfPR[2–10]") +
-  base + theme(legend.position = "bottom", legend.text = element_text(size = 11),
-    legend.title = element_text(size = 12.5), plot.margin = margin(2,11,7,7))
+  base + theme(legend.position = "bottom", legend.text = element_text(size = 9.9),
+    legend.title = element_text(size = 11.46), plot.margin = margin(2,11,7,7))
 for (panel in list(top, bottom))
   stopifnot(is.null(panel$labels$title), is.null(panel$labels$subtitle), is.null(panel$labels$caption))
 p <- patchwork::wrap_plots(top, bottom, ncol = 1, heights = c(1.2, 3))

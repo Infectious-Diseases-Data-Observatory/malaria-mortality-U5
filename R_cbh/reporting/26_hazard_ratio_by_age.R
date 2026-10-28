@@ -46,9 +46,9 @@ p <- ggplot(d, aes(pfpr_pct, hazard_ratio)) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
   scale_y_continuous(breaks = seq(1, 3.5, .5), minor_breaks = seq(1, 3.5, .25)) +
   labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Mortality hazard ratio\nrelative to zero prevalence") +
-  theme_minimal(base_size = 11, base_line_size = .3) +
+  theme_minimal(base_size = 9.9, base_line_size = .3) +
   theme(panel.grid.minor.x = element_blank(), panel.grid.minor.y = element_line(linewidth = .15),
-    axis.title = element_text(size = 13), axis.text = element_text(size = 11), strip.text = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 11.92), axis.text = element_text(size = 9.9), strip.text = element_text(size = 10.8, face = "bold"),
     panel.spacing = grid::unit(11, "pt"), plot.margin = margin(5, 11, 5, 5))
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))
 ggsave(file.path(out, "fig2_hazard_ratio_by_age.png"), p, width = 6.5, height = 3.9, dpi = 320, device = ragg::agg_png, bg = "white")

@@ -176,7 +176,7 @@ fill <- c(main = "#EAF2F8", excluded = "#F6F3EF"); border <- c(main = "#346A8C",
 # (CLAUDE.md); lines and arrows are those of the earlier 11.5 in drawing scaled by 6.5/11.5. Text is placed from each
 # box's top edge in points (pt: canvas units per point; one unit is about 37 pt on both axes).
 width <- 6.5; height <- 5.7; ylim <- c(4.05, 14.9); pt <- diff(ylim) / (height * 72 - 10)
-text_pt <- list(main = c(heading = 11, detail = 10.5), excluded = c(heading = 10.5, detail = 10))
+text_pt <- list(main = c(heading = 10, detail = 9.5), excluded = c(heading = 9.5, detail = 9))
 p <- ggplot() + theme_void() + coord_cartesian(xlim = c(0, 12.4), ylim = ylim, expand = FALSE, clip = "off") + theme(plot.margin = margin(5, 5, 5, 5))
 segment <- function(x, y, xe, ye, arrow = FALSE) {
   if (arrow) annotate("segment", x = x, y = y, xend = xe, yend = ye, colour = "#687780", linewidth = .4, arrow = grid::arrow(length = grid::unit(1.4, "mm"), type = "closed"))

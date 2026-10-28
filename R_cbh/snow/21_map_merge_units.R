@@ -63,9 +63,9 @@ for (iso in ct[merged_units > 0, sort(country)]) {
     # No title or caption in the image (CLAUDE.md); the country is in the file name and the notes are in
     # maps/CAPTION_merge_units.md.
     # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in: printed = size x 165 / 180.
-    theme_void(base_size = 11.5) +
-    theme(legend.position = "bottom", legend.title = element_text(size = 14), legend.text = element_text(size = 11.5),
-          legend.key.size = unit(4.5, "mm"), strip.text = element_text(size = 11.5, margin = margin(2, 0, 2, 0)),
+    theme_void(base_size = 10.35) +
+    theme(legend.position = "bottom", legend.title = element_text(size = 12.83), legend.text = element_text(size = 10.35),
+          legend.key.size = unit(4.5, "mm"), strip.text = element_text(size = 10.35, margin = margin(2, 0, 2, 0)),
           plot.background = element_rect(fill = "white", colour = NA), plot.margin = margin(6, 6, 6, 6)) +
     guides(fill = guide_legend(nrow = 3, title.position = "top"))
   stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))

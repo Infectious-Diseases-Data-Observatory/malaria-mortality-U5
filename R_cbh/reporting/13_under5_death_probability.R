@@ -81,8 +81,8 @@ fills <- c(`All causes (IHME)`="#C9D6E3",`Caused by malaria (PfPR-ACM model)`="#
 xmax <- ceiling(max(1000*cur$q5_allcause)/20)*20
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in (printed at 0.95\linewidth = 6.18 in); line and
 # point sizes are those of the former 13.8 in canvas scaled to 6.2 in, and the figure is taller so that the 42 rows of
-# 10.5 pt labels do not overlap. The three value columns start at xmax + col (in x units), wide enough for their headers.
-fs <- list(title=12.5,text=10.5); col <- c(4,46,94); xlim_main <- xmax+138
+# 9.5 pt labels do not overlap. The three value columns start at xmax + col (in x units), wide enough for their headers.
+fs <- list(title=11.5,text=9.5); col <- c(4,46,94); xlim_main <- xmax+138
 # Both panels use the same fixed vertical range, so the country rows align exactly; the column header
 # of the right panel sits above that range (drawn in the top margin) and does not stretch its axis.
 rows <- coord_cartesian(ylim=c(.4,nrow(cur)+.6),expand=FALSE,clip="off")

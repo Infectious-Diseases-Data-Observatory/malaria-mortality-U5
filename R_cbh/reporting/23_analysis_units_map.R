@@ -379,7 +379,7 @@ assert(all(diff(L_normal) < 0), "data classes darken monotonically")
 ## 5. Map -------------------------------------------------------------------------------------------------------------
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at the printed width; line widths and the scale bar ticks are
 # those of the former 180 mm canvas scaled to 156 mm. The longer legend entries wrap so the legend stays clear of land.
-fs <- list(title = 12, legend = 10)                          # pt at final size
+fs <- list(title = 11, legend = 9)                          # pt at final size
 leg_xy <- c(0.02, 0.555)                                      # legend top-left (npc)
 bar_len <- 1e6; bar_x0 <- xr[1] + 0.76 * W; bar_y <- yr[1] + 0.03 * H
 labels <- c(lab_fig, spacer = " ", nodata = "Malaria endemic,\nno data in the analysis", excluded = "Malaria free or island,\nnot analysed",

@@ -23,15 +23,15 @@ state_limits <- c(200,3e4)
 comma <- scales::label_comma()
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in, the printed width (\linewidth); line, point
 # and margin sizes are those of the former 14 in canvas scaled to 6.5 in.
-paper <- theme_minimal(base_size=12,base_line_size=.3)+theme(panel.grid.minor=element_blank(),
-  text=element_text(size=12),axis.title=element_text(size=12),axis.text=element_text(size=10),
-  legend.title=element_blank(),legend.text=element_text(size=10),legend.position="bottom",
-  plot.tag=element_text(size=14,face="bold"),plot.margin=margin(4,7,4,4),
+paper <- theme_minimal(base_size=10.8,base_line_size=.3)+theme(panel.grid.minor=element_blank(),
+  text=element_text(size=11),axis.title=element_text(size=11),axis.text=element_text(size=9),
+  legend.title=element_blank(),legend.text=element_text(size=9),legend.position="bottom",
+  plot.tag=element_text(size=12.92,face="bold"),plot.margin=margin(4,7,4,4),
   legend.key.size=grid::unit(11,"pt"),legend.key.spacing.y=grid::unit(2,"pt"))
 log_grid <- cbh_log10_grid_theme()+theme(panel.grid.minor=element_line(linewidth=.12))
-label_size <- 10/.pt
+label_size <- 9/.pt
 num <- scales::label_number(accuracy=.1,drop0trailing=TRUE)                 # 0, 2.5, 5: narrower tick labels
-# Labels at 10 pt crowd the half-width panels, so (layout only): B, with 37 state labels, is wider than A, drops its
+# Labels at 9 pt crowd the half-width panels, so (layout only): B, with 37 state labels, is wider than A, drops its
 # copy of the y title and has its legend above it, and one x title spans A and B (patchwork does not collect the titles
 # of fixed-aspect panels). Each label starts r axis units (decades on log axes) from its point, away from the lower-left corner of
 # the labelled countries (A) or, mostly sideways (a = 3), from the centre of the cloud of states (B, whose labels in the
@@ -42,7 +42,7 @@ away <- function(px,py,r,a=1,corner=FALSE) { dx <- a*(px-if(corner) min(px) else
 repel <- function(d,nudge,...) ggrepel::geom_text_repel(data=d,size=label_size,max.overlaps=Inf,min.segment.length=0,
   segment.size=.25,nudge_x=nudge$x,nudge_y=nudge$y,max.iter=2e5,max.time=120,...)
 three_panels <- function(a,b,c,xlab) wrap_plots(A=a+labs(x=NULL),B=b+labs(x=NULL,y=NULL)+theme(legend.position="top"),
-  T=wrap_elements(panel=grid::textGrob(xlab,gp=grid::gpar(fontsize=12)),ignore_tag=TRUE),C=c,
+  T=wrap_elements(panel=grid::textGrob(xlab,gp=grid::gpar(fontsize=11)),ignore_tag=TRUE),C=c,
   design="AB\nTT\nCC",widths=c(.72,1),heights=grid::unit(c(1.5,16,1),c("null","pt","null")))+
   plot_annotation(tag_levels="A")
 

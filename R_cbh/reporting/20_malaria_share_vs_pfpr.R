@@ -136,7 +136,7 @@ side_labels <- function(z, lab, side, stack = TRUE) {
   rows <- rbind(z[, .(x = pfpr_pct + shift, y = comp, label = fifelse(on, plot_name(country), ""),
                       nx = fifelse(on & stack, if (left) -3 else 3, 0))], z[, .(x = pfpr_pct, y = 100 * acm, label = "", nx = 0)])
   ggrepel::geom_text_repel(data = rows, aes(x = x, y = y, label = label), nudge_x = rows$nx, hjust = if (!stack) .5 else if (left) 1 else 0,
-                           direction = if (stack) "y" else "both", size = 10 / .pt, lineheight = .85, colour = "grey15",
+                           direction = if (stack) "y" else "both", size = 9 / .pt, lineheight = .85, colour = "grey15",
                            bg.colour = "white", bg.r = .15, min.segment.length = 0, segment.colour = "grey35", segment.size = .3,
                            box.padding = if (stack) .12 else .3, point.padding = if (stack) .2 else .4, force = 4,
                            force_pull = if (stack) .1 else .5, max.overlaps = Inf, max.time = 5, max.iter = 1e6, seed = 1)
@@ -170,10 +170,10 @@ panel <- function(src, title) {
     coord_cartesian(clip = "off") +
     labs(title = title, x = bquote("National"~italic(Pf)*PR["2–10"]*","~.(fig_year)~"(%)"),
          y = if (is_igme) NULL else "Malaria share of\nunder-five deaths (%)") +
-    theme_minimal(base_size = 12, base_line_size = .34) +
-    theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.text = element_text(size = 10),
-          axis.text = element_text(size = 10), legend.key.width = unit(2.6, "mm"), legend.key.spacing.y = unit(1, "pt"),
-          plot.title = element_text(size = 12, face = "bold"), plot.title.position = "plot")
+    theme_minimal(base_size = 10.8, base_line_size = .34) +
+    theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.text = element_text(size = 9),
+          axis.text = element_text(size = 9), legend.key.width = unit(2.6, "mm"), legend.key.spacing.y = unit(1, "pt"),
+          plot.title = element_text(size = 11, face = "bold"), plot.title.position = "plot")
   if (is_igme) p else p + guides(colour = "none", fill = "none", shape = "none")
 }
 lim <- ceiling(100 * max(d$acm_upper, d$igme_upper, d$ihme) / 5) * 5
@@ -191,14 +191,14 @@ scatter <- function(src, title, xlab) {
     geom_point(aes(colour = series, shape = series, fill = series), size = 1.6, stroke = .45) +
     # Labels start above their points for the upper half of the labelled countries and below for the rest, so that they
     # spread out of the cluster.
-    ggrepel::geom_text_repel(aes(label = fifelse(iso3 %in% lab$iso3, plot_name(country), "")), size = 10 / .pt, lineheight = .9,
+    ggrepel::geom_text_repel(aes(label = fifelse(iso3 %in% lab$iso3, plot_name(country), "")), size = 9 / .pt, lineheight = .9,
                              nudge_y = fifelse(z$iso3 %in% lab$iso3, fifelse(z$acm >= median(lab$acm), .1, -.15), 0) * lim,
                              colour = "grey15", bg.colour = "white", bg.r = .15, min.segment.length = 0, segment.colour = "grey35",
                              segment.size = .3, box.padding = .2, point.padding = .2, force = 4, force_pull = .3, max.overlaps = Inf,
                              max.time = 5, max.iter = 1e6, seed = 1) +
-    annotate("text", x = .98 * lim, y = .02 * lim, hjust = 1, vjust = 0, size = 10 / .pt, colour = "grey20", lineheight = .95,
+    annotate("text", x = .98 * lim, y = .02 * lim, hjust = 1, vjust = 0, size = 9 / .pt, colour = "grey20", lineheight = .95,
              label = sprintf("Spearman \u03c1 = %.2f\n%s higher\nin %d of %d", rho, model, higher, nrow(z))) +
-    annotate("text", x = .97 * lim, y = .92 * lim, hjust = 1, vjust = 0, size = 10 / .pt, colour = "grey45", label = "equality") +
+    annotate("text", x = .97 * lim, y = .92 * lim, hjust = 1, vjust = 0, size = 9 / .pt, colour = "grey45", label = "equality") +
     scale_colour_manual(values = cols, limits = unname(keys), name = NULL) +
     scale_fill_manual(values = fills, limits = unname(keys), name = NULL) +
     scale_shape_manual(values = shapes, limits = unname(keys), name = NULL) +
@@ -207,8 +207,8 @@ scatter <- function(src, title, xlab) {
     scale_y_continuous(limits = c(0, lim), breaks = seq(0, lim, 10), expand = expansion(add = c(.6, .6))) +
     coord_equal(clip = "off") +
     labs(title = title, x = xlab, y = if (is_igme) NULL else paste0(model, " share (%)")) +
-    theme_minimal(base_size = 12, base_line_size = .34) +
-    theme(panel.grid.minor = element_blank(), axis.text = element_text(size = 10), plot.title = element_text(size = 12, face = "bold"),
+    theme_minimal(base_size = 10.8, base_line_size = .34) +
+    theme(panel.grid.minor = element_blank(), axis.text = element_text(size = 9), plot.title = element_text(size = 11, face = "bold"),
           plot.title.position = "plot")
 }
 fig <- (panel("ihme", "A  IHME") | panel("igme", "B  UN IGME (CA-CODE)")) /

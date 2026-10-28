@@ -41,17 +41,17 @@ note <- sprintf("Spearman ρ = %.2f\nUN IGME / IHME: median %.2f\n(range %.2f–
 p <- ggplot(w, aes(ihme, unigme)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey55", linewidth = .4) +
   geom_point(aes(colour = region), size = 2.2) +
-  ggrepel::geom_text_repel(aes(label = ifelse(labelled, label, "")), size = 10 / .pt, colour = "grey20", seed = 20261027L, max.overlaps = Inf,
+  ggrepel::geom_text_repel(aes(label = ifelse(labelled, label, "")), size = 9 / .pt, colour = "grey20", seed = 20261027L, max.overlaps = Inf,
     min.segment.length = 0, segment.colour = "grey60", segment.size = .3, box.padding = .3, point.padding = .2) +
-  annotate("text", x = 0, y = lim[2], label = note, hjust = 0, vjust = 1, size = 10 / .pt, lineheight = .95, colour = "grey25") +
+  annotate("text", x = 0, y = lim[2], label = note, hjust = 0, vjust = 1, size = 9 / .pt, lineheight = .95, colour = "grey25") +
   scale_colour_manual(values = colours, name = NULL) +
   scale_x_continuous(limits = lim, expand = expansion(mult = c(0, .02))) +
   scale_y_continuous(limits = lim, expand = expansion(mult = c(0, .02))) +
   coord_equal() +
   labs(x = sprintf("IHME all-cause: malaria-attributable deaths\nper 1,000 child-years, %d", year_shown),
        y = sprintf("UN IGME all-cause: malaria-attributable deaths\nper 1,000 child-years, %d", year_shown)) +
-  theme_minimal(base_size = 12) +
-  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10), legend.text = element_text(size = 10),
+  theme_minimal(base_size = 10.8) +
+  theme(axis.title = element_text(size = 11), axis.text = element_text(size = 9), legend.text = element_text(size = 9),
     legend.position = "bottom", panel.grid.minor = element_blank(), plot.margin = margin(6, 10, 6, 6))
 # No title, subtitle or caption in the figure (CLAUDE.md); the notes go in CAPTION.md.
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))

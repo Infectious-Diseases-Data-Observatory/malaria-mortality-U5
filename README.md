@@ -91,8 +91,8 @@ docs/               PAPER_CODE_FLAGS.md
 
 ## Paper figures and tables
 
-Figure text must be larger than ggplot's defaults at printed size (axis and legend titles at least 12 pt; tick labels,
-legend text and in-plot labels at least 10 pt); the rule and how to check it are in [CLAUDE.md](CLAUDE.md).
+Figure text must be at least ggplot's default size at printed size (axis and legend titles at least 11 pt; tick labels,
+legend text and in-plot labels at least 9 pt); the rule and how to check it are in [CLAUDE.md](CLAUDE.md).
 
 | Paper | File in `paper/` | Script |
 |---|---|---|

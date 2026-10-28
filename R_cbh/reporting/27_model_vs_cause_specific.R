@@ -37,7 +37,7 @@ lim <- c(0, max(d$model, d$cause_specific) * 1.04)
 panel <- function(p, source_label, tag) ggplot(d[panel == p], aes(model, cause_specific)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey55", linewidth = .35) +
   geom_point(aes(colour = region), size = 1.7) +
-  ggrepel::geom_text_repel(aes(label = label), size = 10 / .pt, colour = "grey20", seed = 20261028L, max.overlaps = Inf,
+  ggrepel::geom_text_repel(aes(label = label), size = 9 / .pt, colour = "grey20", seed = 20261028L, max.overlaps = Inf,
     min.segment.length = 0, segment.colour = "grey60", segment.size = .25, box.padding = .2, point.padding = .12) +
   scale_colour_manual(values = colours, drop = FALSE, name = NULL) +
   scale_x_continuous(limits = lim, breaks = seq(0, 8, 2), expand = expansion(mult = c(0, .02))) +
@@ -45,9 +45,9 @@ panel <- function(p, source_label, tag) ggplot(d[panel == p], aes(model, cause_s
   coord_equal() +
   labs(x = "Malaria-attributable deaths\nper 1,000 child-years (PfPR-ACM)",
        y = sprintf("Malaria-attributable deaths\nper 1,000 child-years (%s)", source_label), tag = tag) +
-  theme_minimal(base_size = 10, base_line_size = .3) +
-  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10), legend.text = element_text(size = 10),
-    plot.tag = element_text(size = 13, face = "bold"), panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 4, 4))
+  theme_minimal(base_size = 9, base_line_size = .3) +
+  theme(axis.title = element_text(size = 11), axis.text = element_text(size = 9), legend.text = element_text(size = 9),
+    plot.tag = element_text(size = 12, face = "bold"), panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 4, 4))
 p <- panel("A", "UN IGME", "A") + panel("B", "IHME", "B") +
   plot_layout(nrow = 1, guides = "collect") & theme(legend.position = "bottom")
 for (q in p$patches$plots) stopifnot(is.null(q$labels$title), is.null(q$labels$subtitle), is.null(q$labels$caption))

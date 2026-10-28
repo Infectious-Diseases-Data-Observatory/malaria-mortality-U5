@@ -94,11 +94,11 @@ fig <- ggplot() +
   coord_sf(xlim = bb[c("xmin", "xmax")], ylim = bb[c("ymin", "ymax")], expand = FALSE, datum = NA) +
   # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in: printed = size x 165 / 160; legend in the
   # Atlantic, bottom left.
-  theme_void(base_size = 10) +
+  theme_void(base_size = 9) +
   theme(legend.position = "inside", legend.position.inside = c(0.01, 0.01), legend.justification.inside = c(0, 0),
-        legend.title = element_text(size = 12), legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11), legend.text = element_text(size = 9),
         legend.key.size = unit(4.6, "mm"), legend.spacing.y = unit(2, "mm"),
-        plot.caption = element_text(size = 7, colour = "grey30", hjust = 0.5),
+        plot.caption = element_text(size = 6.3, colour = "grey30", hjust = 0.5),
         plot.background = element_rect(fill = "white", colour = NA))
 ggsave(file.path(out, "boundary_agreement_map.png"), fig, width = 160, height = 170, units = "mm", dpi = 600,
        device = ragg::agg_png, bg = "white")

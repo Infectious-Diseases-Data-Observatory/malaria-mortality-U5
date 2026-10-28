@@ -87,12 +87,12 @@ pts[, region := factor(region, unname(regions))]; fits[, region := factor(region
 setorder(pts, region)   # draw order: Western, Central, Eastern, Southern
 
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in: saved 6.5 in wide, so printed = 0.95 x size
-# (axis and legend titles 13 -> 12.4 pt; ticks and legend text 11 -> 10.5 pt; strips 12 -> 11.4 pt). Points, lines,
+# (axis and legend titles 11.9 -> 11.3 pt; ticks and legend text 9.9 -> 9.4 pt; strips 10.8 -> 10.3 pt). Points, lines,
 # spacing and margins are those of the former 15-in version scaled by 6.5/15; y-axis labels every 2 points.
-paper <- theme_minimal(base_size = 11, base_line_size = .35) + theme(panel.grid.minor = element_blank(),
-  axis.text = element_text(size = 11), axis.title = element_text(size = 13),
-  strip.text = element_text(size = 12, face = "bold"), legend.position = "bottom",
-  legend.text = element_text(size = 11), legend.title = element_text(size = 13),
+paper <- theme_minimal(base_size = 9.9, base_line_size = .35) + theme(panel.grid.minor = element_blank(),
+  axis.text = element_text(size = 9.9), axis.title = element_text(size = 11.92),
+  strip.text = element_text(size = 10.8, face = "bold"), legend.position = "bottom",
+  legend.text = element_text(size = 9.9), legend.title = element_text(size = 11.92),
   panel.spacing = grid::unit(10, "pt"), plot.margin = margin(4, 10, 4, 4))
 size_cap <- unname(quantile(pts$children, .99))   # the largest 1% of points are drawn at the maximum size
 kinds <- c(inside = "Survey × area unit\n× entry year", below = sprintf("Survival below %.0f%%\n(drawn at the lower edge)", 100 * lo))
@@ -115,7 +115,7 @@ p <- ggplot() +
   theme(legend.position.inside = c(.998, .03), legend.justification.inside = c(1, 0),
         legend.box.just = "top", legend.box.spacing = grid::unit(4, "pt"), legend.spacing.x = grid::unit(14, "pt"),
         legend.key.spacing.x = grid::unit(4, "pt"), legend.key.spacing.y = grid::unit(1, "pt"), legend.margin = margin(0, 0, 0, 0),
-        legend.text = element_text(size = 11, lineheight = .9), legend.title = element_text(size = 13, margin = margin(b = 1)),
+        legend.text = element_text(size = 9.9, lineheight = .9), legend.title = element_text(size = 11.92, margin = margin(b = 1)),
         legend.title.position = "top", legend.background = element_rect(fill = "white", colour = NA)) +
   guides(colour = guide_legend(position = "inside", order = 1, ncol = 1, override.aes = list(size = 1.8, alpha = 1, shape = 1, stroke = .45, linewidth = .6)),
          shape = guide_legend(order = 2, nrow = 1, override.aes = list(size = 1.8, colour = "grey35", alpha = 1, stroke = .45)),

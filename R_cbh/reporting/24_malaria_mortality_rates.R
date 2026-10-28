@@ -53,10 +53,15 @@ panel <- function(d, total, y, total_y, ylab, tag, breaks = c(2000, 2005, 2010, 
   scale_y_continuous(limits = limits[[y]], expand = expansion(mult = c(0, .04))) +
   guides(colour = guide_legend(order = 1, override.aes = list(linewidth = .65, alpha = 1)), linetype = guide_legend(order = 2)) +
   labs(x = "Year", y = ylab, tag = tag) +
-  theme_minimal(base_size = 12, base_line_size = .33) +
-  theme(aspect.ratio = 1, axis.title = element_text(size = 12), axis.text = element_text(size = 10), panel.grid.minor = element_blank(),
-    plot.tag = element_text(size = 13, face = "bold", hjust = 0, margin = margin(b = 3)), plot.tag.position = "top",
-    legend.text = element_text(size = 10), legend.key.width = grid::unit(.45, "cm"), plot.margin = margin(4, 6, 2.5, 3))
+  # Text 20% below the original sizes (axis titles 9.6 pt, other text 8 pt, tags 10.4 pt at the 6.5 in printed width): an
+  # author-requested exception to the text-size rule (CLAUDE.md, 28 October 2026).
+  theme_minimal(base_size = 9.6, base_line_size = .33) +
+  theme(aspect.ratio = 1, axis.title = element_text(size = 9.6), axis.text = element_text(size = 8), panel.grid.minor = element_blank(),
+    # Tags inside each panel's top-right corner (empty in every panel, as all series fall by 2024), so they take no
+    # row of their own (user request, 28 October 2026).
+    plot.tag = element_text(size = 10.4, face = "bold", margin = margin(3, 4, 3, 4)), plot.tag.location = "panel",
+    plot.tag.position = "topright",
+    legend.text = element_text(size = 8), legend.key.width = grid::unit(.45, "cm"), plot.margin = margin(4, 6, 2.5, 3))
 fmt1 <- function(z) formatC(z, format = "f", digits = 1)
 pct <- function(z) paste0(fmt1(100 * z), "%")
 share_text <- with(split[split$age_band != "<1", ], paste(sub("-", "–", age_band, fixed = TRUE), "months", pct(within_group_share)))

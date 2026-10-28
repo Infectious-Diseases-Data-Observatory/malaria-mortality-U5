@@ -31,12 +31,12 @@ write_csv(unique(d[c("subgroup", "series", "age_band", "pfpr_min", "pfpr_p025", 
 d$age_label <- factor(d$age_band, levels = ages, labels = ifelse(ages == "<1", "<1 month", paste(ages, "months")))
 colours <- setNames(unname(st$colours), unname(st$labels))
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in: the figures are saved 6.5 in wide, so printed =
-# 0.95 x size (axis titles 13 -> 12.4 pt; ticks and legend 11 -> 10.5 pt; strips 12 -> 11.4 pt). Lines, spacing and
+# 0.95 x size (axis titles 11.9 -> 11.3 pt; ticks and legend 9.9 -> 9.4 pt; strips 10.8 -> 10.3 pt). Lines, spacing and
 # margins are those of the former 14-15 in versions scaled by about 6.5/15.
-paper <- theme_minimal(base_size = 11, base_line_size = .35) + theme(panel.grid.minor = element_blank(),
-  axis.text = element_text(size = 11), axis.title = element_text(size = 13),
-  strip.text = element_text(size = 12, face = "bold"), legend.position = "bottom",
-  legend.text = element_text(size = 11), legend.title = element_blank(), legend.margin = margin(0, 0, 0, 0),
+paper <- theme_minimal(base_size = 9.9, base_line_size = .35) + theme(panel.grid.minor = element_blank(),
+  axis.text = element_text(size = 9.9), axis.title = element_text(size = 11.92),
+  strip.text = element_text(size = 10.8, face = "bold"), legend.position = "bottom",
+  legend.text = element_text(size = 9.9), legend.title = element_blank(), legend.margin = margin(0, 0, 0, 0),
   legend.box.spacing = grid::unit(6, "pt"), legend.key.spacing.y = grid::unit(1, "pt"),
   panel.spacing = grid::unit(10, "pt"), plot.margin = margin(4, 10, 4, 4))
 # One spline figure per group of subsets (st$figures): v9 one figure with every subset; the Snow-unit suite one figure

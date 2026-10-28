@@ -101,6 +101,8 @@ docs/               PAPER_CODE_FLAGS.md
 | Table 1: country comparison | `tables/country_comparison_2024.latex.txt` | `R_cbh/reporting/09_burden_tables.R` |
 | Table 2: source comparison 2000–2024 | `tables/source_comparison.latex.txt` | `R_cbh/reporting/12_source_comparison_table.R` |
 | Table S1: age-band results | `tables/age_band_results.latex.txt` | `R_cbh/primary/03_report.R` |
+| Main-text figure: malaria-attributable mortality rates, UN IGME all-cause (PfPR, all-cause and malaria-attributable rates by country, 2000–2024) | `figures/fig_malaria_mortality_rates_unigme.png` | `R_cbh/burden/04_annual_comparison.R` (estimates), `R_cbh/reporting/24_malaria_mortality_rates.R` |
+| Supplementary figure: the same with IHME all-cause | `Supplementary Figures/sfig_malaria_mortality_rates_ihme.png` | as above |
 | Fig S1: study flow | `Supplementary Figures/sfig_study_flow.png` | `R_cbh/reporting/01_study_flow_snow.R` |
 | Fig S2: PfPR and mortality by age band | `Supplementary Figures/sfig_pfpr_mortality_by_age.png` | `R_cbh/primary/03_report.R` |
 | Fig S3: Sahel subgroup | `Supplementary Figures/sfig_pfpr_splines_by_subgroup.png` | `R_cbh/sensitivity/subgroups/02_report.R` |

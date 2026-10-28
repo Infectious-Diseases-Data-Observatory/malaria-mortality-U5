@@ -1,3 +1,4 @@
 "file","bytes","lines","md5"
 "data/unicef/original/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv",562912757,2640615,"31c8599e77923ae9cf7e291f6b7b0628"
 "data/unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_immunisation_subset.csv",13342456,81326,"9d67d9c6df848b7b144eafe38efb602d"
+"data/unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_igme_wpp_subset.csv",905520,6826,"ab7ac4c0293cc171be6a6a16c5c88145"

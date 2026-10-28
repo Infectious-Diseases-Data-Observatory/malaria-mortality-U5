@@ -81,6 +81,13 @@ if snow:
         (root / "analysis_units_map/CAPTION.md", Path("figures/fig1_analysis_units_map_caption.md")),
         (root / "survey_map/survey_map_and_timing.png", Path("Supplementary Figures/sfig_survey_map_and_timing.png")),
         (root / "survey_map/CAPTION.md", Path("Supplementary Figures/sfig_survey_map_and_timing_caption.md")),
+        # National malaria-attributable mortality per 1,000 child-years by all-cause source (user request, 27 October
+        # 2026): UN IGME in the main text, IHME in the supplement.
+        (root / "mortality_rates/fig_malaria_mortality_rates_unigme.png", Path("figures/fig_malaria_mortality_rates_unigme.png")),
+        (root / "mortality_rates/CAPTION_unigme.md", Path("figures/fig_malaria_mortality_rates_unigme_caption.md")),
+        (root / "mortality_rates/sfig_malaria_mortality_rates_ihme.png", Path("Supplementary Figures/sfig_malaria_mortality_rates_ihme.png")),
+        (root / "mortality_rates/CAPTION_ihme.md", Path("Supplementary Figures/sfig_malaria_mortality_rates_ihme_caption.md")),
+        (root / "annual_comparison/source_annual_rates_2000_2024.csv", Path("tables/source_annual_rates_2000_2024.csv")),
     ])
     for png in sorted((snow_maps / "merge_units").glob("*_merge_units.png")):
         assets.append((png, Path("Supplementary Figures/snow_merge_units") / png.name))
@@ -113,7 +120,10 @@ for sensitivity in (subgroups, nutrition):
     stale = [row["file"] for row in read_csv(sensitivity / "report_provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale report provenance in {sensitivity}: {', '.join(stale)}; rerun its report script"
-for figure_dir, script in ((root / "malaria_share", "R_cbh/reporting/20_malaria_share_vs_pfpr.R"),):
+figure_dirs = [(root / "malaria_share", "R_cbh/reporting/20_malaria_share_vs_pfpr.R")]
+if snow:
+    figure_dirs.append((root / "mortality_rates", "R_cbh/reporting/24_malaria_mortality_rates.R"))
+for figure_dir, script in figure_dirs:
     stale = [row["file"] for row in read_csv(figure_dir / "provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale provenance for {figure_dir}: {', '.join(stale)}; rerun {script}"

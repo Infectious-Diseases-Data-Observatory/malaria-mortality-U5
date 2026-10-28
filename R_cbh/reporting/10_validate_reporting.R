@@ -9,8 +9,10 @@ sample <- read("primary_sample.csv");figures <- read("paper_figures/manifest.csv
 stopifnot(nrow(manifest)==7L,all(grepl(st$id,manifest$model_file,fixed=TRUE)),
   all(diag$converged),all(diag$input_verified),all(diag$gamma==2),
   identical(unname(vapply(manifest$model_file,cbh_file_hash,"")),manifest$md5),
-  nrow(figures)==4L,identical(as.integer(figures$figure),1:4),
-  basename(figures$source[3])=="fig4_burden_comparison.png",
+  nrow(figures)==5L,identical(as.integer(figures$figure),1:5),
+  # Main figures since 28 October 2026: hazard ratio by age, attributable fraction by age, mortality rates (UN IGME).
+  identical(basename(figures$source[2:5]),c("fig2_hazard_ratio_by_age.png","attributable_fraction_by_age.png",
+    "fig_malaria_mortality_rates_unigme.png","fig5_model_vs_cause_specific_2024.png")),
   all(grepl(st$id,figures$source,fixed=TRUE)),
   identical(unname(vapply(figures$source,cbh_file_hash,"")),figures$md5))
 formula_vars <- all.vars(as.formula(paste(readLines(file.path(root,"model_formula.txt")),collapse=" ")))

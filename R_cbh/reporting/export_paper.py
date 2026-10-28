@@ -37,7 +37,7 @@ def read_csv(path):
         return list(csv.DictReader(f))
 
 figures = read_csv(root / "paper_figures/manifest.csv")
-assert [int(x["figure"]) for x in figures] == list(range(1, 5))
+assert [int(x["figure"]) for x in figures] == list(range(1, 6))
 assets = []
 for row in figures:
     source = Path(row["source"])
@@ -46,11 +46,15 @@ for row in figures:
     assets.append((source, Path("figures") / row["filename"]))
 assets.extend([
     (root / "paper_figures/CAPTIONS.md", Path("figures/primary_figure_captions.md")),
-    (root / "burden_comparison/CAPTION.md", Path("figures/fig3_burden_comparison_caption.md")),
+    # Reorganised 28 October 2026 (author request): the burden comparison and the probability of dying before age 5
+    # are supplementary figures; the log-HR curves relative to 20% (pfpr_splines.png) are no longer in the paper.
+    (root / "burden_comparison/fig4_burden_comparison.png", Path("Supplementary Figures/sfig_burden_comparison.png")),
+    (root / "burden_comparison/CAPTION.md", Path("Supplementary Figures/sfig_burden_comparison_caption.md")),
+    (root / "under5_probability/under5_death_probability_2024.png", Path("Supplementary Figures/sfig_under5_death_probability.png")),
+    (root / "under5_probability/CAPTION.md", Path("Supplementary Figures/sfig_under5_death_probability_caption.md")),
     (subgroups / "sfig_pfpr_splines_by_subgroup.png", Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup.png")),
     (subgroups / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup_caption.md")),
     (root / "study_flow/study_flow_diagram.png", Path("Supplementary Figures/sfig_study_flow.png")),
-    (root / "pfpr_splines.png", Path("Supplementary Figures/sfig_pfpr_mortality_by_age.png")),
     (nutrition / "sfig_pfpr_splines_without_nutrition.png", Path("Supplementary Figures/sfig_pfpr_splines_without_nutrition.png")),
     (nutrition / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_without_nutrition_caption.md")),
     (imputed / "sfig_pfpr_splines_imputed_covariates.png", Path("Supplementary Figures/sfig_pfpr_splines_imputed_covariates.png")),
@@ -83,20 +87,22 @@ if snow:
         (root / "survey_map/CAPTION.md", Path("Supplementary Figures/sfig_survey_map_and_timing_caption.md")),
         # National malaria-attributable mortality per 1,000 child-years by all-cause source (user request, 27 October
         # 2026): UN IGME in the main text, IHME in the supplement.
-        (root / "mortality_rates/fig_malaria_mortality_rates_unigme.png", Path("figures/fig_malaria_mortality_rates_unigme.png")),
-        (root / "mortality_rates/CAPTION_unigme.md", Path("figures/fig_malaria_mortality_rates_unigme_caption.md")),
+        # The UN IGME version is Figure 4 (paper_figures/manifest.csv); Figure 2 is the hazard ratio by age.
+        (root / "mortality_rates/CAPTION_unigme.md", Path("figures/fig4_malaria_mortality_rates_unigme_caption.md")),
+        (root / "hazard_ratio_by_age/CAPTION.md", Path("figures/fig2_hazard_ratio_by_age_caption.md")),
+        (root / "model_vs_cause_specific/CAPTION.md", Path("figures/fig5_model_vs_cause_specific_2024_caption.md")),
         (root / "mortality_rates/sfig_malaria_mortality_rates_ihme.png", Path("Supplementary Figures/sfig_malaria_mortality_rates_ihme.png")),
         (root / "mortality_rates/CAPTION_ihme.md", Path("Supplementary Figures/sfig_malaria_mortality_rates_ihme_caption.md")),
         (root / "annual_comparison/source_annual_rates_2000_2024.csv", Path("tables/source_annual_rates_2000_2024.csv")),
+        # Supplementary table of 2024 country rates by source (user request, 28 October 2026).
+        (root / "tables/country_rates_2024.latex.txt", Path("tables/country_rates_2024.latex.txt")),
+        (root / "tables/country_rates_2024.csv", Path("tables/country_rates_2024.csv")),
     ])
     for png in sorted((snow_maps / "merge_units").glob("*_merge_units.png")):
         assets.append((png, Path("Supplementary Figures/snow_merge_units") / png.name))
     assets.append((snow_maps / "CAPTION_merge_units.md", Path("Supplementary Figures/snow_merge_units/CAPTION.md")))
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
-        # Supplementary table of 2024 country rates by source (user request, 28 October 2026).
-        (root / "tables/country_rates_2024.latex.txt", Path("tables/country_rates_2024.latex.txt")),
-        (root / "tables/country_rates_2024.csv", Path("tables/country_rates_2024.csv")),
     assets.append((root / "tables" / name, Path("tables") / name))
 assets.extend([
     (root / "burden_comparison/source_comparison.latex.txt", Path("tables/source_comparison.latex.txt")),
@@ -127,6 +133,8 @@ for sensitivity in (subgroups, nutrition):
 figure_dirs = [(root / "malaria_share", "R_cbh/reporting/20_malaria_share_vs_pfpr.R")]
 if snow:
     figure_dirs.append((root / "mortality_rates", "R_cbh/reporting/24_malaria_mortality_rates.R"))
+    figure_dirs.append((root / "hazard_ratio_by_age", "R_cbh/reporting/26_hazard_ratio_by_age.R"))
+    figure_dirs.append((root / "model_vs_cause_specific", "R_cbh/reporting/27_model_vs_cause_specific.R"))
 for figure_dir, script in figure_dirs:
     stale = [row["file"] for row in read_csv(figure_dir / "provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
@@ -218,12 +226,12 @@ fig1_text = ("Figure 1 is the map of complete birth histories used, by analysis 
              "the former Figure 1, the survey map and timing, is now `Supplementary Figures/sfig_survey_map_and_timing.png`.\n\n") if snow else ""
 handoff.write_text(f"""# {title}
 
-{fig1_text}Figures 1–4 (Figure 3 combines the 2024 country comparison, the Nigerian state
-comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
-under-five child-years;
-Figure 4 is the probability of dying before age 5 by country, all causes and caused
-by malaria under the model and under IHME, ordered by the model's malaria value, with
-national PfPR in a narrow left panel) and the
+{fig1_text}Figures 1–5 (Figure 2 is the mortality hazard ratio by age band relative to
+zero prevalence; Figure 3 the malaria-attributable fraction by age; Figure 4 national
+malaria-attributable under-five mortality per 1,000 child-years, 2000–2024, with UN IGME
+all-cause mortality; Figure 5 the PfPR-ACM estimates against the cause-specific
+estimates of UN IGME and IHME by country in 2024; the burden comparison with IHME and UN IGME and the probability of
+dying before age 5 are supplementary figures) and the
 supplementary inclusion flow use the {n_covariates}-variable
 regional-adjustment MAP gamma=2 models in `{root.name}`. The analysis contains
 {fmt(sample['children'])} children, {fmt(sample['records'])} child-band records and
@@ -243,9 +251,10 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Country table source](tables/country_comparison_2024.latex.txt).
 - [Source comparison table source](tables/source_comparison.latex.txt) and its
   [values](tables/source_comparison_2000_2024.csv).
-- [Main figure captions](figures/primary_figure_captions.md) and the
-  [Figure 3 caption](figures/fig3_burden_comparison_caption.md); Figure 3 is
-  `figures/fig3_burden_comparison.png`.
+- [Main figure captions](figures/primary_figure_captions.md), with the
+  [Figure 2](figures/fig2_hazard_ratio_by_age_caption.md) and
+  [Figure 4](figures/fig4_malaria_mortality_rates_unigme_caption.md) captions, and the
+  [burden comparison caption](<Supplementary Figures/sfig_burden_comparison_caption.md>).
 - [Inclusion-flow caption](<Supplementary Figures/sfig_study_flow_caption.md>).
 - [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).

@@ -94,6 +94,9 @@ if snow:
     assets.append((snow_maps / "CAPTION_merge_units.md", Path("Supplementary Figures/snow_merge_units/CAPTION.md")))
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
+        # Supplementary table of 2024 country rates by source (user request, 28 October 2026).
+        (root / "tables/country_rates_2024.latex.txt", Path("tables/country_rates_2024.latex.txt")),
+        (root / "tables/country_rates_2024.csv", Path("tables/country_rates_2024.csv")),
     assets.append((root / "tables" / name, Path("tables") / name))
 assets.extend([
     (root / "burden_comparison/source_comparison.latex.txt", Path("tables/source_comparison.latex.txt")),

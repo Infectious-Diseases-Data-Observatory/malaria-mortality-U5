@@ -4,7 +4,7 @@
 # merged units. Snow polygons are coloured by how the survey's units use them (own unit; part of a merged unit only;
 # both), with merged units outlined; survey-region boundaries are drawn in white. Ported from the map section of the
 # analysis project's 19_merge_rule_all.R. Aggregates only.
-# Output: <out>/maps/merge_units/<ISO3>_merge_units.png, merge_units_by_country.csv
+# Output: <out>/maps/merge_units/<ISO3>_merge_units.png, merge_units_by_country.csv, <out>/maps/CAPTION_merge_units.md
 suppressPackageStartupMessages({ library(data.table); library(sf); library(ggplot2) })
 sf_use_s2(FALSE)
 source("R_cbh/R/geography.R"); source("R_cbh/snow/R/settings.R")
@@ -30,7 +30,7 @@ ct <- bys[, .(surveys = .N, surveys_merged = sum(merged_units > 0), records = su
 fwrite(ct[order(-pct_in_merged)], file.path(mout, "merge_units_by_country.csv"))
 for (iso in ct[merged_units > 0, sort(country)]) {
   ss <- merge(bys[country == iso & merged_units > 0], yr, by = "survey")[order(year, survey)]
-  ss[, panel := sprintf("%s %d (%s)\n%d units, %d merged\n%.0f%% of records in merged units",
+  ss[, panel := sprintf("%s %d (%s)\n%d units, %d merged\n%.0f%% of records\nin merged units",
                         fifelse(startsWith(survey, "MC_"), "MICS", "DHS"), year, survey, units, merged_units, 100 * records_in_merged / records)]
   sc <- snow[snow$Country_ID == iso, ]
   panels <- lapply(seq_len(nrow(ss)), function(i) {
@@ -46,29 +46,36 @@ for (iso in ct[merged_units > 0, sort(country)]) {
   })
   G <- do.call(rbind, lapply(panels, `[[`, "fill")); O <- do.call(rbind, lapply(panels, `[[`, "outline")); Rl <- do.call(rbind, lapply(panels, `[[`, "regions"))
   for (z in c("G", "O", "Rl")) { x <- get(z); x$panel <- factor(x$panel, ss$panel); assign(z, x) }
-  n <- nrow(ss); ncol <- min(n, 4L); nr <- ceiling(n / ncol)
-  bb <- st_bbox(sc); asp <- unname((bb["ymax"] - bb["ymin"]) / (bb["xmax"] - bb["xmin"]))
+  # Layout (mm). Strips at the printed text size need ~50 mm columns, so at most 3 columns (4 for more than 9 panels
+  # when all are DHS, whose labels are shorter); when the page height binds, the x-range is widened so that each panel
+  # (and its strip) keeps the column width.
+  n <- nrow(ss); ncol <- if (n > 9L && !any(startsWith(ss$survey, "MC_"))) 4L else if (n == 4L) 2L else min(n, 3L)
+  nr <- ceiling(n / ncol); w <- 180; pw <- (w - 12) / ncol; sh <- 22; over <- 34   # strip row; legend
+  bb <- st_bbox(c(st_geometry(G), st_geometry(Rl))); xl <- unname(bb[c("xmin", "xmax")]); yl <- unname(bb[c("ymin", "ymax")])
+  mh <- min(pw * diff(yl) / diff(xl), (240 - over) / nr - sh)
   p <- ggplot() +
     geom_sf(data = G, aes(fill = kind), colour = "grey40", linewidth = 0.12, show.legend = TRUE) +
     geom_sf(data = Rl, fill = NA, colour = "white", linewidth = 0.35) +
     geom_sf(data = O, fill = NA, colour = "black", linewidth = 0.5) +
     facet_wrap(~panel, ncol = ncol) +
     scale_fill_manual(values = fills, drop = FALSE, name = "Snow polygon") +
-    coord_sf(datum = NA) +
-    labs(title = sprintf("%s: analysis units (merge rule)", iso),
-         caption = paste0("Thick black: merged units (unions of Snow polygons; units of a survey can overlap). White: survey-region boundaries. ",
-                          "Thin grey: Snow polygons.\nA unit is one Snow polygon if it holds >= 90% of the record's smallest reported unit, ",
-                          "else every polygon holding >= 5%; units more than half malaria-free are dropped.")) +
-    theme_void(base_size = 8.5) +
-    theme(legend.position = "bottom", legend.title = element_text(size = 7.5), legend.text = element_text(size = 7),
-          legend.key.size = unit(3.2, "mm"), strip.text = element_text(size = 7.2, margin = margin(2, 0, 2, 0)),
-          plot.title = element_text(size = 9.5, face = "bold", margin = margin(0, 0, 4, 0)),
-          plot.caption = element_text(size = 6.6, colour = "grey30", hjust = 0),
+    coord_sf(xlim = mean(xl) + c(-0.5, 0.5) * max(diff(xl), diff(yl) * pw / mh), ylim = yl, datum = NA) +
+    # No title or caption in the image (CLAUDE.md); the country is in the file name and the notes are in
+    # maps/CAPTION_merge_units.md.
+    # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in: printed = size x 165 / 180.
+    theme_void(base_size = 11.5) +
+    theme(legend.position = "bottom", legend.title = element_text(size = 14), legend.text = element_text(size = 11.5),
+          legend.key.size = unit(4.5, "mm"), strip.text = element_text(size = 11.5, margin = margin(2, 0, 2, 0)),
           plot.background = element_rect(fill = "white", colour = NA), plot.margin = margin(6, 6, 6, 6)) +
     guides(fill = guide_legend(nrow = 3, title.position = "top"))
-  w <- 180; pw <- (w - 12) / ncol
-  ggsave(file.path(mout, sprintf("%s_merge_units.png", iso)), p, width = w, height = min(240, nr * (pw * asp + 16) + 36),
+  stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))
+  ggsave(file.path(mout, sprintf("%s_merge_units.png", iso)), p, width = w, height = nr * (mh + sh) + over,
          units = "mm", dpi = 300, device = ragg::agg_png, bg = "white")
 }
+writeLines(c("# Caption notes — analysis units where Snow polygons were merged (one map per country)", "",
+  paste("Analysis units under the merge rule, one panel per survey with merged units; the country is named in each file name (<ISO3>_merge_units.png).",
+    "Thick black lines are merged units (unions of Snow et al. polygons; the units of a survey can overlap); white lines are survey-region boundaries; thin grey lines are Snow polygons, coloured by how the survey's units use them.",
+    "A unit is one Snow polygon if that polygon holds at least 90% of the population of the record's smallest reported administrative unit, and otherwise the union of every polygon holding at least 5%; units more than half malaria free are dropped.")),
+  file.path(S$out, "maps", "CAPTION_merge_units.md"))
 pngs <- list.files(mout, "_merge_units[.]png$", full.names = TRUE)
 cat(sprintf("%s: %d countries with merged units\n", S$variant, length(pngs)))

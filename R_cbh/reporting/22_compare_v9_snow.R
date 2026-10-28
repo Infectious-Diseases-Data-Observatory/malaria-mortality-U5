@@ -34,9 +34,13 @@ fig <- ggplot(curves, aes(pfpr_pct, hr, colour = model_label, fill = model_label
   scale_colour_manual(values = cols, name = NULL) + scale_fill_manual(values = cols, name = NULL) +
   scale_y_log10() + scale_x_continuous(breaks = seq(0, 80, 20)) +
   labs(x = expression(italic(Pf)*PR["2–10"]~"(%)"), y = expression("Hazard ratio against"~italic(Pf)*PR~"0 (log scale)")) +
-  theme_minimal(base_size = 8.5) +
-  theme(panel.grid.minor = element_blank(), strip.text = element_text(face = "bold"), legend.position = c(0.88, 0.2))
-ggsave(file.path(out, "pfpr_hr_curves_v9_vs_snow.png"), fig, width = 180, height = 105, units = "mm", dpi = 600,
+  # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in: printed = size x 165 / 180.
+  theme_minimal(base_size = 11.5) +
+  theme(panel.grid.minor = element_blank(), axis.title = element_text(size = 13.5), axis.text = element_text(size = 11.5),
+        strip.text = element_text(face = "bold", size = 11.5), legend.text = element_text(size = 11.5),
+        legend.position = "bottom", legend.key.width = unit(8, "mm"), legend.margin = margin(0, 0, 0, 0),
+        legend.box.spacing = unit(1.5, "mm"))
+ggsave(file.path(out, "pfpr_hr_curves_v9_vs_snow.png"), fig, width = 180, height = 115, units = "mm", dpi = 600,
        device = ragg::agg_png, bg = "white")
 
 # 2. Per-band contrasts (as written by the effects step of each analysis).

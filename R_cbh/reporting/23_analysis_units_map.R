@@ -40,7 +40,7 @@
 #   data/africa_admin0.rds; data/external/natural_earth/ne_10m_lakes.geojson; <P$out>/prepared_sample.csv,
 #   survey_map/mothers_by_survey.csv and survey_map/survey_coverage.csv (03_survey_map.R); this script, the settings and
 #   the R_cbh helper files it sources.
-# Outputs (<P$out>/analysis_units_map/): analysis_units_map.png (180 mm wide, 300 dpi); CAPTION.md;
+# Outputs (<P$out>/analysis_units_map/): analysis_units_map.png (156 mm wide, 400 dpi); CAPTION.md;
 #   analysis_units_by_polygon.csv (the 551 polygons: surveys, mothers, child-band records and deaths, apportioned as
 #   above, and class); provenance.csv (md5 of every input read). Aggregates only.
 # Run from the repository root: CBH_PRIMARY_VERSION=snow_merge Rscript R_cbh/reporting/23_analysis_units_map.R
@@ -226,7 +226,7 @@ lyr <- tools::file_path_sans_ext(basename(S$shapefile))
 esh <- prep(st_read(S$shapefile, query = sprintf("SELECT Country_ID FROM \"%s\" WHERE Country_ID = 'ESH'", lyr), quiet = TRUE))
 assert(nrow(esh) >= 1L && !"ESH" %in% adm0$iso, "Western Sahara from the Snow shapefile, absent from admin0")
 assert(!any(c("COM", "STP") %in% snow$Country_ID) && "COM" %in% adm0$iso && !"STP" %in% adm0$iso, "Comoros in admin0 only; Sao Tome and Principe in neither")
-fig_w <- 180                                                  # mm
+fig_w <- 156                                                  # mm; the printed width is 0.95\linewidth = 157 mm
 pad <- 60e3; bb <- st_bbox(snow)
 xr <- unname(c(bb["xmin"] - pad, bb["xmax"] + pad)); yr <- unname(c(bb["ymin"] - pad, bb["ymax"] + pad))
 W <- diff(xr); fig_h <- round(fig_w * diff(yr) / W, 1)         # the map fills the canvas; height rounded to 0.1 mm
@@ -257,7 +257,7 @@ shared_lines <- function(g, draw, tol) {
 # Comoros, Zanzibar, Pemba, the Dahlak islands) get a thin grey outline, as does the coast of North Africa and Western
 # Sahara (exterior rings only, so the slivers between the admin0 and Snow outlines of Morocco and Western Sahara do not
 # show), so that the pale areas stay legible against the sea.
-border_min_km2 <- 500; isle_min_km2 <- 100; border_tol <- 2000; poly_tol <- 300      # m (2 km = 0.05 mm at the map scale)
+border_min_km2 <- 500; isle_min_km2 <- 100; border_tol <- 2000; poly_tol <- 300      # m (2 km = 0.04 mm at the map scale)
 bparts <- suppressWarnings(st_cast(st_cast(ssa[, "iso"], "MULTIPOLYGON"), "POLYGON"))
 bparts$km2 <- as.numeric(st_area(bparts)) / 1e6
 bparts$in_snow <- lengths(st_intersects(bparts, snow)) > 0
@@ -377,46 +377,48 @@ L_normal <- lab_sim(unname(fills[data_keys]), cvd$normal)[, 1]
 assert(all(diff(L_normal) < 0), "data classes darken monotonically")
 
 ## 5. Map -------------------------------------------------------------------------------------------------------------
-fs <- list(title = 8, legend = 7)                            # pt at final size
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at the printed width; line widths and the scale bar ticks are
+# those of the former 180 mm canvas scaled to 156 mm. The longer legend entries wrap so the legend stays clear of land.
+fs <- list(title = 12, legend = 10)                          # pt at final size
 leg_xy <- c(0.02, 0.555)                                      # legend top-left (npc)
 bar_len <- 1e6; bar_x0 <- xr[1] + 0.76 * W; bar_y <- yr[1] + 0.03 * H
-labels <- c(lab_fig, spacer = " ", nodata = "Malaria endemic, no data in the analysis", excluded = "Malaria free or island, not analysed",
-            lake = "Lake or reservoir", outside = "Outside the study area or no polygon")
+labels <- c(lab_fig, spacer = " ", nodata = "Malaria endemic,\nno data in the analysis", excluded = "Malaria free or island,\nnot analysed",
+            lake = "Lake or reservoir", outside = "Outside the study area\nor no polygon")
 key_col <- c(rep(NA, nb), NA, "grey55", NA, lake_line, grey_line)
-border_lw <- 0.25                                             # ggplot linewidth (x 0.75 = 0.19 mm); national land borders, no halo
+border_lw <- 0.22                                             # ggplot linewidth (x 0.75 = 0.16 mm); national land borders, no halo
 mapp <- ggplot() +
   geom_sf(data = under_fill, aes(fill = "outside"), colour = NA) +           # no lines inside the pale areas
   geom_sf(data = fringe, aes(fill = key), colour = NA, show.legend = FALSE) +
   geom_sf(data = snow, aes(fill = key), colour = NA) +
-  geom_sf(data = poly_lines, colour = "#FFFFFF", linewidth = 0.15, lineend = "round", linejoin = "round") +
-  geom_sf(data = outside_coast, fill = NA, colour = grey_line, linewidth = 0.15) +
-  geom_sf(data = isles, fill = NA, colour = grey_line, linewidth = 0.15) +
+  geom_sf(data = poly_lines, colour = "#FFFFFF", linewidth = 0.13, lineend = "round", linejoin = "round") +
+  geom_sf(data = outside_coast, fill = NA, colour = grey_line, linewidth = 0.13) +
+  geom_sf(data = isles, fill = NA, colour = grey_line, linewidth = 0.13) +
   geom_sf(data = land_lines, colour = "#1A1A1A", linewidth = border_lw, lineend = "round", linejoin = "round") +
-  geom_sf(data = water, aes(fill = "lake"), colour = lake_line, linewidth = 0.12) +
-  annotate("segment", x = bar_x0, xend = bar_x0 + bar_len, y = bar_y, yend = bar_y, linewidth = 0.4, lineend = "butt") +
-  annotate("segment", x = bar_x0 + c(0, bar_len), xend = bar_x0 + c(0, bar_len), y = bar_y - mm(0.6), yend = bar_y + mm(0.6), linewidth = 0.4, lineend = "butt") +
+  geom_sf(data = water, aes(fill = "lake"), colour = lake_line, linewidth = 0.1) +
+  annotate("segment", x = bar_x0, xend = bar_x0 + bar_len, y = bar_y, yend = bar_y, linewidth = 0.35, lineend = "butt") +
+  annotate("segment", x = bar_x0 + c(0, bar_len), xend = bar_x0 + c(0, bar_len), y = bar_y - mm(0.5), yend = bar_y + mm(0.5), linewidth = 0.35, lineend = "butt") +
   annotate("text", x = bar_x0 + bar_len / 2, y = bar_y + mm(1.5), label = paste(f0(bar_len / 1e3), "km"), size = fs$legend / .pt, vjust = 0) +
   scale_fill_manual(values = fills, breaks = keys, limits = keys, labels = labels, drop = FALSE, na.value = NA, na.translate = FALSE,
-                    name = "Complete birth histories\nper polygon (mothers)",
-                    guide = guide_legend(override.aes = list(colour = key_col, linewidth = 0.25))) +
+                    name = "Complete birth\nhistories per\npolygon (mothers)",
+                    guide = guide_legend(override.aes = list(colour = key_col, linewidth = 0.22))) +
   coord_sf(xlim = xr, ylim = yr, expand = FALSE, datum = NA) +
   theme_void(base_size = fs$legend) +
   theme(plot.margin = margin(0, 0, 0, 0), plot.background = element_rect(fill = "white", colour = NA),
         legend.position = "inside", legend.position.inside = leg_xy, legend.justification = c(0, 1),
         legend.background = element_blank(), legend.margin = margin(0, 0, 0, 0), legend.box.margin = margin(0, 0, 0, 0),
-        legend.key.size = unit(3.6, "mm"), legend.key.spacing.y = unit(0.7, "mm"),
+        legend.key.size = unit(4, "mm"), legend.key.spacing.y = unit(0.6, "mm"),
         legend.title = element_text(size = fs$title, face = "bold", lineheight = 0.95, margin = margin(0, 0, 1.5, 0, "mm")),
         legend.text = element_text(size = fs$legend, margin = margin(0, 0, 0, 1.4, "mm")))
 
 # Measured layout: the legend's size on a device of the final size, and clearance of legend and scale bar from land.
-tmp <- tempfile(fileext = ".png"); ragg::agg_png(tmp, width = fig_w, height = fig_h, units = "mm", res = 300)
+tmp <- tempfile(fileext = ".png"); ragg::agg_png(tmp, width = fig_w, height = fig_h, units = "mm", res = 400)
 g <- ggplotGrob(mapp); leg <- g$grobs[[which(g$layout$name == "guide-box-inside")]]
 leg_w <- grid::convertWidth(sum(leg$widths), "mm", valueOnly = TRUE); leg_h <- grid::convertHeight(sum(leg$heights), "mm", valueOnly = TRUE)
 invisible(dev.off()); unlink(tmp)
 assert(leg_w > 20 && leg_w < 90 && leg_h > 20 && leg_h < 90, sprintf("legend size measured (%.1f x %.1f mm)", leg_w, leg_h))
 lt <- npc(leg_xy[1], leg_xy[2])
 elems <- list(legend = box_sf(lt[1], lt[2] - mm(leg_h), lt[1] + mm(leg_w), lt[2]),
-              scale_bar = box_sf(bar_x0, bar_y - mm(0.6), bar_x0 + bar_len, bar_y + mm(1.5 + fs$legend * 0.3528)))
+              scale_bar = box_sf(bar_x0, bar_y - mm(0.5), bar_x0 + bar_len, bar_y + mm(1.5 + fs$legend * 0.3528)))
 land <- c(st_geometry(snow), st_geometry(under))
 clear <- vapply(elems, function(e) min(as.numeric(st_distance(e, land))) / m_per_mm, 0)
 inside <- vapply(elems, function(e) isTRUE(st_within(e, frame, sparse = FALSE)[1, 1]), TRUE)
@@ -424,7 +426,7 @@ cat(sprintf("Layout: legend %.1f x %.1f mm; clearance from land: %s mm\n", leg_w
 assert(all(clear >= 2.5) && all(inside), "legend and scale bar inside the frame and >= 2.5 mm from land")
 
 png_path <- file.path(out, "analysis_units_map.png")
-ggsave(png_path, mapp, width = fig_w, height = fig_h, units = "mm", dpi = 300, device = ragg::agg_png, bg = "white")
+ggsave(png_path, mapp, width = fig_w, height = fig_h, units = "mm", dpi = 400, device = ragg::agg_png, bg = "white")
 tick("figure written")
 
 ## 6. Caption ---------------------------------------------------------------------------------------------------------

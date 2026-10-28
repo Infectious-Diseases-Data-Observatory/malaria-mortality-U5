@@ -12,8 +12,8 @@ writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),f
 ages <- cbh_config()$age_bands$age_band
 age_factor <- function(x) factor(x,levels=ages,labels=ifelse(ages=="<1","<1 month",paste(ages,"months")))
 read <- function(x) cbh_read_csv(file.path(out,x))
-save_plot <- function(p,name,width,height) ggsave(file.path(out,name),p,width=width,height=height,
-  dpi=240,device=ragg::agg_png,bg="white")
+save_plot <- function(p,name,width,height,dpi=240) ggsave(file.path(out,name),p,width=width,height=height,
+  dpi=dpi,device=ragg::agg_png,bg="white")
 d <- read("pfpr_curves.csv");hr <- read("pfpr_40_to_20_contrasts.csv")
 diag <- read("fit_diagnostics.csv");sample <- read("primary_sample.csv")
 edf <- read("pfpr_edf.csv");sums <- read("burden/year_summary.csv")
@@ -23,22 +23,28 @@ stopifnot(nrow(diag)==7,all(diag$series=="map_full"),all(diag$converged),all(dia
 base <- theme_minimal(base_size=14)+theme(panel.grid.minor=element_blank(),
   plot.title=element_text(face="bold"),strip.text=element_text(face="bold"),
   plot.caption=element_text(hjust=0,size=11),legend.position="bottom")
-# Larger typography for the three manuscript figures, at unchanged plot widths.
+# Larger typography for the wide country comparison figure, at unchanged plot width.
 paper <- base+theme(text=element_text(size=20),axis.title=element_text(size=20),
   axis.text=element_text(size=16),strip.text=element_text(size=18,face="bold"),
   legend.title=element_text(size=18),legend.text=element_text(size=16),
   panel.spacing=grid::unit(24,"pt"),plot.margin=margin(10,24,10,10))
+# pfpr_splines.png (supplementary figure): sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in. Saved
+# 6.5 in wide, so printed = 0.95 x size (titles 13 -> 12.4 pt, other text 11-12 -> 10.5-11.4 pt); lines, spacing and
+# margins are those of the former 14-in version scaled by 6.5/14.
+paper_print <- theme_minimal(base_size=11,base_line_size=.3)+theme(panel.grid.minor=element_blank(),
+  axis.title=element_text(size=13),axis.text=element_text(size=11),strip.text=element_text(size=12,face="bold"),
+  panel.spacing=grid::unit(11,"pt"),plot.margin=margin(5,11,5,5))
 d$age_label <- age_factor(d$age_band)
 # PfPR axis 0-80%, as in the other supplementary spline figures; every curve's central support lies inside it.
 stopifnot(max(d$pfpr_pct[d$within_central_support])<=80)
 p <- ggplot(d[d$within_central_support,],aes(pfpr_pct,log_hazard_ratio))+
-  geom_hline(yintercept=0,colour="grey65",linewidth=.4)+
-  geom_vline(xintercept=20,colour="grey80",linewidth=.4)+
+  geom_hline(yintercept=0,colour="grey65",linewidth=.19)+
+  geom_vline(xintercept=20,colour="grey80",linewidth=.19)+
   geom_ribbon(aes(ymin=lower_95,ymax=upper_95),fill="#215E91",alpha=.17)+
-  geom_line(colour="#215E91",linewidth=1)+facet_wrap(~age_label,ncol=4)+
+  geom_line(colour="#215E91",linewidth=.46)+facet_wrap(~age_label,ncol=4)+
   scale_x_continuous(limits=c(0,80),breaks=c(0,20,40,60,80))+
-  labs(x="PfPR[2–10] (%)",y="Log hazard ratio\nrelative to PfPR = 20%")+paper
-save_plot(p,"pfpr_splines.png",14,8)
+  labs(x="PfPR[2–10] (%)",y="Log hazard ratio\nrelative to PfPR = 20%")+paper_print
+save_plot(p,"pfpr_splines.png",6.5,3.75,dpi=320)
 hr$age_label <- factor(hr$age_band,levels=rev(ages))
 p <- ggplot(hr,aes(hazard_ratio_40_to_20,age_label))+
   geom_vline(xintercept=1,colour="grey60",linetype=2)+

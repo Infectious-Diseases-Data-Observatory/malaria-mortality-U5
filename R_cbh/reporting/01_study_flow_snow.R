@@ -154,8 +154,8 @@ by_type <- function(s) { k <- table(factor(kind(s), levels = c("DHS", "MIS", "MI
 all_types <- sprintf("%s, %s MICS", by_type(m$survey[!startsWith(m$survey, "MC_")]), fmt(n$mics_registry))
 nodes <- data.frame(
   id = c("registry", "cbh", "included", "sample", "omit_cbh", "omit_surveys", "omit_records"),
-  x = c(rep(3.7, 4), rep(9.75, 3)), y = c(13.6, 11.1, 8.3, 5.2, 12.35, 9.75, 6.8),
-  w = c(rep(6.7, 4), rep(4.9, 3)), h = c(1.35, 1.35, 1.6, 1.95, 1.0, 2.15, 2.15), role = c(rep("main", 4), rep("excluded", 3)),
+  x = c(rep(3.425, 4), rep(9.65, 3)), y = c(14.025, 11.475, 8.575, 5.3, 12.75, 10.125, 7.025),
+  w = c(rep(6.65, 4), rep(5.3, 3)), h = c(1.55, 1.55, 1.95, 2.3, 1.15, 2.6, 2.6), role = c(rep("main", 4), rep("excluded", 3)),
   heading = c("Surveys in sub-Saharan Africa since 2000", "Recorded complete birth histories", "Surveys included", "Primary analysis sample",
     paste(fmt(n$mics_no_cbh), "MICS surveys excluded"), paste(fmt(n$excluded_surveys), "surveys excluded"),
     paste(fmt(n$included_excluded), "records excluded")),
@@ -166,29 +166,34 @@ nodes <- data.frame(
     sprintf("%s child age-band records\n%s children · %s deaths\n%s complete birth histories\n%s survey-by-area units",
       fmt(n$primary), fmt(n$primary_distinct_children), fmt(n$deaths), fmt(n$primary_mothers), fmt(n$primary_units)),
     "No complete birth history",
-    sprintf("%s %s: malaria free\n%s %s:\noutside the Snow et al. polygons\n%s (%s): a confounder\nunavailable in every area",
+    sprintf("%s %s: malaria free\n%s %s:\noutside the Snow et al. polygons\n%s (%s):\na confounder unavailable in every area",
       fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, fmt(n$excluded_no_covariate), by_type(no_covariate_surveys)),
-    sprintf("%s: band not completed by interview\nor begun outside 2000–2024\n%s: area not placed in a polygon\nor mainly malaria free\n%s: a confounder unavailable",
+    sprintf("%s: band not completed by\ninterview or begun outside 2000–2024\n%s: area not placed in a polygon\nor mainly malaria free\n%s: a confounder unavailable",
       fmt(n$included_excluded_eligibility), fmt(n$included_not_placed), fmt(n$included_missing_covariates))))
 cbh_atomic_csv(nodes, file.path(out, "figure_labels.csv"))
 fill <- c(main = "#EAF2F8", excluded = "#F6F3EF"); border <- c(main = "#346A8C", excluded = "#A29588")
-p <- ggplot() + theme_void() + coord_cartesian(xlim = c(0, 12.4), ylim = c(4.05, 14.4), expand = FALSE, clip = "off") + theme(plot.margin = margin(8, 12, 8, 12))
+# Drawn at the printed width (6.5 in), so text sizes (points) are printed sizes and meet the paper's text-size rule
+# (CLAUDE.md); lines and arrows are those of the earlier 11.5 in drawing scaled by 6.5/11.5. Text is placed from each
+# box's top edge in points (pt: canvas units per point; one unit is about 37 pt on both axes).
+width <- 6.5; height <- 5.7; ylim <- c(4.05, 14.9); pt <- diff(ylim) / (height * 72 - 10)
+text_pt <- list(main = c(heading = 11, detail = 10.5), excluded = c(heading = 10.5, detail = 10))
+p <- ggplot() + theme_void() + coord_cartesian(xlim = c(0, 12.4), ylim = ylim, expand = FALSE, clip = "off") + theme(plot.margin = margin(5, 5, 5, 5))
 segment <- function(x, y, xe, ye, arrow = FALSE) {
-  if (arrow) annotate("segment", x = x, y = y, xend = xe, yend = ye, colour = "#687780", linewidth = .7, arrow = grid::arrow(length = grid::unit(2.5, "mm"), type = "closed"))
-  else annotate("segment", x = x, y = y, xend = xe, yend = ye, colour = "#687780", linewidth = .7)
+  if (arrow) annotate("segment", x = x, y = y, xend = xe, yend = ye, colour = "#687780", linewidth = .4, arrow = grid::arrow(length = grid::unit(1.4, "mm"), type = "closed"))
+  else annotate("segment", x = x, y = y, xend = xe, yend = ye, colour = "#687780", linewidth = .4)
 }
-main <- which(nodes$role == "main"); side <- which(nodes$role == "excluded")
-for (i in main[-length(main)]) p <- p + segment(3.7, nodes$y[i] - nodes$h[i] / 2, 3.7, nodes$y[i + 1] + nodes$h[i + 1] / 2, TRUE)
-for (i in side) p <- p + segment(3.7, nodes$y[i], nodes$x[i] - nodes$w[i] / 2, nodes$y[i], TRUE)
+main <- which(nodes$role == "main"); side <- which(nodes$role == "excluded"); spine <- nodes$x[main[1]]
+for (i in main[-length(main)]) p <- p + segment(spine, nodes$y[i] - nodes$h[i] / 2, spine, nodes$y[i + 1] + nodes$h[i + 1] / 2, TRUE)
+for (i in side) p <- p + segment(spine, nodes$y[i], nodes$x[i] - nodes$w[i] / 2, nodes$y[i], TRUE)
 for (i in seq_len(nrow(nodes))) {
-  z <- nodes[i, ]; small <- z$role == "excluded"
-  p <- p + annotate("rect", xmin = z$x - z$w / 2, xmax = z$x + z$w / 2, ymin = z$y - z$h / 2, ymax = z$y + z$h / 2, fill = fill[z$role], colour = border[z$role], linewidth = .75)
-  n_lines <- length(strsplit(z$detail, "\n")[[1]]); line_h <- if (small) .21 else .25
-  title_y <- z$y + z$h / 2 - .36; detail_y <- title_y - .30 - line_h * n_lines / 2
-  p <- p + annotate("text", x = z$x, y = title_y, label = z$heading, fontface = "bold", family = "sans", size = if (small) 5.2 else 5.9, lineheight = 1.1, colour = "#183746")
-  p <- p + annotate("text", x = z$x, y = detail_y, label = z$detail, family = "sans", size = if (small) 4.3 else 5.4, lineheight = 1.1, colour = "#243D49")
+  z <- nodes[i, ]; tp <- text_pt[[z$role]]; top <- z$y + z$h / 2
+  p <- p + annotate("rect", xmin = z$x - z$w / 2, xmax = z$x + z$w / 2, ymin = z$y - z$h / 2, ymax = top, fill = fill[z$role], colour = border[z$role], linewidth = .42)
+  n_lines <- length(strsplit(z$detail, "\n")[[1]])
+  title_y <- top - (6 + .6 * tp[["heading"]]) * pt; detail_y <- top - (9.5 + 1.2 * tp[["heading"]] + .66 * n_lines * tp[["detail"]]) * pt
+  p <- p + annotate("text", x = z$x, y = title_y, label = z$heading, fontface = "bold", family = "sans", size = tp[["heading"]] / .pt, lineheight = 1.1, colour = "#183746")
+  p <- p + annotate("text", x = z$x, y = detail_y, label = z$detail, family = "sans", size = tp[["detail"]] / .pt, lineheight = 1.1, colour = "#243D49")
 }
-ggsave(file.path(out, "study_flow_diagram.png"), p, width = 11.5, height = 9.2, dpi = 300, device = ragg::agg_png, bg = "white")
+ggsave(file.path(out, "study_flow_diagram.png"), p, width = width, height = height, dpi = 600, device = ragg::agg_png, bg = "white")
 cname <- function(x) countrycode::countrycode(x, "iso3c", "country.name", warn = FALSE)
 var_label <- c(log_gdp_pc = "GDP per capita", log_health_expenditure_pc = "health expenditure per capita", political_stability = "political stability")
 and_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], collapse = ", "), "and", x[length(x)])

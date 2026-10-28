@@ -13,7 +13,7 @@
 #          spans 0-10%, too narrow a range for a spline (the reason it is not refitted either).
 #   Axes:  every panel has the same y-axis range (survival from the lowest record-weighted 2nd percentile of the seven
 #          bands up to 100%); points below it are drawn at the lower edge as open triangles (explained in the legend).
-#   Legend: in the empty bottom-right cell of the 4 x 2 layout.
+#   Legend: the sub-region colours in the empty bottom-right cell of the 4 x 2 layout; the point symbols and sizes below.
 # Sub-regions: the UN M49 lists of R_cbh/sensitivity/subgroups/settings.R (Middle Africa as "Central Africa"; Southern
 # Africa is shown although it is not refitted). Snow-unit primary only (CBH_PRIMARY_VERSION=snow_merge).
 # Outputs (st$out, aggregates only): sfig_survival_vs_pfpr_by_subregion.png, CAPTION_sfig_survival_vs_pfpr_by_subregion.md,
@@ -86,39 +86,43 @@ pts[, age_label := factor(age_labels[age_band], unname(age_labels))]; fits[, age
 pts[, region := factor(region, unname(regions))]; fits[, region := factor(region, unname(regions))]
 setorder(pts, region)   # draw order: Western, Central, Eastern, Southern
 
-paper <- theme_minimal(base_size = 18) + theme(panel.grid.minor = element_blank(),
-  axis.text = element_text(size = 14), axis.title = element_text(size = 18),
-  strip.text = element_text(size = 16, face = "bold"), legend.position = "bottom",
-  legend.text = element_text(size = 15), legend.title = element_text(size = 15),
-  panel.spacing = grid::unit(20, "pt"), plot.margin = margin(10, 24, 10, 10))
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in: saved 6.5 in wide, so printed = 0.95 x size
+# (axis and legend titles 13 -> 12.4 pt; ticks and legend text 11 -> 10.5 pt; strips 12 -> 11.4 pt). Points, lines,
+# spacing and margins are those of the former 15-in version scaled by 6.5/15; y-axis labels every 2 points.
+paper <- theme_minimal(base_size = 11, base_line_size = .35) + theme(panel.grid.minor = element_blank(),
+  axis.text = element_text(size = 11), axis.title = element_text(size = 13),
+  strip.text = element_text(size = 12, face = "bold"), legend.position = "bottom",
+  legend.text = element_text(size = 11), legend.title = element_text(size = 13),
+  panel.spacing = grid::unit(10, "pt"), plot.margin = margin(4, 10, 4, 4))
 size_cap <- unname(quantile(pts$children, .99))   # the largest 1% of points are drawn at the maximum size
 kinds <- c(inside = "Survey × area unit\n× entry year", below = sprintf("Survival below %.0f%%\n(drawn at the lower edge)", 100 * lo))
 pts[, kind := factor(fifelse(below, kinds[["below"]], kinds[["inside"]]), unname(kinds))]
 p <- ggplot() +
-  geom_point(data = pts[below == FALSE], aes(pfpr, y, colour = region, size = children, shape = kind), alpha = .38, stroke = .42) +
-  geom_point(data = pts[below == TRUE], aes(pfpr, y, colour = region, shape = kind), size = 1.8, alpha = .7, stroke = .5) +
+  geom_point(data = pts[below == FALSE], aes(pfpr, y, colour = region, size = children, shape = kind), alpha = .38, stroke = .18) +
+  geom_point(data = pts[below == TRUE], aes(pfpr, y, colour = region, shape = kind), size = .78, alpha = .7, stroke = .22) +
   geom_ribbon(data = fits, aes(pfpr, ymin = lower_95, ymax = upper_95, fill = region), alpha = .18, colour = NA) +
-  geom_line(data = fits, aes(pfpr, survival, group = region), colour = "white", linewidth = 2.8) +
-  geom_line(data = fits, aes(pfpr, survival, colour = region), linewidth = 1.4) +
+  geom_line(data = fits, aes(pfpr, survival, group = region), colour = "white", linewidth = 1.2) +
+  geom_line(data = fits, aes(pfpr, survival, colour = region), linewidth = .6) +
   facet_wrap(~age_label, ncol = 4) +
   scale_colour_manual(values = colours, name = NULL, drop = FALSE) +
   scale_fill_manual(values = colours, guide = "none") +
-  scale_size_area(max_size = 5.5, limits = c(0, size_cap), oob = scales::squish, breaks = c(25, 100, 400), name = "Children entering\nthe band") +
+  scale_size_area(max_size = 2.4, limits = c(0, size_cap), oob = scales::squish, breaks = c(25, 100, 400), name = "Children entering\nthe band") +
   scale_shape_manual(values = setNames(c(1, 2), unname(kinds)), name = NULL, drop = FALSE) +
   scale_x_continuous(limits = c(0, ceiling(max(pts$pfpr) / 5) * 5), breaks = seq(0, 80, 20)) +
-  scale_y_continuous(labels = function(v) sprintf("%.0f", 100 * v), breaks = seq(0, 1, .01)) +
+  scale_y_continuous(labels = function(v) sprintf("%.0f", 100 * v), breaks = seq(0, 1, .02)) +
   coord_cartesian(ylim = c(lo, 1)) +
   labs(x = "PfPR[2–10] (%)", y = "Survival through the age band (%)") + paper +
-  theme(legend.position = "inside", legend.position.inside = c(.998, .03), legend.justification = c(1, 0),
-        legend.box = "vertical", legend.box.just = "left", legend.spacing.y = grid::unit(4, "pt"), legend.key.spacing.y = grid::unit(5, "pt"),
-        legend.text = element_text(size = 12, lineheight = .9), legend.title = element_text(size = 12),
-        legend.key.height = grid::unit(15, "pt"), legend.background = element_rect(fill = "white", colour = NA)) +
-  guides(colour = guide_legend(order = 1, ncol = 1, override.aes = list(size = 3, alpha = 1, shape = 1, stroke = .8, linewidth = 1.2)),
-         shape = guide_legend(order = 2, ncol = 1, override.aes = list(size = 3, colour = "grey35", alpha = 1, stroke = .8)),
-         size = guide_legend(order = 3, nrow = 1, override.aes = list(shape = 1, alpha = 1, colour = "grey35", stroke = .6)))
+  theme(legend.position.inside = c(.998, .03), legend.justification.inside = c(1, 0),
+        legend.box.just = "top", legend.box.spacing = grid::unit(4, "pt"), legend.spacing.x = grid::unit(14, "pt"),
+        legend.key.spacing.x = grid::unit(4, "pt"), legend.key.spacing.y = grid::unit(1, "pt"), legend.margin = margin(0, 0, 0, 0),
+        legend.text = element_text(size = 11, lineheight = .9), legend.title = element_text(size = 13, margin = margin(b = 1)),
+        legend.title.position = "top", legend.background = element_rect(fill = "white", colour = NA)) +
+  guides(colour = guide_legend(position = "inside", order = 1, ncol = 1, override.aes = list(size = 1.8, alpha = 1, shape = 1, stroke = .45, linewidth = .6)),
+         shape = guide_legend(order = 2, nrow = 1, override.aes = list(size = 1.8, colour = "grey35", alpha = 1, stroke = .45)),
+         size = guide_legend(order = 3, nrow = 1, override.aes = list(shape = 1, alpha = 1, colour = "grey35", stroke = .3)))
 stopifnot(is.null(p$labels$title))
 figure <- file.path(st$out, "sfig_survival_vs_pfpr_by_subregion.png")
-ggsave(figure, p, width = 15, height = 8.5, dpi = 240, device = ragg::agg_png, bg = "white")
+ggsave(figure, p, width = 6.5, height = 4.6, dpi = 320, device = ragg::agg_png, bg = "white")
 
 fmt <- function(v) format(round(v), big.mark = ",", trim = TRUE)
 tot <- d[, .(surveys = uniqueN(survey), countries = uniqueN(country)), by = region][match(unname(regions), region)]

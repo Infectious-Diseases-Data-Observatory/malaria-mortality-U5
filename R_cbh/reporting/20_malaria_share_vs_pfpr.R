@@ -104,8 +104,10 @@ tex <- c("% Replacement table source; saved as plain text. No manuscript file is
 writeLines(tex, file.path(out, "malaria_share_table_2024.latex.txt"))
 
 ## Figure -------------------------------------------------------------------------------------------
-# Drawn at print size (180 mm wide). The three shares measure different things: the model's is attributable
-# (direct and indirect deaths; stated in the caption), IHME's and CA-CODE's are cause-assigned.
+# Drawn at the printed width (157 mm, 0.95\linewidth), so text sizes are printed sizes and meet the paper's text-size
+# rule (CLAUDE.md); lines and points are those of the earlier 180 mm drawing scaled by 157/180. The three shares measure
+# different things: the model's is attributable (direct and indirect deaths; stated in the caption), IHME's and
+# CA-CODE's are cause-assigned.
 model <- cbh_paper_model_label()
 keys <- c(acm = model, ihme = "IHME (cause of death)", igme = "UN IGME (cause of death)",
           who = "UN IGME (malaria from WHO estimates)")
@@ -115,6 +117,8 @@ shapes <- setNames(c(21, 24, 23, 23), keys)
 ymax <- ceiling(100 * max(d$acm_upper, d$igme_upper, d$ihme) / 5) * 5
 xmax <- ceiling(max(d$pfpr_pct) / 5) * 5
 label_n <- 7L; shift <- .25   # comparators sit slightly right of the model point
+# Long country names are labelled on two lines (figure only; the tables keep the full names on one line).
+plot_name <- function(x) sub("^(Central African|Republic of|Equatorial) ", "\\1\n", x)
 comparator <- function(src) {
   is_igme <- src == "igme"
   copy(d)[, `:=`(comp = 100 * get(src), comp_lo = if (is_igme) 100 * igme_lower else NA_real_,
@@ -123,41 +127,53 @@ comparator <- function(src) {
 }
 # The same countries are labelled in the PfPR panel and the scatter panel for each source.
 labelled <- function(z) z[order(-abs(comp - 100 * acm))][seq_len(label_n)]
+# Labels in panels A and B, one layer for the labelled countries in the lower half of their PfPR range and one for the
+# rest; the other points, model points included, are unlabelled rows that labels avoid. A stacked layer starts 3 points
+# to the left (lower half) or right of the comparator point, extends away from it and moves only vertically, so its
+# labels stack beside the cluster of points at PfPR 15-25%; an unstacked layer is placed freely near the points.
+side_labels <- function(z, lab, side, stack = TRUE) {
+  left <- side == "left"; on <- z$iso3 %in% lab$iso3 & (z$pfpr_pct < median(lab$pfpr_pct)) == left
+  rows <- rbind(z[, .(x = pfpr_pct + shift, y = comp, label = fifelse(on, plot_name(country), ""),
+                      nx = fifelse(on & stack, if (left) -3 else 3, 0))], z[, .(x = pfpr_pct, y = 100 * acm, label = "", nx = 0)])
+  ggrepel::geom_text_repel(data = rows, aes(x = x, y = y, label = label), nudge_x = rows$nx, hjust = if (!stack) .5 else if (left) 1 else 0,
+                           direction = if (stack) "y" else "both", size = 10 / .pt, lineheight = .85, colour = "grey15",
+                           bg.colour = "white", bg.r = .15, min.segment.length = 0, segment.colour = "grey35", segment.size = .3,
+                           box.padding = if (stack) .12 else .3, point.padding = if (stack) .2 else .4, force = 4,
+                           force_pull = if (stack) .1 else .5, max.overlaps = Inf, max.time = 5, max.iter = 1e6, seed = 1)
+}
 panel <- function(src, title) {
   is_igme <- src == "igme"  # not 'igme', which is a column of d
   z <- comparator(src)
   lab <- labelled(z)
   k <- unname(keys)   # same keys in both panels, so the legends collect into one
   p <- ggplot(z, aes(x = pfpr_pct)) +
-    geom_segment(aes(xend = pfpr_pct + shift, y = 100 * acm, yend = comp), colour = "grey78", linewidth = .3) +
-    geom_segment(data = lab, aes(xend = pfpr_pct + shift, y = 100 * acm, yend = comp), colour = "grey40", linewidth = .45) +
-    geom_linerange(aes(ymin = 100 * acm_lower, ymax = 100 * acm_upper), colour = cols[[1]], alpha = .7, linewidth = .5)
+    geom_segment(aes(xend = pfpr_pct + shift, y = 100 * acm, yend = comp), colour = "grey78", linewidth = .26) +
+    geom_segment(data = lab, aes(xend = pfpr_pct + shift, y = 100 * acm, yend = comp), colour = "grey40", linewidth = .4) +
+    geom_linerange(aes(ymin = 100 * acm_lower, ymax = 100 * acm_upper), colour = cols[[1]], alpha = .7, linewidth = .45)
   if (is_igme) p <- p + geom_linerange(aes(x = pfpr_pct + shift, ymin = comp_lo, ymax = comp_hi),
-                                       colour = cols[["UN IGME (cause of death)"]], alpha = .6, linewidth = .5)
+                                       colour = cols[["UN IGME (cause of death)"]], alpha = .6, linewidth = .45)
   # One legend for the figure, drawn from panel B: an invisible IHME layer gives B the IHME key.
   if (is_igme) p <- p + geom_point(data = z[1], aes(y = 100 * ihme, colour = keys[["ihme"]], shape = keys[["ihme"]],
                                                     fill = keys[["ihme"]]), alpha = 0)
   p <- p +
-    geom_point(aes(y = 100 * acm, colour = keys[["acm"]], shape = keys[["acm"]], fill = keys[["acm"]]), size = 1.7, stroke = .4) +
-    geom_point(aes(x = pfpr_pct + shift, y = comp, colour = series, shape = series, fill = series), size = 1.8, stroke = .5) +
-    ggrepel::geom_text_repel(aes(x = pfpr_pct + shift, y = comp, label = fifelse(iso3 %in% lab$iso3, country, "")), size = 2.4,
-                             colour = "grey15", bg.colour = "white", bg.r = .15, min.segment.length = 0,
-                             segment.colour = "grey35", segment.size = .35, box.padding = .5, point.padding = .45,
-                             force = 2, max.overlaps = Inf, seed = 1) +
+    geom_point(aes(y = 100 * acm, colour = keys[["acm"]], shape = keys[["acm"]], fill = keys[["acm"]]), size = 1.5, stroke = .35) +
+    geom_point(aes(x = pfpr_pct + shift, y = comp, colour = series, shape = series, fill = series), size = 1.6, stroke = .45) +
+    # The upper half is stacked in panel B only; in panel A (PfPR up to 37%) those labels have room to be placed freely.
+    side_labels(z, lab, "left") + side_labels(z, lab, "right", stack = is_igme) +
     scale_colour_manual(values = cols, limits = k, name = NULL) +
     scale_fill_manual(values = fills, limits = k, name = NULL) +
     scale_shape_manual(values = shapes, limits = k, name = NULL) +
-    guides(colour = guide_legend(nrow = 1, override.aes = list(alpha = 1, size = 1.8)), fill = guide_legend(nrow = 1),
-           shape = guide_legend(nrow = 1)) +
+    guides(colour = guide_legend(nrow = 2, byrow = TRUE, override.aes = list(alpha = 1, size = 1.6)),
+           fill = guide_legend(nrow = 2, byrow = TRUE), shape = guide_legend(nrow = 2, byrow = TRUE)) +
     scale_x_continuous(limits = c(0, xmax + 1), breaks = seq(0, xmax, 5), expand = expansion(add = c(.5, 0))) +
     scale_y_continuous(limits = c(0, ymax), breaks = seq(0, ymax, 5), expand = expansion(add = c(.6, 0))) +
     coord_cartesian(clip = "off") +
     labs(title = title, x = bquote("National"~italic(Pf)*PR["2–10"]*","~.(fig_year)~"(%)"),
-         y = if (is_igme) NULL else "Malaria share of under-five deaths (%)") +
-    theme_minimal(base_size = 8.5) +
-    theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.text = element_text(size = 7.5),
-          legend.key.width = unit(3, "mm"), plot.title = element_text(size = 9, face = "bold"),
-          plot.title.position = "plot")
+         y = if (is_igme) NULL else "Malaria share of\nunder-five deaths (%)") +
+    theme_minimal(base_size = 12, base_line_size = .34) +
+    theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.text = element_text(size = 10),
+          axis.text = element_text(size = 10), legend.key.width = unit(2.6, "mm"), legend.key.spacing.y = unit(1, "pt"),
+          plot.title = element_text(size = 12, face = "bold"), plot.title.position = "plot")
   if (is_igme) p else p + guides(colour = "none", fill = "none", shape = "none")
 }
 lim <- ceiling(100 * max(d$acm_upper, d$igme_upper, d$ihme) / 5) * 5
@@ -167,18 +183,22 @@ scatter <- function(src, title, xlab) {
   higher <- sum(z$acm * 100 > z$comp)
   rho <- cor(z$acm, z$comp, method = "spearman")
   p <- ggplot(z, aes(x = comp, y = 100 * acm)) +
-    geom_abline(slope = 1, intercept = 0, colour = "grey55", linetype = "dashed", linewidth = .35) +
-    geom_linerange(aes(ymin = 100 * acm_lower, ymax = 100 * acm_upper), colour = cols[[1]], alpha = .6, linewidth = .45)
+    geom_abline(slope = 1, intercept = 0, colour = "grey55", linetype = "dashed", linewidth = .3) +
+    geom_linerange(aes(ymin = 100 * acm_lower, ymax = 100 * acm_upper), colour = cols[[1]], alpha = .6, linewidth = .4)
   if (is_igme) p <- p + geom_segment(aes(x = comp_lo, xend = comp_hi, yend = 100 * acm),
-                                     colour = cols[["UN IGME (cause of death)"]], alpha = .55, linewidth = .45)
+                                     colour = cols[["UN IGME (cause of death)"]], alpha = .55, linewidth = .4)
   p +
-    geom_point(aes(colour = series, shape = series, fill = series), size = 1.8, stroke = .5) +
-    ggrepel::geom_text_repel(aes(label = fifelse(iso3 %in% lab$iso3, country, "")), size = 2.4, colour = "grey15", bg.colour = "white",
-                             bg.r = .15, min.segment.length = 0, segment.colour = "grey35", segment.size = .35,
-                             box.padding = .5, point.padding = .45, force = 2, max.overlaps = Inf, seed = 1) +
-    annotate("text", x = .98 * lim, y = .02 * lim, hjust = 1, vjust = 0, size = 2.6, colour = "grey20",
-             label = sprintf("Spearman \u03c1 = %.2f\n%s higher in %d of %d", rho, model, higher, nrow(z))) +
-    annotate("text", x = .97 * lim, y = .92 * lim, hjust = 1, vjust = 0, size = 2.4, colour = "grey45", label = "equality") +
+    geom_point(aes(colour = series, shape = series, fill = series), size = 1.6, stroke = .45) +
+    # Labels start above their points for the upper half of the labelled countries and below for the rest, so that they
+    # spread out of the cluster.
+    ggrepel::geom_text_repel(aes(label = fifelse(iso3 %in% lab$iso3, plot_name(country), "")), size = 10 / .pt, lineheight = .9,
+                             nudge_y = fifelse(z$iso3 %in% lab$iso3, fifelse(z$acm >= median(lab$acm), .1, -.15), 0) * lim,
+                             colour = "grey15", bg.colour = "white", bg.r = .15, min.segment.length = 0, segment.colour = "grey35",
+                             segment.size = .3, box.padding = .2, point.padding = .2, force = 4, force_pull = .3, max.overlaps = Inf,
+                             max.time = 5, max.iter = 1e6, seed = 1) +
+    annotate("text", x = .98 * lim, y = .02 * lim, hjust = 1, vjust = 0, size = 10 / .pt, colour = "grey20", lineheight = .95,
+             label = sprintf("Spearman \u03c1 = %.2f\n%s higher\nin %d of %d", rho, model, higher, nrow(z))) +
+    annotate("text", x = .97 * lim, y = .92 * lim, hjust = 1, vjust = 0, size = 10 / .pt, colour = "grey45", label = "equality") +
     scale_colour_manual(values = cols, limits = unname(keys), name = NULL) +
     scale_fill_manual(values = fills, limits = unname(keys), name = NULL) +
     scale_shape_manual(values = shapes, limits = unname(keys), name = NULL) +
@@ -187,15 +207,15 @@ scatter <- function(src, title, xlab) {
     scale_y_continuous(limits = c(0, lim), breaks = seq(0, lim, 10), expand = expansion(add = c(.6, .6))) +
     coord_equal(clip = "off") +
     labs(title = title, x = xlab, y = if (is_igme) NULL else paste0(model, " share (%)")) +
-    theme_minimal(base_size = 8.5) +
-    theme(panel.grid.minor = element_blank(), plot.title = element_text(size = 9, face = "bold"),
+    theme_minimal(base_size = 12, base_line_size = .34) +
+    theme(panel.grid.minor = element_blank(), axis.text = element_text(size = 10), plot.title = element_text(size = 12, face = "bold"),
           plot.title.position = "plot")
 }
 fig <- (panel("ihme", "A  IHME") | panel("igme", "B  UN IGME (CA-CODE)")) /
-  (scatter("ihme", paste0("C  ", model, " against IHME"), "IHME share (%), cause of death") |
-   scatter("igme", paste0("D  ", model, " against UN IGME"), "UN IGME (CA-CODE) share (%), cause of death")) +
-  plot_layout(guides = "collect", heights = c(1, 1.05)) + plot_annotation(theme = theme(legend.position = "bottom"))
-ggsave(file.path(out, "sfig_malaria_share_vs_pfpr.png"), fig, width = 180, height = 195, units = "mm", dpi = 600,
+  (scatter("ihme", paste0("C  ", model, " vs IHME"), "IHME share (%),\ncause of death") |
+   scatter("igme", paste0("D  ", model, " vs UN IGME"), "UN IGME (CA-CODE) share (%),\ncause of death")) +
+  plot_layout(guides = "collect", heights = c(1.2, 1.1)) + plot_annotation(theme = theme(legend.position = "bottom"))
+ggsave(file.path(out, "sfig_malaria_share_vs_pfpr.png"), fig, width = 157, height = 198, units = "mm", dpi = 600,
        device = ragg::agg_png, bg = "white")
 
 ## Caption and provenance -----------------------------------------------------------------------------

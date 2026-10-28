@@ -21,10 +21,30 @@ read <- function(p) cbh_read_csv(file.path(root,p))
 country_limits <- c(100,2.5e5)
 state_limits <- c(200,3e4)
 comma <- scales::label_comma()
-paper <- theme_minimal(base_size=14)+theme(panel.grid.minor=element_blank(),
-  text=element_text(size=16),axis.title=element_text(size=16),axis.text=element_text(size=13),
-  legend.title=element_blank(),legend.text=element_text(size=13),legend.position="bottom",
-  plot.tag=element_text(size=22,face="bold"),plot.margin=margin(8,16,8,8))
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in, the printed width (\linewidth); line, point
+# and margin sizes are those of the former 14 in canvas scaled to 6.5 in.
+paper <- theme_minimal(base_size=12,base_line_size=.3)+theme(panel.grid.minor=element_blank(),
+  text=element_text(size=12),axis.title=element_text(size=12),axis.text=element_text(size=10),
+  legend.title=element_blank(),legend.text=element_text(size=10),legend.position="bottom",
+  plot.tag=element_text(size=14,face="bold"),plot.margin=margin(4,7,4,4),
+  legend.key.size=grid::unit(11,"pt"),legend.key.spacing.y=grid::unit(2,"pt"))
+log_grid <- cbh_log10_grid_theme()+theme(panel.grid.minor=element_line(linewidth=.12))
+label_size <- 10/.pt
+num <- scales::label_number(accuracy=.1,drop0trailing=TRUE)                 # 0, 2.5, 5: narrower tick labels
+# Labels at 10 pt crowd the half-width panels, so (layout only): B, with 37 state labels, is wider than A, drops its
+# copy of the y title and has its legend above it, and one x title spans A and B (patchwork does not collect the titles
+# of fixed-aspect panels). Each label starts r axis units (decades on log axes) from its point, away from the lower-left corner of
+# the labelled countries (A) or, mostly sideways (a = 3), from the centre of the cloud of states (B, whose labels in the
+# main figure may also use the space between the panel and its legend), and repels for a fixed number of iterations
+# (deterministic: max.time is not reached). These settings leave no two labels overlapping at the saved size.
+away <- function(px,py,r,a=1,corner=FALSE) { dx <- a*(px-if(corner) min(px) else median(px))
+  dy <- py-if(corner) min(py) else median(py); d <- pmax(sqrt(dx^2+dy^2),1e-9); list(x=r*dx/d,y=r*dy/d) }
+repel <- function(d,nudge,...) ggrepel::geom_text_repel(data=d,size=label_size,max.overlaps=Inf,min.segment.length=0,
+  segment.size=.25,nudge_x=nudge$x,nudge_y=nudge$y,max.iter=2e5,max.time=120,...)
+three_panels <- function(a,b,c,xlab) wrap_plots(A=a+labs(x=NULL),B=b+labs(x=NULL,y=NULL)+theme(legend.position="top"),
+  T=wrap_elements(panel=grid::textGrob(xlab,gp=grid::gpar(fontsize=12)),ignore_tag=TRUE),C=c,
+  design="AB\nTT\nCC",widths=c(.72,1),heights=grid::unit(c(1.5,16,1),c("null","pt","null")))+
+  plot_annotation(tag_levels="A")
 
 ## ---- A: countries, 2024 -------------------------------------------------------
 totals <- read("burden/country_totals.csv")
@@ -35,18 +55,19 @@ stopifnot(nrow(cty)>0,!anyDuplicated(cty$iso3))
 outside <- function(d,x,y,lim) d[d[[x]]<lim[1] | d[[x]]>lim[2] | d[[y]]<lim[1] | d[[y]]>lim[2],]
 clipped_a <- outside(cty,"ihme_malaria_deaths","attributable_under5_deaths",country_limits)$iso3
 clipped <- data.frame(panel=rep("A",length(clipped_a)),unit=clipped_a)
+lab_a <- cty[cty$iso3 %in% c("COD","NGA","AGO","UGA","TZA") |
+  abs(log(cty$attributable_under5_deaths/cty$ihme_malaria_deaths))>=.5 |
+  abs(cty$attributable_under5_deaths-cty$ihme_malaria_deaths)>=5000,]
 pA <- ggplot(cty,aes(ihme_malaria_deaths,attributable_under5_deaths))+
-  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
-  geom_point(colour="#215E91",size=2.6,alpha=.85)+
-  ggrepel::geom_text_repel(data=cty[cty$iso3 %in% c("COD","NGA","AGO","UGA","TZA") |
-      abs(log(cty$attributable_under5_deaths/cty$ihme_malaria_deaths))>=.5 |
-      abs(cty$attributable_under5_deaths-cty$ihme_malaria_deaths)>=5000,],
-    aes(label=iso3),size=3.8,seed=20260915,max.overlaps=Inf,min.segment.length=0,segment.colour="grey60")+
+  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2,linewidth=.25)+
+  geom_point(colour="#215E91",size=1.2,alpha=.85)+
+  repel(lab_a,away(log10(lab_a$ihme_malaria_deaths),log10(lab_a$attributable_under5_deaths),.8,corner=TRUE),
+    aes(label=iso3),seed=20260915,segment.colour="grey60",box.padding=.25,point.padding=.15,force_pull=.5)+
   coord_equal(xlim=country_limits,ylim=country_limits,expand=FALSE)+
   scale_x_log10(breaks=c(1e2,1e3,1e4,1e5),labels=comma,minor_breaks=cbh_log10_minor_breaks)+
   scale_y_log10(breaks=c(1e2,1e3,1e4,1e5),labels=comma,minor_breaks=cbh_log10_minor_breaks)+
   labs(x="IHME malaria deaths before age 5, 2024",y=paste0(model_label," deaths\nbefore age 5, 2024"))+
-  paper+cbh_log10_grid_theme()
+  paper+log_grid
 
 ## ---- B: Nigerian states, 2024 --------------------------------------------------
 x <- read("nigeria_states/state_totals_2024.csv")
@@ -66,18 +87,18 @@ x$label <- sub(" [(]Abuja[)]$","",x$state)
 clipped_b <- outside(x,"ihme_malaria_deaths","attributable_under5_deaths",state_limits)$state
 clipped <- rbind(clipped,data.frame(panel=rep("B",length(clipped_b)),unit=clipped_b))
 pB <- ggplot(x,aes(ihme_malaria_deaths,attributable_under5_deaths,colour=zone))+
-  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
-  geom_point(size=2.6)+
-  ggrepel::geom_text_repel(aes(label=label),size=3.3,seed=20260917,max.overlaps=Inf,
-    min.segment.length=0,segment.colour="grey70",show.legend=FALSE)+
+  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2,linewidth=.25)+
+  geom_point(size=1.2)+
+  repel(x,away(log10(x$ihme_malaria_deaths),log10(x$attributable_under5_deaths),.4,a=3),aes(label=label),
+    seed=13,segment.colour="grey70",show.legend=FALSE,box.padding=.2,point.padding=.1,force_pull=.5)+
   coord_equal(xlim=state_limits,ylim=state_limits,expand=FALSE)+
   scale_x_log10(breaks=c(1e3,1e4),labels=comma,minor_breaks=cbh_log10_minor_breaks)+
   scale_y_log10(breaks=c(1e3,1e4),labels=comma,minor_breaks=cbh_log10_minor_breaks)+
   scale_colour_manual(values=c(`North Central`="#E69F00",`North East`="#D55E00",`North West`="#CC79A7",
     `South East`="#009E73",`South South`="#0072B2",`South West`="#56B4E9"))+
-  guides(colour=guide_legend(nrow=2,override.aes=list(size=3.5)))+
+  guides(colour=guide_legend(nrow=3,override.aes=list(size=2)))+
   labs(x="IHME malaria deaths before age 5, 2024",y=paste0(model_label," deaths\nbefore age 5, 2024"))+
-  paper+cbh_log10_grid_theme()
+  paper+log_grid
 
 ## ---- C: annual mortality, 2000–2024 --------------------------------------------
 long <- read("annual_comparison/figure5_data.csv")
@@ -86,21 +107,21 @@ stopifnot(setequal(unique(long$source),sources),all(long$countries==42),
   identical(sort(unique(long$year)),2000:2024))
 long$source <- factor(long$source,levels=sources)
 pC <- ggplot(long,aes(year,rate_per100000,colour=source,linetype=source))+
-  geom_line(linewidth=1.15)+
+  geom_line(linewidth=.53)+
   scale_colour_manual(values=setNames(c("#16747C","#253746","#CC6A30"),sources))+
   scale_linetype_manual(values=setNames(c("solid","longdash","dotdash"),sources))+
   scale_x_continuous(breaks=c(2000,2005,2010,2015,2020,2024),limits=c(2000,2024),
     expand=expansion(mult=c(.015,.025)))+
   scale_y_continuous(limits=c(0,NA),labels=comma,expand=expansion(mult=c(0,.05)))+
-  labs(x="Year",y="Under-five malaria deaths\nper 100,000 child-years")+
-  paper+theme(legend.key.width=grid::unit(1.2,"cm"))
+  labs(x="Year",y="Under-five malaria\ndeaths per 100,000\nchild-years")+
+  paper+theme(legend.key.width=grid::unit(.8,"cm"))
 
 ## ---- assemble -------------------------------------------------------------------
 for(p in list(pA,pB,pC)) stopifnot(is.null(p$labels$title),is.null(p$labels$subtitle))
 for(p in list(pA,pB)) stopifnot(identical(p$scales$get_scales("x")$trans$name,"log-10"),
   identical(p$scales$get_scales("y")$trans$name,"log-10"))
-fig <- (pA|pB)/pC+plot_layout(heights=c(1,.7))+plot_annotation(tag_levels="A")
-ggsave(file.path(out,"sfig_burden_comparison_counts.png"),fig,width=14,height=12.5,dpi=240,
+fig <- three_panels(pA,pB,pC,"IHME malaria deaths before age 5, 2024")
+ggsave(file.path(out,"sfig_burden_comparison_counts.png"),fig,width=6.5,height=6.8,dpi=400,
   device=ragg::agg_png,bg="white")
 cbh_atomic_csv(clipped,file.path(out,"points_outside_display_limits.csv"))
 
@@ -118,43 +139,44 @@ x$model_rate <- x$attributable_rate_per100000/100; x$ihme_rate <- x$ihme_malaria
 long$rate_per1000 <- long$rate_per100000/100
 rate_limits <- function(...) c(0,ceiling(1.05*max(...)))
 lim_a <- rate_limits(cr$model_rate,cr$ihme_rate); lim_b <- rate_limits(x$model_rate,x$ihme_rate)
+lab_r <- cr[cr$iso3 %in% c("COD","NGA","AGO","UGA","TZA") | cr$ihme_rate==max(cr$ihme_rate) |
+  abs(log(cr$model_rate/cr$ihme_rate))>=.5 | abs(cr$model_rate-cr$ihme_rate)>=1,]
 rA <- ggplot(cr,aes(ihme_rate,model_rate))+
-  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
-  geom_point(colour="#215E91",size=2.6,alpha=.85)+
+  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2,linewidth=.25)+
+  geom_point(colour="#215E91",size=1.2,alpha=.85)+
   # Label the large-burden countries, the country with the highest IHME rate, and every
   # country whose two rates differ by at least a factor of 1.65 or by at least 1 death
   # per 1,000 child-years.
-  ggrepel::geom_text_repel(data=cr[cr$iso3 %in% c("COD","NGA","AGO","UGA","TZA") |
-      cr$ihme_rate==max(cr$ihme_rate) |
-      abs(log(cr$model_rate/cr$ihme_rate))>=.5 | abs(cr$model_rate-cr$ihme_rate)>=1,],
-    aes(label=iso3),size=3.8,seed=20260915,max.overlaps=Inf,min.segment.length=0,segment.colour="grey60",
-    box.padding=.35)+
+  repel(lab_r,away(lab_r$ihme_rate,lab_r$model_rate,1.7,corner=TRUE),aes(label=iso3),seed=20260915,segment.colour="grey60",
+    box.padding=.3,point.padding=.2,force_pull=.5)+
   coord_equal(xlim=lim_a,ylim=lim_a,expand=FALSE)+
-  labs(x="IHME malaria deaths per 1,000 child-years\nbefore age 5, 2024",
-    y=paste0(model_label," deaths per 1,000\nchild-years before age 5, 2024"))+paper
+  scale_x_continuous(labels=num)+scale_y_continuous(labels=num)+
+  labs(x="IHME malaria deaths per 1,000 child-years before age 5, 2024",
+    y=paste0(model_label," deaths\nper 1,000 child-years\nbefore age 5, 2024"))+paper
 rB <- ggplot(x,aes(ihme_rate,model_rate,colour=zone))+
-  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2)+
-  geom_point(size=2.6)+
-  ggrepel::geom_text_repel(aes(label=label),size=3.3,seed=20260917,max.overlaps=Inf,
-    min.segment.length=0,segment.colour="grey70",show.legend=FALSE,point.padding=.3,box.padding=.4)+
-  coord_equal(xlim=lim_b,ylim=lim_b,expand=FALSE)+
+  geom_abline(slope=1,intercept=0,colour="grey65",linetype=2,linewidth=.25)+
+  geom_point(size=1.2)+
+  repel(x,away(x$ihme_rate,x$model_rate,2,a=3),aes(label=label),seed=13,segment.colour="grey70",
+    show.legend=FALSE,box.padding=.2,point.padding=.1,force_pull=.5,ylim=c(NA,1.11*lim_b[2]))+
+  coord_equal(xlim=lim_b,ylim=lim_b,expand=FALSE,clip="off")+
+  scale_x_continuous(labels=num)+scale_y_continuous(labels=num)+
   scale_colour_manual(values=c(`North Central`="#E69F00",`North East`="#D55E00",`North West`="#CC79A7",
     `South East`="#009E73",`South South`="#0072B2",`South West`="#56B4E9"))+
-  guides(colour=guide_legend(nrow=2,override.aes=list(size=3.5)))+
-  labs(x="IHME malaria deaths per 1,000 child-years\nbefore age 5, 2024",
-    y=paste0(model_label," deaths per 1,000\nchild-years before age 5, 2024"))+paper
+  guides(colour=guide_legend(nrow=3,override.aes=list(size=2)))+
+  labs(x="IHME malaria deaths per 1,000 child-years before age 5, 2024",
+    y=paste0(model_label," deaths\nper 1,000 child-years\nbefore age 5, 2024"))+paper
 rC <- ggplot(long,aes(year,rate_per1000,colour=source,linetype=source))+
-  geom_line(linewidth=1.15)+
+  geom_line(linewidth=.53)+
   scale_colour_manual(values=setNames(c("#16747C","#253746","#CC6A30"),sources))+
   scale_linetype_manual(values=setNames(c("solid","longdash","dotdash"),sources))+
   scale_x_continuous(breaks=c(2000,2005,2010,2015,2020,2024),limits=c(2000,2024),
     expand=expansion(mult=c(.015,.025)))+
-  scale_y_continuous(limits=c(0,NA),expand=expansion(mult=c(0,.05)))+
-  labs(x="Year",y="Under-five malaria deaths\nper 1,000 child-years")+
-  paper+theme(legend.key.width=grid::unit(1.2,"cm"))
+  scale_y_continuous(limits=c(0,NA),labels=num,expand=expansion(mult=c(0,.05)))+
+  labs(x="Year",y="Under-five malaria\ndeaths per 1,000\nchild-years")+
+  paper+theme(legend.key.width=grid::unit(.8,"cm"))
 for(p in list(rA,rB,rC)) stopifnot(is.null(p$labels$title),is.null(p$labels$subtitle))
-rates <- (rA|rB)/rC+plot_layout(heights=c(1,.7))+plot_annotation(tag_levels="A")
-ggsave(file.path(out,"fig4_burden_comparison.png"),rates,width=14,height=12.5,dpi=240,
+rates <- three_panels(rA,rB,rC,"IHME malaria deaths per 1,000 child-years before age 5, 2024")
+ggsave(file.path(out,"fig4_burden_comparison.png"),rates,width=6.5,height=6.8,dpi=400,
   device=ragg::agg_png,bg="white")
 if(file.exists(file.path(out,"fig4_burden_comparison_rates.png"))) file.remove(file.path(out,"fig4_burden_comparison_rates.png"))
 cbh_atomic_csv(cr[order(cr$iso3),c("iso3","country","under5_person_years","model_deaths","ihme_malaria_deaths","model_rate","ihme_rate")],

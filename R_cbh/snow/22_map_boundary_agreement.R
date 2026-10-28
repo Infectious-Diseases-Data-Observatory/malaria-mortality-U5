@@ -79,22 +79,25 @@ adm0 <- st_make_valid(readRDS("data/africa_admin0.rds")); adm0 <- adm0[adm0$iso 
 crs_aea <- "ESRI:102022"
 snow_p <- st_transform(snow, crs_aea); adm0_p <- st_transform(adm0, crs_aea); polys_p <- st_transform(polys, crs_aea)
 bb <- st_bbox(snow_p)
-lines <- c(region = "Survey-region boundary (most recent survey)", snow = "Snow et al. polygon boundary")
+lines <- c(region = "Survey-region boundary\n(most recent survey)", snow = "Snow et al. polygon boundary")
 fig <- ggplot() +
   geom_sf(data = adm0_p, fill = "#E4E4E4", colour = NA) +   # countries without a sample survey
   geom_sf(data = polys_p, aes(fill = class), colour = NA) +
   geom_sf(data = polys_p, aes(colour = lines[["region"]]), fill = NA, linewidth = 0.55, key_glyph = "path") +
   geom_sf(data = snow_p, aes(colour = lines[["snow"]]), fill = NA, linewidth = 0.12, key_glyph = "path") +
   geom_sf(data = adm0_p, fill = NA, colour = "grey10", linewidth = 0.3) +
-  scale_fill_manual(values = fills, drop = FALSE, name = "Survey-region against Snow polygons") +
+  scale_fill_manual(values = fills, drop = FALSE, name = "Survey-region against\nSnow polygons") +
   scale_colour_manual(values = setNames(c("white", "grey15"), lines), breaks = unname(lines), name = NULL,   # region line first
                       guide = guide_legend(order = 2, override.aes = list(linewidth = c(1.2, 0.4)),
                                            theme = theme(legend.key = element_rect(fill = "grey70", colour = NA)))) +
   guides(fill = guide_legend(order = 1, override.aes = list(colour = c(rep(NA, 6), "grey45"), linewidth = 0.3))) +   # outline the white key
   coord_sf(xlim = bb[c("xmin", "xmax")], ylim = bb[c("ymin", "ymax")], expand = FALSE, datum = NA) +
-  theme_void(base_size = 8.5) +
-  theme(legend.position = c(0.2, 0.3), legend.title = element_text(size = 8), legend.text = element_text(size = 7.2),
-        legend.key.size = unit(3.6, "mm"), legend.spacing.y = unit(1.5, "mm"),
+  # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in: printed = size x 165 / 160; legend in the
+  # Atlantic, bottom left.
+  theme_void(base_size = 10) +
+  theme(legend.position = "inside", legend.position.inside = c(0.01, 0.01), legend.justification.inside = c(0, 0),
+        legend.title = element_text(size = 12), legend.text = element_text(size = 10),
+        legend.key.size = unit(4.6, "mm"), legend.spacing.y = unit(2, "mm"),
         plot.caption = element_text(size = 7, colour = "grey30", hjust = 0.5),
         plot.background = element_rect(fill = "white", colour = NA))
 ggsave(file.path(out, "boundary_agreement_map.png"), fig, width = 160, height = 170, units = "mm", dpi = 600,

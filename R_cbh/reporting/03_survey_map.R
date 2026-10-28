@@ -89,13 +89,16 @@ outline$surveys[is.na(outline$surveys)] <- 0L
 centres <- suppressWarnings(sf::st_coordinates(sf::st_point_on_surface(sf::st_geometry(outline))))
 outline$lon <- centres[,1];outline$lat <- centres[,2]
 outline$fill <- ifelse(outline$surveys>0,outline$surveys,NA_integer_)
-map <- ggplot(outline)+geom_sf(aes(fill=fill),colour="white",linewidth=.3)+
+# Drawn at the printed width (6.5 in), so text sizes are printed sizes and meet the paper's text-size rule (CLAUDE.md);
+# lines, points and margins are those of the earlier 16 in drawing scaled by 6.5/16. The 10 pt country rows set the
+# height; region labels are turned upright to leave the timeline its width.
+map <- ggplot(outline)+geom_sf(aes(fill=fill),colour="white",linewidth=.12)+
   scale_fill_gradient(low="#DCEAF3",high="#12557A",name="Included surveys",breaks=scales::breaks_pretty(4),
     na.value="grey90")+
-  guides(fill=guide_colourbar(barwidth=grid::unit(1.9,"in"),barheight=grid::unit(.2,"in")))+
-  theme_minimal(base_size=20)+theme(axis.title=element_blank(),axis.text=element_blank(),
-    panel.grid=element_blank(),legend.position="bottom",
-    legend.title=element_text(size=18),legend.text=element_text(size=16))
+  guides(fill=guide_colourbar(barwidth=grid::unit(1,"in"),barheight=grid::unit(.1,"in")))+
+  theme_minimal(base_size=12,base_line_size=.37)+theme(axis.title=element_blank(),axis.text=element_blank(),
+    panel.grid=element_blank(),legend.position="bottom",legend.title.position="top",plot.margin=margin(2,2,2,2),
+    legend.title=element_text(size=12),legend.text=element_text(size=10))
 # Timeline rows grouped by UN M49 sub-region (Middle Africa labelled Central Africa), countries in
 # alphabetical order of ISO3 code within each region, with the number of mothers on the right.
 m49 <- list(`West Africa`=c("BEN","BFA","CIV","CPV","GHA","GIN","GMB","GNB","LBR","MLI","MRT","NER","NGA","SEN","SLE","TGO"),
@@ -133,23 +136,24 @@ included <- all[all$status==status_levels[1],];excluded <- all[all$status!=statu
 survey_points <- function(d,mapping,...) list(geom_point(data=d[!d$nudge,],mapping=mapping,...),
   geom_point(data=d[d$nudge,],mapping=mapping,position=position_nudge(y=.3),...))
 timeline <- ggplot(all,aes(year,country_label))+
-  geom_line(aes(group=country_label),colour="grey85",linewidth=.4)+
-  geom_text(data=n_rows,aes(x=2025.9,y=country_label,label=label),hjust=0,size=4.3,colour="grey25")+
-  survey_points(all,aes(shape=programme,fill=inclusion),colour=ink,size=3.4,stroke=1)+
+  geom_line(aes(group=country_label),colour="grey85",linewidth=.16)+
+  geom_text(data=n_rows,aes(x=2025.9,y=country_label,label=label),hjust=0,size=10/.pt,colour="grey25")+
+  survey_points(all,aes(shape=programme,fill=inclusion),colour=ink,size=1.4,stroke=.4)+
   scale_shape_manual(values=c(`DHS/MIS`=21,MICS=24),name=NULL,drop=FALSE)+
   scale_fill_manual(values=c(Included=ink,Excluded="white"),name=NULL,drop=FALSE)+
   scale_x_continuous(breaks=seq(2000,2025,5))+
   coord_cartesian(xlim=c(1999.3,2025.2),clip="off")+
   facet_grid(region_group~.,scales="free_y",space="free_y",switch="y")+
-  labs(x="Survey year",y=NULL)+theme_minimal(base_size=20)+
-  guides(shape=guide_legend(order=1,nrow=1,override.aes=list(fill=ink,size=4)),
-    fill=guide_legend(order=2,nrow=1,override.aes=list(shape=21,size=4)))+
-  theme(panel.grid.minor=element_blank(),legend.position="bottom",axis.text.x=element_text(size=17),axis.text.y.left=element_text(size=15),
-    axis.title=element_text(size=20),legend.text=element_text(size=18),
-    legend.box="horizontal",legend.spacing.x=grid::unit(14,"pt"),strip.placement="outside",
-    strip.text.y.left=element_text(size=15,face="bold",angle=0,hjust=1),panel.spacing.y=grid::unit(10,"pt"),plot.margin=margin(8,120,8,8))
-p <- map+timeline+plot_layout(widths=c(1,1.45))
-ggsave(file.path(out,"survey_map_and_timing.png"),p,width=16,height=12,dpi=300,device=ragg::agg_png,bg="white")
+  labs(x="Survey year",y=NULL)+theme_minimal(base_size=12,base_line_size=.37)+
+  guides(shape=guide_legend(order=1,nrow=1,override.aes=list(fill=ink,size=1.8)),
+    fill=guide_legend(order=2,nrow=1,override.aes=list(shape=21,size=1.8)))+
+  theme(panel.grid.minor=element_blank(),legend.position="bottom",axis.text.x=element_text(size=10),axis.text.y.left=element_text(size=10),
+    axis.title=element_text(size=12),legend.text=element_text(size=10),legend.location="plot",
+    legend.box="horizontal",legend.spacing.x=grid::unit(6,"pt"),strip.placement="outside",
+    strip.text.y.left=element_text(size=10,face="bold",angle=90,margin=margin(0,3,0,1)),panel.spacing.y=grid::unit(4,"pt"),
+    plot.margin=margin(3,60,3,3))
+p <- map+timeline+plot_layout(widths=grid::unit(c(1.3,1),c("in","null"))) & theme(legend.margin=margin(0,0,0,0))   # map panel 1.3 in wide
+ggsave(file.path(out,"survey_map_and_timing.png"),p,width=6.5,height=7.45,dpi=600,device=ragg::agg_png,bg="white")
 nudged <- unique(paste(all$country[all$nudge],all$year[all$nudge]))
 x$country_label <- NULL;all$country_label <- NULL;all$country_name <- NULL;all$programme <- NULL;all$inclusion <- NULL;all$nudge <- NULL;all$region_group <- NULL
 cbh_atomic_csv(x,file.path(out,"survey_coverage.csv"))

@@ -30,11 +30,15 @@ write_csv(unique(d[c("subgroup", "series", "age_band", "pfpr_min", "pfpr_p025", 
           "exposure_support.csv")
 d$age_label <- factor(d$age_band, levels = ages, labels = ifelse(ages == "<1", "<1 month", paste(ages, "months")))
 colours <- setNames(unname(st$colours), unname(st$labels))
-paper <- theme_minimal(base_size = 18) + theme(panel.grid.minor = element_blank(),
-  axis.text = element_text(size = 14), axis.title = element_text(size = 18),
-  strip.text = element_text(size = 16, face = "bold"), legend.position = "bottom",
-  legend.text = element_text(size = 15), legend.title = element_blank(),
-  panel.spacing = grid::unit(20, "pt"), plot.margin = margin(10, 24, 10, 10))
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in: the figures are saved 6.5 in wide, so printed =
+# 0.95 x size (axis titles 13 -> 12.4 pt; ticks and legend 11 -> 10.5 pt; strips 12 -> 11.4 pt). Lines, spacing and
+# margins are those of the former 14-15 in versions scaled by about 6.5/15.
+paper <- theme_minimal(base_size = 11, base_line_size = .35) + theme(panel.grid.minor = element_blank(),
+  axis.text = element_text(size = 11), axis.title = element_text(size = 13),
+  strip.text = element_text(size = 12, face = "bold"), legend.position = "bottom",
+  legend.text = element_text(size = 11), legend.title = element_blank(), legend.margin = margin(0, 0, 0, 0),
+  legend.box.spacing = grid::unit(6, "pt"), legend.key.spacing.y = grid::unit(1, "pt"),
+  panel.spacing = grid::unit(10, "pt"), plot.margin = margin(4, 10, 4, 4))
 # One spline figure per group of subsets (st$figures): v9 one figure with every subset; the Snow-unit suite one figure
 # for Sahel and the survey periods and one for the UN M49 sub-regions.
 for (fig_name in names(st$figures)) {
@@ -44,20 +48,21 @@ shown$series <- droplevels(shown$series)
 stopifnot(max(shown$pfpr_pct) <= 80)
 shown$is_full <- shown$subgroup == "map_full"
 p <- ggplot(shown, aes(pfpr_pct, log_hazard_ratio, colour = series)) +
-  geom_hline(yintercept = 0, colour = "grey60", linewidth = .4) +
-  geom_vline(xintercept = 20, colour = "grey80", linewidth = .4) +
+  geom_hline(yintercept = 0, colour = "grey60", linewidth = .17) +
+  geom_vline(xintercept = 20, colour = "grey80", linewidth = .17) +
   geom_ribbon(data = shown[shown$is_full, ], aes(ymin = lower_95, ymax = upper_95),
               fill = "grey55", alpha = .18, colour = NA) +
   geom_line(aes(linewidth = is_full)) +
-  scale_linewidth_manual(values = c(`TRUE` = 1.5, `FALSE` = 1), guide = "none") +
+  scale_linewidth_manual(values = c(`TRUE` = .65, `FALSE` = .43), guide = "none") +
   facet_wrap(~age_label, ncol = 4) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
   scale_colour_manual(values = colours) +
-  guides(colour = guide_legend(nrow = 2, override.aes = list(linewidth = 1.3))) +
+  guides(colour = guide_legend(ncol = 2, override.aes = list(linewidth = .56))) +
   labs(x = "PfPR[2–10] (%)", y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle))
-ggsave(file.path(st$out, paste0(fig_name, ".png")), p, width = 15, height = 8.5,
-       dpi = 240, device = ragg::agg_png, bg = "white")
+# Height grows with the legend rows (two columns), so the panels are the same size in every figure.
+ggsave(file.path(st$out, paste0(fig_name, ".png")), p, width = 6.5, height = 3.55 + .2 * ceiling(nlevels(shown$series) / 2),
+       dpi = 320, device = ragg::agg_png, bg = "white")
 }
 
 # Contrasts identified directly from each curve; the subgroups are nested in the full sample.
@@ -76,13 +81,13 @@ write_csv(contrasts, "pfpr_contrasts.csv")
 cz <- contrasts[contrasts$contrast == "40% to 20%", ]
 cz$age_label <- factor(cz$age_band, levels = rev(ages))
 pc <- ggplot(cz, aes(hazard_ratio, age_label, colour = series)) +
-  geom_vline(xintercept = 1, colour = "grey60", linetype = 2) +
-  geom_pointrange(aes(xmin = lower_95, xmax = upper_95), position = position_dodge(width = .7), size = .5) +
+  geom_vline(xintercept = 1, colour = "grey60", linetype = 2, linewidth = .23) +
+  geom_pointrange(aes(xmin = lower_95, xmax = upper_95), position = position_dodge(width = .7), size = .23, linewidth = .23) +
   scale_x_log10(breaks = c(.5, .7, .8, .9, 1, 1.1, 1.25)) + scale_colour_manual(values = colours) +
-  guides(colour = guide_legend(nrow = if (length(st$labels) > 5) 3 else 2)) +
+  guides(colour = guide_legend(ncol = 2)) +
   labs(x = "Hazard ratio, PfPR 40% to 20% (95% interval, log scale)", y = "Age (completed months)") + paper
-ggsave(file.path(st$out, "pfpr_40_to_20_by_subgroup.png"), pc, width = if (length(st$labels) > 5) 14 else 10,
-       height = if (length(st$labels) > 5) 9 else 7, dpi = 240,
+ggsave(file.path(st$out, "pfpr_40_to_20_by_subgroup.png"), pc, width = 6.5,
+       height = if (length(st$labels) > 5) 5 else 4.5, dpi = 320,
        device = ragg::agg_png, bg = "white")
 
 ## ---- caption and report --------------------------------------------------------------

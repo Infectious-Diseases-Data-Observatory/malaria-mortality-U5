@@ -70,44 +70,52 @@ fmt1 <- function(x) sprintf("%.0f",1000*x)
 display <- c(Swaziland="Eswatini",`Cote d'Ivoire`="Côte d'Ivoire",Congo="Republic of the Congo")
 cur[,country:=fifelse(country %in% names(display),display[country],country)]
 setorder(cur,-q5_attributable,-q5_allcause)
-cur[,label:=factor(country,levels=rev(country))]
+# Two long names are shortened on the axis only (layout; the caption and CSV keep the full names).
+short <- c(`Democratic Republic of the Congo`="DR Congo",`Central African Republic`="Central African Rep.")
+cur[,label:=fifelse(country %in% names(short),short[country],country)]
+cur[,label:=factor(label,levels=rev(label))]
 long <- rbind(cur[,.(label,value=1000*q5_allcause,series="All causes (IHME)")],
   cur[,.(label,value=1000*q5_attributable,series="Caused by malaria (PfPR-ACM model)")])
 long[,series:=factor(series,levels=c("All causes (IHME)","Caused by malaria (PfPR-ACM model)"))]
 fills <- c(`All causes (IHME)`="#C9D6E3",`Caused by malaria (PfPR-ACM model)`="#1F4E79")
 xmax <- ceiling(max(1000*cur$q5_allcause)/20)*20
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in (printed at 0.95\linewidth = 6.18 in); line and
+# point sizes are those of the former 13.8 in canvas scaled to 6.2 in, and the figure is taller so that the 42 rows of
+# 10.5 pt labels do not overlap. The three value columns start at xmax + col (in x units), wide enough for their headers.
+fs <- list(title=12.5,text=10.5); col <- c(4,46,94); xlim_main <- xmax+138
 # Both panels use the same fixed vertical range, so the country rows align exactly; the column header
 # of the right panel sits above that range (drawn in the top margin) and does not stretch its axis.
 rows <- coord_cartesian(ylim=c(.4,nrow(cur)+.6),expand=FALSE,clip="off")
 p <- ggplot()+
   geom_col(data=long[series=="All causes (IHME)"],aes(value,label,fill=series),width=.75)+
   geom_col(data=long[series!="All causes (IHME)"],aes(value,label,fill=series),width=.45)+
-  geom_errorbarh(data=cur,aes(xmin=1000*q5_attributable_lower,xmax=1000*q5_attributable_upper,y=label),height=.3,colour="grey20",linewidth=.4)+
-  geom_text(data=cur,aes(x=xmax+3,y=label,label=sprintf("%.0f",1000*q5_allcause)),hjust=0,size=3.5,colour="grey25")+
-  geom_point(data=cur,aes(1000*q5_ihme_malaria,label,shape="Caused by malaria (IHME)"),fill="#F2B134",colour="grey10",size=3,stroke=.5)+
-  geom_text(data=cur,aes(x=xmax+15,y=label,label=sprintf("%.0f",1000*q5_attributable)),hjust=0,size=3.5,colour="#1F4E79")+
-  geom_text(data=cur,aes(x=xmax+28,y=label,label=sprintf("%.0f",1000*q5_ihme_malaria)),hjust=0,size=3.5,colour="#8A5A00")+
-  annotate("text",x=c(xmax+3,xmax+15,xmax+28),y=nrow(cur)+1.1,label=c("All\ncauses","Malaria\n(model)","Malaria\n(IHME)"),hjust=0,vjust=0,size=3.4,lineheight=.9,
+  geom_errorbarh(data=cur,aes(xmin=1000*q5_attributable_lower,xmax=1000*q5_attributable_upper,y=label),height=.3,colour="grey20",linewidth=.2)+
+  geom_text(data=cur,aes(x=xmax+col[1],y=label,label=sprintf("%.0f",1000*q5_allcause)),hjust=0,size=fs$text/.pt,colour="grey25")+
+  geom_point(data=cur,aes(1000*q5_ihme_malaria,label,shape="Caused by malaria (IHME)"),fill="#F2B134",colour="grey10",size=2.1,stroke=.3)+
+  geom_text(data=cur,aes(x=xmax+col[2],y=label,label=sprintf("%.0f",1000*q5_attributable)),hjust=0,size=fs$text/.pt,colour="#1F4E79")+
+  geom_text(data=cur,aes(x=xmax+col[3],y=label,label=sprintf("%.0f",1000*q5_ihme_malaria)),hjust=0,size=fs$text/.pt,colour="#8A5A00")+
+  annotate("text",x=xmax+col,y=nrow(cur)+1.1,label=c("All\ncauses","Malaria\n(model)","Malaria\n(IHME)"),hjust=0,vjust=0,size=fs$text/.pt,lineheight=.9,
     colour=c("grey25","#1F4E79","#8A5A00"))+
   scale_fill_manual(values=fills,name=NULL,guide=guide_legend(order=1))+
   scale_shape_manual(values=c(`Caused by malaria (IHME)`=23),name=NULL,guide=guide_legend(order=2))+
-  scale_x_continuous(limits=c(0,xmax+40),breaks=seq(0,xmax,20),expand=c(0,0))+
+  scale_x_continuous(limits=c(0,xlim_main),breaks=seq(0,xmax,40),expand=c(0,0))+
   rows+
-  labs(x="Number of deaths before 5 years of age per 1,000 livebirths",y=NULL)+
-  theme_minimal(base_size=15)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),legend.position="bottom",
-    axis.text.y=element_blank(),legend.text=element_text(size=13),plot.margin=margin(30,12,8,4))
+  labs(x="Number of deaths before 5 years\nof age per 1,000 livebirths",y=NULL)+
+  theme_minimal(base_size=fs$title,base_line_size=.3)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),legend.position="bottom",
+    axis.text=element_text(size=fs$text),axis.text.y=element_blank(),legend.text=element_text(size=fs$text),plot.margin=margin(30,4,4,2))
 pmax_x <- ceiling(max(cur$pfpr_pct)/10)*10
 pf <- ggplot(cur,aes(pfpr_pct,label))+
   geom_col(fill="#C8553D",width=.6)+
-  geom_text(aes(label=sprintf("%.1f",pfpr_pct)),hjust=-.15,size=3.3,colour="grey25")+
-  scale_x_continuous(limits=c(0,pmax_x+12),breaks=seq(0,pmax_x,10),expand=c(0,0))+
+  geom_text(aes(label=sprintf("%.1f",pfpr_pct)),hjust=-.15,size=fs$text/.pt,colour="grey25")+
+  scale_x_continuous(limits=c(0,pmax_x+18),breaks=seq(0,pmax_x,20),expand=c(0,0))+
   rows+
   labs(x=bquote(italic(Pf)*PR["2–10"]*","~.(max(st$years))~"(%)"),y=NULL)+
-  theme_minimal(base_size=15)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),
-    axis.text.y=element_text(size=11.5),plot.margin=margin(30,4,8,8))
-fig <- pf+p+plot_layout(widths=c(1,2.8),guides="collect")&theme(legend.position="bottom")
+  theme_minimal(base_size=fs$title,base_line_size=.3)+theme(panel.grid.minor=element_blank(),panel.grid.major.y=element_blank(),
+    axis.text=element_text(size=fs$text),plot.margin=margin(30,4,4,2))
+fig <- pf+p+plot_layout(widths=c(.9,2.8),guides="collect")&theme(legend.position="bottom",legend.box="vertical",
+  legend.spacing.y=unit(2,"pt"),legend.margin=margin(1,0,1,0),legend.key.size=unit(11,"pt"))
 figure <- file.path(out,"under5_death_probability_2024.png")
-ggsave(figure,fig,width=13.8,height=12,dpi=260,device=ragg::agg_png,bg="white")
+ggsave(figure,fig,width=6.2,height=8.2,dpi=400,device=ragg::agg_png,bg="white")
 top <- cur[order(-q5_attributable)][1:3]
 caption <- paste0("Probability of dying before age 5 in ",max(st$years)," per 1,000 live births, by country (",nrow(cur)," sub-Saharan African countries in the burden comparison, ordered by the probability caused by malaria). ",
   sprintf("Left: national MAP PfPR[2–10] in %d, population-weighted (GPW 2020, all ages) over MAP-covered pixels, the prevalence at which each country's malaria-caused probability is evaluated (median %.1f%%, range %.1f–%.1f%%). ",max(st$years),median(cur$pfpr_pct),min(cur$pfpr_pct),max(cur$pfpr_pct)),

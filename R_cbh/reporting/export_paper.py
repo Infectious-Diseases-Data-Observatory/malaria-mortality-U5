@@ -91,6 +91,7 @@ if snow:
     ])
     for png in sorted((snow_maps / "merge_units").glob("*_merge_units.png")):
         assets.append((png, Path("Supplementary Figures/snow_merge_units") / png.name))
+    assets.append((snow_maps / "CAPTION_merge_units.md", Path("Supplementary Figures/snow_merge_units/CAPTION.md")))
 for name in ("age_band_results.csv", "age_band_results.md", "age_band_results.latex.txt",
              "country_comparison_2024.csv", "country_comparison_2024_top10.md", "country_comparison_2024.latex.txt"):
     assets.append((root / "tables" / name, Path("tables") / name))

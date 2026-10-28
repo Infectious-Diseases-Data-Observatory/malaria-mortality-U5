@@ -44,21 +44,25 @@ cbh_atomic_csv(curves, file.path(out, "comparison_pfpr_curves.csv"))
 
 ## ---- figure -----------------------------------------------------------------------------------
 colours <- setNames(c("#B36B39", "#215E91"), paper_labels)
-paper <- theme_minimal(base_size = 18) + theme(panel.grid.minor = element_blank(),
-  axis.text = element_text(size = 15), strip.text = element_text(size = 18, face = "bold"),
-  legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 16),
-  panel.spacing = grid::unit(20, "pt"), plot.margin = margin(12, 22, 12, 12))
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in: saved 6.5 in wide, so printed = 0.95 x size
+# (axis titles 13 -> 12.4 pt; ticks and legend 11 -> 10.5 pt; strips 12 -> 11.4 pt). Lines, spacing and margins are
+# those of the former 14-in version scaled by 6.5/14; the two legend entries are stacked.
+paper <- theme_minimal(base_size = 11, base_line_size = .38) + theme(panel.grid.minor = element_blank(),
+  axis.text = element_text(size = 11), axis.title = element_text(size = 13), strip.text = element_text(size = 12, face = "bold"),
+  legend.position = "bottom", legend.direction = "vertical", legend.title = element_blank(), legend.text = element_text(size = 11),
+  legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(6, "pt"), legend.key.spacing.y = grid::unit(1, "pt"),
+  panel.spacing = grid::unit(10, "pt"), plot.margin = margin(6, 10, 6, 6))
 central <- curves[curves$within_central_support, ]
 p <- ggplot(central, aes(pfpr_pct, log_hazard_ratio, colour = series_label, fill = series_label)) +
-  geom_hline(yintercept = 0, colour = "grey65", linewidth = .4) +
-  geom_vline(xintercept = 20, colour = "grey80", linewidth = .4) +
+  geom_hline(yintercept = 0, colour = "grey65", linewidth = .19) +
+  geom_vline(xintercept = 20, colour = "grey80", linewidth = .19) +
   geom_ribbon(aes(ymin = lower_95, ymax = upper_95), alpha = .12, colour = NA) +
-  geom_line(linewidth = 1) + facet_wrap(~age_label, ncol = 4) +
+  geom_line(linewidth = .46) + facet_wrap(~age_label, ncol = 4) +
   scale_colour_manual(values = colours) + scale_fill_manual(values = colours) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
   labs(x = "PfPR[2–10] (%)", y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
 figure <- file.path(out, "sfig_pfpr_splines_imputed_covariates.png")
-ggsave(figure, p, width = 14, height = 8, dpi = 220, device = ragg::agg_png, bg = "white")
+ggsave(figure, p, width = 6.5, height = 3.95, dpi = 320, device = ragg::agg_png, bg = "white")
 
 ## ---- contrasts and sample -------------------------------------------------------------------------
 contrasts <- do.call(rbind, lapply(c(40, 0), function(x) {

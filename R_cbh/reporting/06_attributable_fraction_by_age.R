@@ -66,29 +66,31 @@ deaths$label_hjust <- ifelse(deaths$age_band == ages[1], 0, .5)
 boundaries <- bands$age_lo[-1]
 # Months 0 and 1 are too close to label both; the 1-month boundary is the first vertical line.
 x_scale <- scale_x_continuous(breaks = c(0, boundaries[-1], 60), limits = c(0, 60), expand = expansion(add = .6))
-x_lines <- geom_vline(xintercept = boundaries, colour = "grey88", linewidth = .4)
-base <- theme_minimal(base_size = 20) +
-  theme(axis.text = element_text(size = 16), axis.title = element_text(size = 20),
+x_lines <- geom_vline(xintercept = boundaries, colour = "grey88", linewidth = .23)
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in (printed at 0.95\linewidth = 6.18 in); line,
+# point and margin sizes are those of the former 11 in canvas scaled to 6.2 in.
+base <- theme_minimal(base_size = 13, base_line_size = .5) +
+  theme(axis.text = element_text(size = 11), axis.title = element_text(size = 13),
     panel.grid.minor = element_blank(), panel.grid.major.x = element_blank())
 top <- ggplot(deaths) + x_lines +
   geom_rect(aes(xmin = mid - bar_width / 2, xmax = mid + bar_width / 2, ymin = 0, ymax = share), fill = "grey65") +
   geom_text(aes(x = label_x, y = share, label = label, hjust = label_hjust),
-            vjust = -.4, size = 5.2, colour = "grey25") +
+            vjust = -.4, size = 11 / .pt, colour = "grey25") +
   x_scale +
   # No zero label: it would collide with the 100% label of the panel below.
   scale_y_continuous(breaks = function(l) setdiff(scales::extended_breaks()(l), 0),
                      expand = expansion(mult = c(0, .2))) +
   labs(x = NULL, y = "% of all\ndeaths") +
-  base + theme(axis.text.x = element_blank(), plot.margin = margin(16, 20, 0, 12))
+  base + theme(axis.text.x = element_blank(), plot.margin = margin(9, 11, 0, 7))
 # Conditional pointwise 95% intervals.
 # The lower limit is allowed below zero: the neonatal interval at 10% includes zero.
 y_floor <- min(0, floor(min(d$af_lower_95) * 20) / 20)
 stopifnot(max(d$af_upper_95) <= 1)
 bottom <- ggplot(d, aes(age_months, attributable_fraction, colour = prevalence, group = prevalence)) + x_lines +
-  geom_hline(yintercept = 0, colour = "grey65", linewidth = .4) +
-  geom_linerange(aes(ymin = af_lower_95, ymax = af_upper_95), linewidth = .7) +
+  geom_hline(yintercept = 0, colour = "grey65", linewidth = .23) +
+  geom_linerange(aes(ymin = af_lower_95, ymax = af_upper_95), linewidth = .4) +
   # Dashed (user request, 27 October 2026): the lines only join discrete band estimates.
-  geom_line(linewidth = 1.1, linetype = "22") + geom_point(size = 2.4) +
+  geom_line(linewidth = .62, linetype = "22") + geom_point(size = 1.35) +
   scale_colour_manual(values = c("10%" = "#0072B2", "20%" = "#009E73",
                                  "30%" = "#E69F00", "40%" = "#CC79A7")) +
   x_scale +
@@ -98,13 +100,13 @@ bottom <- ggplot(d, aes(age_months, attributable_fraction, colour = prevalence, 
   coord_cartesian(ylim = c(y_floor, 1)) +
   labs(x = "Age (months)", y = "Malaria-attributable share\nof all-cause deaths",
        colour = "PfPR[2–10]") +
-  base + theme(legend.position = "bottom", legend.text = element_text(size = 16),
-    legend.title = element_text(size = 18), plot.margin = margin(4,20,12,12))
+  base + theme(legend.position = "bottom", legend.text = element_text(size = 11),
+    legend.title = element_text(size = 12.5), plot.margin = margin(2,11,7,7))
 for (panel in list(top, bottom))
   stopifnot(is.null(panel$labels$title), is.null(panel$labels$subtitle), is.null(panel$labels$caption))
 p <- patchwork::wrap_plots(top, bottom, ncol = 1, heights = c(1.2, 3))
-ggsave(file.path(out, "attributable_fraction_by_age.png"), p, width = 11, height = 9,
-       dpi = 240, device = ragg::agg_png, bg = "white")
+ggsave(file.path(out, "attributable_fraction_by_age.png"), p, width = 6.2, height = 5.1,
+       dpi = 400, device = ragg::agg_png, bg = "white")
 inputs <- c(component_path, file.path(out, c("fit_manifest.csv", "fit_diagnostics.csv", "pfpr_curves.csv")),
             "R_cbh/reporting/06_attributable_fraction_by_age.R", "R_cbh/primary/settings.R")
 cbh_atomic_csv(data.frame(file = inputs, md5 = vapply(inputs, cbh_file_hash, "")),

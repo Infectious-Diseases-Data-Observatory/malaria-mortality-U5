@@ -1,0 +1,3 @@
+# Caption notes — analysis units where Snow polygons were merged (one map per country)
+
+Analysis units under the merge rule, one panel per survey with merged units; the country is named in each file name (<ISO3>_merge_units.png). Thick black lines are merged units (unions of Snow et al. polygons; the units of a survey can overlap); white lines are survey-region boundaries; thin grey lines are Snow polygons, coloured by how the survey's units use them. A unit is one Snow polygon if that polygon holds at least 90% of the population of the record's smallest reported administrative unit, and otherwise the union of every polygon holding at least 5%; units more than half malaria free are dropped.

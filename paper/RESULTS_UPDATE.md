@@ -2,12 +2,12 @@
 
 Figure 1 is the map of complete birth histories used, by analysis unit (`figures/fig1_analysis_units_map.png`); the former Figure 1, the survey map and timing, is now `Supplementary Figures/sfig_survey_map_and_timing.png`.
 
-Figures 1–4 (Figure 3 combines the 2024 country comparison, the Nigerian state
-comparison and the 2000–2024 annual trend as panels A–C, all as deaths per 1,000
-under-five child-years;
-Figure 4 is the probability of dying before age 5 by country, all causes and caused
-by malaria under the model and under IHME, ordered by the model's malaria value, with
-national PfPR in a narrow left panel) and the
+Figures 1–5 (Figure 2 is the mortality hazard ratio by age band relative to
+zero prevalence; Figure 3 the malaria-attributable fraction by age; Figure 4 national
+malaria-attributable under-five mortality per 1,000 child-years, 2000–2024, with UN IGME
+all-cause mortality; Figure 5 the PfPR-ACM estimates against the cause-specific
+estimates of UN IGME and IHME by country in 2024; the burden comparison with IHME and UN IGME and the probability of
+dying before age 5 are supplementary figures) and the
 supplementary inclusion flow use the 17-variable
 regional-adjustment MAP gamma=2 models in `primary_snow520_merge_dhsmics_gamma2_v11`. The analysis contains
 2,335,868 children, 7,639,443 child-band records and
@@ -28,9 +28,10 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Country table source](tables/country_comparison_2024.latex.txt).
 - [Source comparison table source](tables/source_comparison.latex.txt) and its
   [values](tables/source_comparison_2000_2024.csv).
-- [Main figure captions](figures/primary_figure_captions.md) and the
-  [Figure 3 caption](figures/fig3_burden_comparison_caption.md); Figure 3 is
-  `figures/fig3_burden_comparison.png`.
+- [Main figure captions](figures/primary_figure_captions.md), with the
+  [Figure 2](figures/fig2_hazard_ratio_by_age_caption.md) and
+  [Figure 4](figures/fig4_malaria_mortality_rates_unigme_caption.md) captions, and the
+  [burden comparison caption](<Supplementary Figures/sfig_burden_comparison_caption.md>).
 - [Inclusion-flow caption](<Supplementary Figures/sfig_study_flow_caption.md>).
 - [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).

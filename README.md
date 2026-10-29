@@ -13,9 +13,9 @@ This repository contains only what the manuscript describes. The analysis was de
 
 | | |
 |---|---|
-| Primary analysis | **Snow-unit primary** (since 11 October 2026), `primary_snow520_merge_dhsmics_gamma2_v11`: DHS and MICS surveys placed in the Snow et al. (2017) polygons (merge rule), 17 covariates, MAP PfPR, γ = 2. South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability for band-entry years before independence (2011) (`R_cbh/primary/national_substitutions.R`). Branch `snow-polygon-primary`. |
+| Primary analysis | **Snow-unit primary** (since 11 October 2026), `primary_snow520_merge_dhsmics_gamma2_v12`: DHS and MICS surveys placed in the Snow et al. (2017) polygons (merge rule), 17 covariates, MAP PfPR, γ = 2. South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability for band-entry years before independence (2011) (`R_cbh/primary/national_substitutions.R`). Political stability in 2001, a year without a WGI round, is the mean of the country's 2000 and 2002 values (`R_cbh/primary/national_interpolations.R`; v12, 29 October 2026; v11, which dropped 2001 band entries, is kept as history). Branch `snow-polygon-primary`. |
 | Sample | 136 surveys (99 DHS, 37 MICS) in 37 countries; 1,452 survey × unit areas (215 of them unions of polygons) in 465 polygons; 1,125,610 mothers; 2,335,868 children; 7,639,443 child-band records; 105,114 deaths |
-| Sensitivities | Sahel, UN M49 West, Central and East Africa, and period (by survey year and by record calendar year) refits (`subgroups_snow520_merge_gamma2_v5`); without wasting and stunting (`nutrition_adjustment_snow520_merge_gamma2_v5`); imputed covariates (`primary_snow520_merge_imputed_gamma2_v12`) |
+| Sensitivities | Sahel, UN M49 West, Central and East Africa, and period (by survey year and by record calendar year) refits (`subgroups_snow520_merge_gamma2_v6`); without wasting and stunting (`nutrition_adjustment_snow520_merge_gamma2_v6`); imputed covariates (`primary_snow520_merge_imputed_gamma2_v12`) |
 | Previous primary | v9 (`primary_map_regional17_dhsmics_gamma2_v9`, survey-regions; 629,136 attributable deaths in 2024) is kept as stage `primary_v9` and compared in `comparison_v9/` (586,723 under the Snow units, ratio 0.93) |
 | Verified | The Snow unit construction reproduces the analysis project record for record ([verification/snow_reproduction.md](verification/snow_reproduction.md)); see [Verification](#verification) |
 
@@ -121,7 +121,7 @@ legend text and in-plot labels at least 9 pt); the rule and how to check it are 
 | Supplementary: survey-regions against Snow polygons | `Supplementary Figures/sfig_snow_boundary_agreement_map.png` | `R_cbh/snow/22_map_boundary_agreement.R` |
 | Supplementary: merged units, one map per country | `Supplementary Figures/snow_merge_units/<ISO3>_merge_units.png` | `R_cbh/snow/21_map_merge_units.R` |
 | Supplementary: Snow units against v9 | `Supplementary Figures/sfig_pfpr_curves_v9_vs_snow.png`, `tables/comparison_v9_vs_snow.md` | `R_cbh/reporting/22_compare_v9_snow.R` |
-| Results text: 2024 agreement statistics | `results/cbh/…_v11/annual_comparison/country_agreement_2024.csv` | `R_cbh/reporting/21_country_agreement_2024.R` |
+| Results text: 2024 agreement statistics | `results/cbh/…_v12/annual_comparison/country_agreement_2024.csv` | `R_cbh/reporting/21_country_agreement_2024.R` |
 
 ## Verification
 

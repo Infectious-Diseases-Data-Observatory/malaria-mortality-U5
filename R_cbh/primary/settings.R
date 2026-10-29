@@ -16,7 +16,10 @@
 # of the polygons each holding >= 5%; units more than half malaria-free dropped; exposure = MAP PfPR of the unit;
 # the 13 regional covariates recomputed per (survey, unit) from the recodes. snow_split_repro rebuilds the analysis
 # project's population-share split dataset on the v9 surveys to verify the port (prepared data only; not fitted).
-cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","regional_mics")) {
+# snow_merge v12 (author decision, 29 October 2026): political stability in 2001, a year without a WGI round, is the
+# mean of the country's 2000 and 2002 values (R_cbh/primary/national_interpolations.R), so records entering a band in
+# 2001 are no longer lost to complete-case selection; sensitivities v6. v11 (sensitivities v5) is kept as history.
+cbh_primary_settings <-function(version=Sys.getenv("CBH_PRIMARY_VERSION","regional_mics")) {
   if (version %in% c("snow_merge", "snow_split_repro")) return(cbh_snow_primary_settings(version))
   if (!identical(version, "regional_mics"))
     stop("Unknown primary version: ", version, " (regional_mics = v9, snow_merge, snow_split_repro)")
@@ -42,7 +45,7 @@ cbh_primary_settings <- function(version=Sys.getenv("CBH_PRIMARY_VERSION","regio
     unit = "region", prepare = "R_cbh/primary/00_prepare_regional.R")
 }
 cbh_snow_primary_settings <- function(version) {
-  id <- if (identical(version, "snow_merge")) "primary_snow520_merge_dhsmics_gamma2_v11" else "snow_split_repro"
+  id <- if (identical(version, "snow_merge")) "primary_snow520_merge_dhsmics_gamma2_v12" else "snow_split_repro"
   private <- file.path("data/derived_cbh/models", id)
   list(
     id = id, version = version,
@@ -56,8 +59,8 @@ cbh_snow_primary_settings <- function(version) {
     # Expected counts are set from the verified run (verification/reference_key_numbers.csv); NULL = not yet fixed.
     expected_records = NULL, expected_deaths = NULL, expected_regions = NULL,
     mics_output_dir = "data/derived_mics/cbh_build", expected_mics_surveys = NULL,
-    sensitivity_dirs = c(subgroups = "results/cbh/subgroups_snow520_merge_gamma2_v5",
-                         nutrition = "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v5"),
+    sensitivity_dirs = c(subgroups = "results/cbh/subgroups_snow520_merge_gamma2_v6",
+                         nutrition = "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v6"),
     unit = "snow", snow_variant = if (identical(version, "snow_merge")) "merge" else "split_repro",
     prepare = "R_cbh/primary/00_prepare_snow.R")
 }

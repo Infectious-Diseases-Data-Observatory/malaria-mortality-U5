@@ -35,7 +35,7 @@ cbh_subgroup_settings <- function(sample = c("dhsmics", "dhs")) {
     # The Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge): the same subgroups; Sahel membership by the record's
     # source survey-region centroid, as in v9 (user plan default, 11 October 2026).
     if (identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")) {
-      st$id <- "subgroups_snow520_merge_gamma2_v6"; st$primary_version <- "snow_merge"   # v6: primary v12; v5 = v11
+      st$id <- "subgroups_snow520_merge_gamma2_v7"; st$primary_version <- "snow_merge"   # v7: primary v13; v6 = v12, v5 = v11
       # Full suite (user request, 12 October 2026): Sahel, the UN M49 sub-regions of Figure 1, and the survey-period
       # split. Southern Africa is not refitted: 1,061 deaths in 7 surveys and PfPR below 10.3% (95% of records below
       # 7.4%), so the curve at 20% and 40% would be an extrapolation (its size is reported in subregions_not_fitted.csv).

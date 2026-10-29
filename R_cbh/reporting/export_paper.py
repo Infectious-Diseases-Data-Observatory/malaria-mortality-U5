@@ -16,7 +16,7 @@ parser.add_argument("--copy", action="store_true", help="Copy after validating; 
 # The primary version (CBH_PRIMARY_VERSION, set by run_pipeline.R): snow_merge = the Snow-unit primary (since
 # 11 October 2026), regional_mics = the v9 survey-region primary.
 snow = os.environ.get("CBH_PRIMARY_VERSION", "regional_mics") == "snow_merge"
-default_root = "results/cbh/primary_snow520_merge_dhsmics_gamma2_v12" if snow else "results/cbh/primary_map_regional17_dhsmics_gamma2_v9"
+default_root = "results/cbh/primary_snow520_merge_dhsmics_gamma2_v13" if snow else "results/cbh/primary_map_regional17_dhsmics_gamma2_v9"
 parser.add_argument("--root", type=Path, default=Path(default_root))
 args = parser.parse_args()
 root = args.root
@@ -25,8 +25,8 @@ out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
 assert destination.is_dir()
 # Sensitivities refitted on the DHS and MICS sample; the DHS-only versions are kept as history.
-subgroups = Path("results/cbh/subgroups_snow520_merge_gamma2_v6" if snow else "results/cbh/subgroups_dhsmics_map_gamma2_v4")
-nutrition = Path("results/cbh/nutrition_adjustment_snow520_merge_gamma2_v6" if snow else "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
+subgroups = Path("results/cbh/subgroups_snow520_merge_gamma2_v7" if snow else "results/cbh/subgroups_dhsmics_map_gamma2_v4")
+nutrition = Path("results/cbh/nutrition_adjustment_snow520_merge_gamma2_v7" if snow else "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
 imputed = Path("results/cbh/primary_snow520_merge_imputed_gamma2_v12" if snow else "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10")
 
 def digest(path):

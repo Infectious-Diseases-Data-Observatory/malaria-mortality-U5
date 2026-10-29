@@ -1,6 +1,6 @@
 # Snow et al. polygons as the unit of analysis
 
-Since 11 October 2026 the primary analysis uses the sub-national polygons of Snow et al. (2017) as its geographic unit, in place of the survey-regions of the DHS and MICS files (primary version `snow_merge`, result id `primary_snow520_merge_dhsmics_gamma2_v12`; v11 is kept as history). The code was ported from the analysis project's `R_cbh/snow_units/`, where the approach was developed and checked.
+Since 11 October 2026 the primary analysis uses the sub-national polygons of Snow et al. (2017) as its geographic unit, in place of the survey-regions of the DHS and MICS files (primary version `snow_merge`, result id `primary_snow520_merge_dhsmics_gamma2_v13`; v11 and v12 are kept as history). The code was ported from the analysis project's `R_cbh/snow_units/`, where the approach was developed and checked.
 
 ## Rules (user decisions, 6, 11 and 12 October 2026)
 
@@ -15,7 +15,7 @@ Since 11 October 2026 the primary analysis uses the sub-national polygons of Sno
   - Units of one survey can overlap: one region's records can get the union of four polygons, while a neighbouring region keeps one of them.
 - **Malaria-free areas.** A unit more than half of whose population lies in malaria-free or island units is dropped. Otherwise those polygons are left out of the unit.
 - **Exposure.** MAP PfPR~2–10~ of the unit in the band-entry year, population-weighted over its polygons (GPW density × cell area).
-- **Covariates.** The 13 regional covariates of v9, recomputed for each survey × unit from the DHS BR, PR and HW recodes and the MICS files (`09`, `10`), then the v9 fallbacks (WUENIC, within-survey mean). The 4 national covariates are those of v9, with one declared substitution (12 October 2026): for band-entry years before independence (2011), South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability (`R_cbh/primary/national_substitutions.R`; merge variant only, `split_repro` has no substitution). Its child HIV incidence is its own. Political stability in 2001, a year without a WGI round, is the mean of the country's 2000 and 2002 values (`R_cbh/primary/national_interpolations.R`; v12, 29 October 2026).
+- **Covariates.** The 13 regional covariates of v9, recomputed for each survey × unit from the DHS BR, PR and HW recodes and the MICS files (`09`, `10`), then the v9 fallbacks (WUENIC, within-survey mean). The 4 national covariates are those of v9, with one declared substitution (12 October 2026): for band-entry years before independence (2011), South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability (`R_cbh/primary/national_substitutions.R`; merge variant only, `split_repro` has no substitution). Its child HIV incidence is its own. Political stability in 2001, a year without a WGI round, is the mean of the country's 2000 and 2002 values and health expenditure in 2024, not yet published, is the country's 2023 value (`R_cbh/primary/national_interpolations.R`; v12 and v13, 29 October 2026).
 - **Model.** The seven v9 age-band models, with the random effect on survey × unit (`R_cbh/primary/`).
 
 ## Scripts (run in order; `SNOW_VARIANT=merge`, the default)

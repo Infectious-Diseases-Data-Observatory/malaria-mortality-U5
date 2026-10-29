@@ -11,15 +11,16 @@
 #   national: the declared substitutions of R_cbh/primary/national_substitutions.R (merge variant only; the reproduction
 #             keeps the analysis project's inputs): South Sudan's GDP per capita, health expenditure per capita and
 #             political stability for band-entry years before independence (2011) are Sudan's for the same year, from
-#             the cbh_config()$annual_panels files; its child HIV incidence is its own; and the declared interpolation of
+#             the cbh_config()$annual_panels files; its child HIV incidence is its own; and the declared fills of
 #             R_cbh/primary/national_interpolations.R (merge variant only): political stability in 2001, a year without
-#             a WGI round, is the mean of the country's 2000 and 2002 values;
+#             a WGI round, is the mean of the country's 2000 and 2002 values, and health expenditure in 2024, not yet
+#             published, is the country's 2023 value;
 #   unit:     region = survey : unit (the analogue of the v9 survey-region random effect).
 # Complete cases on the v9 requirements; z-scores as in v9 (weighted by w only in the split reproduction).
 # Writes the prepared dataset (private) in the layout of 00_prepare_regional.R, and summaries in the result folder:
 # prepared_sample.csv, prepared_selection_by_survey.csv, covariate_scaling.csv, covariate_fallbacks.csv,
 # national_substitutions.csv (one row per substituted country and covariate; header only when none applies),
-# national_interpolations.csv (one row per country and interpolated year),
+# national_interpolations.csv (one row per filled covariate, country and year),
 # complete_case_losses.csv (first missing input) and preparation_provenance.csv.
 source("R_cbh/load_pipeline.R"); source("R_cbh/covariates/unicef.R"); source("R_cbh/primary/specification.R"); source("R_cbh/primary/settings.R")
 source("R_cbh/primary/national_substitutions.R"); source("R_cbh/primary/national_interpolations.R")
@@ -93,11 +94,15 @@ for (v in sv$variable) {
   if (!all(is.finite(ns[[v]]))) stop("No ", v, " in the source panel for ", paste(unique(paste(ns$source_country, ns$year)[!is.finite(ns[[v]])]), collapse = ", "))
   if (nrow(ns)) set(d, ns$row, v, ns[[v]])
 }
-# Declared interpolation (merge variant), after the substitutions: political stability in a WGI gap year where the
-# record has none.
-gi <- if (identical(S$variant, "merge")) which(!is.finite(d$political_stability) & d$entry_year %in% cbh_wgi_gap_years()) else integer()
-gv <- cbh_political_stability_interpolated(as.character(d$country[gi]), d$entry_year[gi], cfg)
+# Declared fills (merge variant), after the substitutions, where the record has no value: political stability in a WGI
+# gap year, and health expenditure in a carried year.
+merge_variant <- identical(S$variant, "merge")
+gi <- if (merge_variant) which(!is.finite(d$political_stability) & d$entry_year %in% cbh_wgi_gap_years()) else integer()
+gv <- as.numeric(cbh_political_stability_interpolated(as.character(d$country[gi]), d$entry_year[gi], cfg))
 if (length(gi)) set(d, gi, "political_stability", gv)
+hi <- if (merge_variant) which(!is.finite(d$log_health_expenditure_pc) & as.character(d$entry_year) %in% names(cbh_health_expenditure_carry_years())) else integer()
+hv <- as.numeric(cbh_health_expenditure_carried(as.character(d$country[hi]), d$entry_year[hi], cfg))
+if (length(hi)) set(d, hi, "log_health_expenditure_pc", hv)
 required <-c("death", "age_band", "pfpr_pct", "calendar_year", "band_years", "survey", "country", "region", covs)
 ok <- complete.cases(d[, ..required])
 for (v in required) if (is.numeric(d[[v]])) ok <- ok & is.finite(d[[v]])
@@ -112,10 +117,13 @@ nsub <- rbindlist(lapply(sv$variable, function(v) data.table(ns[c("country", "so
 nsub <- merge(nsub, rules[c("country", "before_year", "note")], by = "country", sort = FALSE)
 setcolorder(nsub, c("country", "source_country", "variable", "before_year"))
 cbh_atomic_csv(nsub, file.path(settings$out, "national_substitutions.csv"))
-# Record of the interpolation: the value, records and deaths covered, and those in the sample, by country and year.
-nint <- data.table(country = as.character(d$country[gi]), year = d$entry_year[gi], political_stability = gv, w = d$w[gi],
-  death = d$death[gi], kept = ok[gi])[, .(political_stability = political_stability[1], records = sum(w), deaths = sum(w * death),
-  records_in_sample = sum(w[kept]), deaths_in_sample = sum((w * death)[kept])), by = .(country, year)][order(country, year)]
+# Record of the fills: the value (model scale), records and deaths covered, and those in the sample, by covariate,
+# country and year.
+fills_rows <- rbind(data.table(row = gi, variable = "political_stability", rule = "mean of the adjacent years", value = gv),
+  data.table(row = hi, variable = "log_health_expenditure_pc", rule = "2023 value carried forward", value = hv))
+nint <- fills_rows[, .(variable, rule, country = as.character(d$country[row]), year = d$entry_year[row], value, w = d$w[row],
+  death = d$death[row], kept = ok[row])][, .(value = value[1], records = sum(w), deaths = sum(w * death),
+  records_in_sample = sum(w[kept]), deaths_in_sample = sum((w * death)[kept])), by = .(variable, rule, country, year)][order(variable, country, year)]
 cbh_atomic_csv(nint, file.path(settings$out, "national_interpolations.csv"))
 d <- d[ok]
 ages <- cbh_config()$age_bands$age_band
@@ -152,7 +160,7 @@ print(counts); print(fills)
 for (k in unique(nsub$country)) with(nsub[nsub$country == k, ], message(sprintf("National substitution: %s band-entry years %s (before %d) take %s's %s: %s records, %s deaths (%s records and %s deaths in the sample)",
   k, years[1], before_year[1], source_country[1], paste(variable, collapse = ", "), format(records[1], big.mark = ","), format(deaths[1], big.mark = ","),
   format(records_in_sample[1], big.mark = ","), format(deaths_in_sample[1], big.mark = ","))))
-if (nrow(nint)) message(sprintf("National interpolation: political stability in %s for %d countries: %s records, %s deaths (%s records and %s deaths in the sample)",
-  paste(unique(nint$year), collapse = ", "), uniqueN(nint$country), format(sum(nint$records), big.mark = ","), format(sum(nint$deaths), big.mark = ","),
-  format(sum(nint$records_in_sample), big.mark = ","), format(sum(nint$deaths_in_sample), big.mark = ",")))
+for (v in unique(nint$variable)) with(nint[nint$variable == v, ], message(sprintf("National fill: %s in %s (%s) for %d countries: %s records, %s deaths (%s records and %s deaths in the sample)",
+  v, paste(unique(year), collapse = ", "), rule[1], length(unique(country)), format(sum(records), big.mark = ","), format(sum(deaths), big.mark = ","),
+  format(sum(records_in_sample), big.mark = ","), format(sum(deaths_in_sample), big.mark = ","))))
 message("Snow-unit prepared dataset written (", S$variant, ")")

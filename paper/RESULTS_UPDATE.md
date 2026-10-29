@@ -9,12 +9,12 @@ all-cause mortality; Figure 5 the PfPR-ACM estimates against the cause-specific
 estimates of UN IGME and IHME by country in 2024; the burden comparison with IHME and UN IGME and the probability of
 dying before age 5 are supplementary figures) and the
 supplementary inclusion flow use the 17-variable
-regional-adjustment MAP gamma=2 models in `primary_snow520_merge_dhsmics_gamma2_v12`. The analysis contains
-2,344,504 children, 7,800,785 child-band records and
-108,657 deaths in 1,452 survey x unit areas,
+regional-adjustment MAP gamma=2 models in `primary_snow520_merge_dhsmics_gamma2_v13`. The analysis contains
+2,348,875 children, 7,807,872 child-band records and
+108,796 deaths in 1,452 survey x unit areas,
 136 surveys and 37 countries.
 
-It combines 99 DHS and 37 UNICEF MICS surveys, with records placed in the malaria-endemic polygons of Snow et al. (2017): 5,751,417 DHS records and 81,312 deaths in 1,148 survey x unit areas, and 2,049,368 MICS records and 27,345 deaths in 304 survey x unit areas. None of the 5 MIS surveys passes complete-case selection.
+It combines 99 DHS and 37 UNICEF MICS surveys, with records placed in the malaria-endemic polygons of Snow et al. (2017): 5,758,504 DHS records and 81,451 deaths in 1,148 survey x unit areas, and 2,049,368 MICS records and 27,345 deaths in 304 survey x unit areas. None of the 5 MIS surveys passes complete-case selection.
 
 The revised adjustment removes sex, multiple births and birth order; replaces
 maternal age at each birth with regional mean age at first birth; and adds
@@ -36,7 +36,7 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).
 
-The 2024 totals are 588,195 PfPR-ACM deaths,
+The 2024 totals are 587,587 PfPR-ACM deaths,
 428,147 IHME deaths and
 440,123 UN IGME deaths, summed over the
 42 countries in the national burden comparison (36 of the 37 survey countries; ZAF contributes survey data but is outside the burden set).
@@ -44,7 +44,7 @@ These are conditional model-based estimates; source and imputation uncertainty
 are not fully propagated.
 
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
-subgroups (`subgroups_snow520_merge_gamma2_v6`) and no nutrition covariates (`nutrition_adjustment_snow520_merge_gamma2_v6`)
+subgroups (`subgroups_snow520_merge_gamma2_v7`) and no nutrition covariates (`nutrition_adjustment_snow520_merge_gamma2_v7`)
 on this sample, and imputed covariates on the larger sample of every placed record
 (`primary_snow520_merge_imputed_gamma2_v12`, which retains every record placed in a Snow et al. unit: 8,630,306 records, 122,092 deaths, 161 surveys and 38 countries). Malaria's share of under-five deaths against national
 PfPR in 2024 (`Supplementary Figures/sfig_malaria_share_vs_pfpr.png`) compares IHME and

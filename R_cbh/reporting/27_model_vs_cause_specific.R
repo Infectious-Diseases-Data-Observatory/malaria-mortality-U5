@@ -45,7 +45,9 @@ panel <- function(p, source_label, tag) ggplot(d[panel == p], aes(cause_specific
   scale_x_continuous(limits = lim, breaks = seq(0, 8, 2), expand = expansion(mult = c(0, .02))) +
   scale_y_continuous(limits = lim, breaks = seq(0, 8, 2), expand = expansion(mult = c(0, .02))) +
   coord_equal() +
-  labs(x = sprintf("Malaria-attributable deaths\nper 1,000 child-years (%s)", source_label),
+  # Paper terms (author decision, 30 October 2026): "malaria deaths" for the cause-specific estimates (x),
+  # "malaria-attributable deaths" for the PfPR-ACM estimates, which include indirect effects (y).
+  labs(x = sprintf("Malaria deaths\nper 1,000 child-years (%s)", source_label),
        y = "Malaria-attributable deaths\nper 1,000 child-years (PfPR-ACM)", tag = tag) +
   theme_minimal(base_size = 9, base_line_size = .3) +
   theme(axis.title = element_text(size = 11), axis.text = element_text(size = 9), legend.text = element_text(size = 9),

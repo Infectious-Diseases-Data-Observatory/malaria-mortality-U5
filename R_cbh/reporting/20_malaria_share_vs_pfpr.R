@@ -104,8 +104,9 @@ tex <- c("% Replacement table source; saved as plain text. No manuscript file is
 writeLines(tex, file.path(out, "malaria_share_table_2024.latex.txt"))
 
 ## Figure -------------------------------------------------------------------------------------------
-# Drawn at the printed width (157 mm, 0.95\linewidth), so text sizes are printed sizes and meet the paper's text-size
-# rule (CLAUDE.md); lines and points are those of the earlier 180 mm drawing scaled by 157/180. The three shares measure
+# Saved 157 mm wide and printed at \linewidth (165 mm), so printed text is 1.05 times the script size and meets the
+# paper's text-size rule (CLAUDE.md): axis titles 11.4 pt, other text 9.5 pt, panel titles with their tags 12.6 pt; lines
+# and points are those of the earlier 180 mm drawing scaled by 157/180. The three shares measure
 # different things: the model's is attributable (direct and indirect deaths; stated in the caption), IHME's and
 # CA-CODE's are cause-assigned.
 model <- cbh_paper_model_label()
@@ -117,6 +118,8 @@ shapes <- setNames(c(21, 24, 23, 23), keys)
 ymax <- ceiling(100 * max(d$acm_upper, d$igme_upper, d$ihme) / 5) * 5
 xmax <- ceiling(max(d$pfpr_pct) / 5) * 5
 label_n <- 7L; shift <- .25   # comparators sit slightly right of the model point
+# Every share axis has the same title (user request, 30 October 2026); the caption says which measure each axis shows.
+share_lab <- "Share of all-cause mortality (%)"
 # Long country names are labelled on two lines (figure only; the tables keep the full names on one line).
 plot_name <- function(x) sub("^(Central African|Republic of|Equatorial) ", "\\1\n", x)
 comparator <- function(src) {
@@ -169,15 +172,15 @@ panel <- function(src, title) {
     scale_y_continuous(limits = c(0, ymax), breaks = seq(0, ymax, 5), expand = expansion(add = c(.6, 0))) +
     coord_cartesian(clip = "off") +
     labs(title = title, x = bquote("National"~italic(Pf)*PR["2–10"]*","~.(fig_year)~"(%)"),
-         y = if (is_igme) NULL else "Malaria share of\nunder-five deaths (%)") +
+         y = if (is_igme) NULL else share_lab) +
     theme_minimal(base_size = 10.8, base_line_size = .34) +
     theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.text = element_text(size = 9),
           axis.text = element_text(size = 9), legend.key.width = unit(2.6, "mm"), legend.key.spacing.y = unit(1, "pt"),
-          plot.title = element_text(size = 11, face = "bold"), plot.title.position = "plot")
+          plot.title = element_text(size = 12, face = "bold"), plot.title.position = "plot")
   if (is_igme) p else p + guides(colour = "none", fill = "none", shape = "none")
 }
 lim <- ceiling(100 * max(d$acm_upper, d$igme_upper, d$ihme) / 5) * 5
-scatter <- function(src, title, xlab) {
+scatter <- function(src, title) {
   is_igme <- src == "igme"
   z <- comparator(src); lab <- labelled(z)
   higher <- sum(z$acm * 100 > z$comp)
@@ -206,14 +209,14 @@ scatter <- function(src, title, xlab) {
     scale_x_continuous(limits = c(0, lim), breaks = seq(0, lim, 10), expand = expansion(add = c(.6, .6))) +
     scale_y_continuous(limits = c(0, lim), breaks = seq(0, lim, 10), expand = expansion(add = c(.6, .6))) +
     coord_equal(clip = "off") +
-    labs(title = title, x = xlab, y = if (is_igme) NULL else paste0(model, " share (%)")) +
+    labs(title = title, x = share_lab, y = if (is_igme) NULL else share_lab) +
     theme_minimal(base_size = 10.8, base_line_size = .34) +
-    theme(panel.grid.minor = element_blank(), axis.text = element_text(size = 9), plot.title = element_text(size = 11, face = "bold"),
+    theme(panel.grid.minor = element_blank(), axis.text = element_text(size = 9), plot.title = element_text(size = 12, face = "bold"),
           plot.title.position = "plot")
 }
 fig <- (panel("ihme", "A  IHME") | panel("igme", "B  UN IGME (CA-CODE)")) /
-  (scatter("ihme", paste0("C  ", model, " vs IHME"), "IHME share (%),\ncause of death") |
-   scatter("igme", paste0("D  ", model, " vs UN IGME"), "UN IGME (CA-CODE) share (%),\ncause of death")) +
+  (scatter("ihme", paste0("C  ", model, " vs IHME")) |
+   scatter("igme", paste0("D  ", model, " vs UN IGME"))) +
   plot_layout(guides = "collect", heights = c(1.2, 1.1)) + plot_annotation(theme = theme(legend.position = "bottom"))
 ggsave(file.path(out, "sfig_malaria_share_vs_pfpr.png"), fig, width = 157, height = 198, units = "mm", dpi = 600,
        device = ragg::agg_png, bg = "white")

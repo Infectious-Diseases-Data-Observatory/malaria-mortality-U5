@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Multiple-imputation check for the imputed-covariate sensitivity of the Snow-unit primary, as for
-# the DHS-only version (R_cbh/sensitivity/imputation/01_propagate.R). For each of M
+# the former DHS-only version (in git history). For each of M
 # imputed datasets (regional mice imputations; national draws of health expenditure,
 # GDP and political stability; child HIV incidence draws), refit the seven age-band
 # models with smoothing parameters fixed at the point-imputation fit and pool the PfPR

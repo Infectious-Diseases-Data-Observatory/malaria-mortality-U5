@@ -26,7 +26,7 @@ source_files <- c(file.path(cfg$output_dir, "manifest.rds"), file.path(st$mics_o
   file.path(st$imputation_results, c("regional_imputation_provenance.csv", "national_imputation_provenance.csv")),
   st$imputed_overlay, st$imputed_national, st$hiv_panel,
   "R_cbh/sensitivity/imputation_dhsmics/03_prepare.R", "R_cbh/sensitivity/imputation_dhsmics/settings.R",
-  "R_cbh/primary/specification.R", "R_cbh/covariates/regional.R", "R_cbh/analysis/model.R")
+  "R_cbh/primary/specification.R", "R_cbh/analysis/model.R")
 signature <- cbh_hash(list(files = source_files, hashes = vapply(source_files, cbh_file_hash, ""), spec = spec))
 signature_path <- file.path(st$private, "preparation_signature.rds")
 if (file.exists(st$data) && file.exists(signature_path)) {

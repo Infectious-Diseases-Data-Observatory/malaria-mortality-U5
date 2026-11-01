@@ -4,8 +4,8 @@
 # (R_cbh/primary/national_substitutions.R): South Sudan's GDP, health expenditure and political stability before
 # independence (2000-2010) are Sudan's observed values for the same year (labels *_substituted_sdn; Sudan has no 2001 WGI
 # round, so South Sudan's 2001 is interpolated as for every country). They are not modelled, have no draws, so they are
-# the same in every imputed dataset, and do not enter the model fits. Then the fills, with the methods of the DHS-only
-# version (R_cbh/covariates/15_impute_national.R):
+# the same in every imputed dataset, and do not enter the model fits. Then the fills, with the methods of the former
+# DHS-only version (in git history):
 #   political stability : no WGI round in 2001 -> mean of 2000 and 2002 (deterministic); any other gap -> GAM, with draws
 #   GDP per capita (log): South Sudan after 2015 -> GAM, with draws
 #   health expenditure  : Zimbabwe 2000-2009, Somalia 2000-2012, South Sudan 2011-2016, every country's 2024 -> the v4
@@ -155,7 +155,7 @@ snow_text <- { r <- unique(ns[c("country", "source_country")]); rules <- cbh_nat
     paste(unique(tolower(r$source_country)), collapse = "/"),
     if (nrow(gaps)) sprintf(" %s has no WGI estimate for %s; that political stability is interpolated as below.", paste(unique(cname(gaps$source_country)), collapse = ", "), runs(gaps$year)) else ""), "") }
 writeLines(c("# National covariate imputation (DHS and MICS, Snow-unit version imputed_snow_v15)", "",
-  sprintf("Countries: the %d countries with built DHS or MICS surveys; years %d-%d. Methods follow the DHS-only version (`R_cbh/covariates/15_impute_national.R`); the MICS countries add Somalia, South Sudan, the Central African Republic and Guinea-Bissau.",
+  sprintf("Countries: the %d countries with built DHS or MICS surveys; years %d-%d. Methods follow the DHS-only version (in git history); the MICS countries add Somalia, South Sudan, the Central African Republic and Guinea-Bissau.",
     length(countries), min(years), max(years)), "", snow_text,
   c(sprintf("**Political stability (WGI):** %d country-years in 2001 (no WGI round) filled by the mean of each country's 2000 and 2002 estimates (deterministic, `wgi_2001_interpolated`). %s",
     length(interp), if (length(miss_ps)) sprintf("The other %d gaps (%s) are filled from `%s` fitted by REML to %d observed country-years (residual SD %.3f), with %d draws saved.",

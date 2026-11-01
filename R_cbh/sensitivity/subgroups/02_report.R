@@ -78,16 +78,6 @@ contrasts <- do.call(rbind, lapply(c(0, 40), function(x) {
 }))
 write_csv(contrasts, "pfpr_contrasts.csv")
 cz <- contrasts[contrasts$contrast == "40% to 20%", ]
-cz$age_label <- factor(cz$age_band, levels = rev(ages))
-pc <- ggplot(cz, aes(hazard_ratio, age_label, colour = series)) +
-  geom_vline(xintercept = 1, colour = "grey60", linetype = 2, linewidth = .23) +
-  geom_pointrange(aes(xmin = lower_95, xmax = upper_95), position = position_dodge(width = .7), size = .23, linewidth = .23) +
-  scale_x_log10(breaks = c(.5, .7, .8, .9, 1, 1.1, 1.25)) + scale_colour_manual(values = colours) +
-  guides(colour = guide_legend(ncol = 2)) +
-  labs(x = "Hazard ratio, PfPR 40% to 20% (95% interval, log scale)", y = "Age (completed months)") + paper
-ggsave(file.path(st$out, "pfpr_40_to_20_by_subgroup.png"), pc, width = 6.5,
-       height = if (length(st$labels) > 5) 5 else 4.5, dpi = 320,
-       device = ragg::agg_png, bg = "white")
 
 ## ---- caption and report --------------------------------------------------------------
 sample <- read("sample_summary.csv"); defs <- readLines(file.path(st$out, "subgroup_definitions.csv"))
@@ -135,7 +125,6 @@ lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
   "## Figures", "",
   unlist(lapply(names(st$figures), function(f) c(sprintf("![%s](%s.png)", c(sfig_pfpr_splines_by_subgroup = "Splines by subgroup",
     sfig_pfpr_splines_by_subregion = "Splines by UN sub-region", sfig_pfpr_splines_by_period = "Splines by period")[[f]], f), "", caption_for(st$figures[[f]]), ""))),
-  "![40% to 20% contrasts](pfpr_40_to_20_by_subgroup.png)", "",
   "## Hazard ratios, PfPR 40% to 20%", "", "Values below one indicate lower mortality at 20% than at 40%. Intervals are pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   table_lines, "",
   "## Validation", "",

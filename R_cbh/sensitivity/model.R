@@ -1,16 +1,4 @@
 # Shared helpers for single-imputation subgroup sensitivity analyses.
-cbh_sensitivity_formula <- function(spec, single_age = FALSE) {
-  if (!single_age) return(cbh_trial_formula(spec))
-  x <- ifelse(spec$covariates %in% spec$scaled,
-              paste0("z_", spec$covariates), spec$covariates)
-  stats::as.formula(paste0(
-    "death ~ s(pfpr_pct, bs='cr', k=", spec$pfpr_k,
-    ") + s(calendar_year, bs='cr', k=", spec$time_k, ") + ",
-    paste(x, collapse = " + "),
-    " + s(survey, bs='re') + s(country, bs='re') + s(region, bs='re')",
-    " + offset(log(band_years))"))
-}
-
 cbh_sensitivity_curves <- function(fit, d, id) {
   do.call(rbind, lapply(levels(d$age_band), function(age) {
     use <- which(d$age_band == age)

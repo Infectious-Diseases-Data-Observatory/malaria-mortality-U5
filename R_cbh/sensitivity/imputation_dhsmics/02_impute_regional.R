@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # Multiple imputation of the remaining regional covariate gaps, one row per survey x unit of the Snow primary's
-# covariate table (DHS and MICS jointly), with the specification of the DHS-only version
-# (R_cbh/covariates/16_impute_regional.R): chained equations with predictive mean
+# covariate table (DHS and MICS jointly), with the specification of the former DHS-only version
+# (in git history): chained equations with predictive mean
 # matching over the 13 regional covariates and the unit's MAP PfPR at the survey year,
 # with survey year, the national series at survey year and a country factor as
 # predictors. Observed values are never changed.
@@ -90,7 +90,7 @@ plotted <- regional[vapply(regional, function(v) sum(!is.finite(before[[v]])) >=
 print(densityplot(imp, as.formula(paste("~", paste(plotted, collapse = "+"))))); dev.off()
 fmt_na <- function(x) ifelse(is.na(x), "—", sprintf("%.2f", x))
 writeLines(c("# Regional covariate imputation (DHS and MICS, imputed_dhsmics_v6)", "",
-  sprintf("Chained-equation multiple imputation (`mice`, predictive mean matching, m = %d, maxit = %d, seed %d) at the survey-region level on %d survey-regions (%d DHS, %d MICS) from %d surveys, imputed jointly. Targets: the 13 regional covariates and regional MAP PfPR at the survey year; predictors: all of these plus survey year, the national series at survey year (log GDP, log health expenditure, political stability, from `01_impute_national.R`) and a country factor. The specification is that of the DHS-only version (`R_cbh/covariates/16_impute_regional.R`); with the larger donor pool and a different random stream, DHS imputed values differ from that version. Observed values are unchanged. The point overlay is the mean of the %d imputations; all are kept for propagation.",
+  sprintf("Chained-equation multiple imputation (`mice`, predictive mean matching, m = %d, maxit = %d, seed %d) at the survey-region level on %d survey-regions (%d DHS, %d MICS) from %d surveys, imputed jointly. Targets: the 13 regional covariates and regional MAP PfPR at the survey year; predictors: all of these plus survey year, the national series at survey year (log GDP, log health expenditure, political stability, from `01_impute_national.R`) and a country factor. The specification is that of the DHS-only version (in git history); with the larger donor pool and a different random stream, DHS imputed values differ from that version. Observed values are unchanged. The point overlay is the mean of the %d imputations; all are kept for propagation.",
     st$m, st$maxit, st$imputation_seed, nrow(res), sum(res$programme == "DHS"), sum(res$programme == "MICS"), length(unique(res$survey)), st$m), "",
   sprintf("%d MICS survey-regions without MAP prevalence at the survey year and without analysis records were dropped: %s.", nrow(no_map), paste(no_map$survey, no_map$regkey, collapse = ", ")), "",
   "| Variable | Survey-regions imputed (DHS / MICS) | Surveys | Observed mean | Imputed mean | Between-imputation SD |", "|---|---:|---:|---:|---:|---:|",

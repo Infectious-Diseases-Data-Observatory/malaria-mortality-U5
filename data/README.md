@@ -1,6 +1,6 @@
 # Data
 
-All inputs to the analysis live here. Every committed file is listed in `INPUTS_MANIFEST.csv`, with its size, md5 and origin, and `run_pipeline.R` checks every md5 before it runs. Raw survey microdata are **not** committed (see below).
+All inputs to the analysis live here. Every committed input file is listed in `INPUTS_MANIFEST.csv`, with its size, md5 and origin, and `run_pipeline.R` checks every md5 before it runs. Raw survey microdata are **not** committed (see below).
 
 ## Survey microdata (not in git)
 
@@ -9,48 +9,43 @@ DHS, MIS and MICS microdata cannot be redistributed. Register with the programme
 | What | Where | How to obtain |
 |---|---|---|
 | 124 DHS/MIS Births Recodes (BR), as `.rds` files named by the DHS file name, e.g. `NGBR8BFL.rds` | `data/raw/dhs/` | [DHS Program](https://dhsprogram.com/data/) (registration and project approval). The files were read with `rdhs` (`R_inputs/fetch/01_access_dhs_data.R --download` saves them in this form). |
-| DHS/MIS Household Member Recodes (PR, flat), e.g. `NGPR8BFL.rds`, for every DHS survey, and WHO height/weight recodes (HW, Stata), e.g. `BFHW43DT.rds`, for the older surveys whose BR files lack WHO z-scores; the list is `R_cbh/snow/config/dhs_pr_hw_files.csv` | `data/raw/dhs/` | As above (`R_inputs/fetch/download_pr_hw.R`). Used for the Snow-unit covariates; SLPR61FL also gives the Sierra Leone 2013 survey-region values of the covariates stage (`R_cbh/covariates/17_recode_replacements.R`). |
+| DHS/MIS Household Member Recodes (PR, flat), e.g. `NGPR8BFL.rds`, for every DHS survey, and WHO height/weight recodes (HW, Stata), e.g. `BFHW43DT.rds`, for the older surveys whose BR files lack WHO z-scores; the list is `R_cbh/snow/config/dhs_pr_hw_files.csv` | `data/raw/dhs/` | As above; `tools/import_pr_hw.R` copies them from the local `rdhs` cache. Used for the Snow-unit covariates. |
 | 93 UNICEF MICS survey downloads (zip archives in `<ISO>_<year>_MICS<n>_v01_M/` folders) | `data/raw/MICS_Datasets/` | [UNICEF MICS](https://mics.unicef.org/surveys) (registration). `R_mics/00a_extract.R` extracts the SPSS files to `data/raw/MICS_extracted/`. |
 | Full UNICEF data dump `fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv` (563 MB) | `data/unicef/original/` | [UNICEF data warehouse](https://data.unicef.org/), global dataflow. Optional: only needed to remake the committed extract (`R_inputs/trim_unicef_fusion.R`). |
 
-Every file derived from microdata (child-band files, prepared datasets, model fits, survey-region covariate tables) is written to `data/derived_cbh/`, `data/derived_dhs/` or `data/derived_mics/`. These folders, `data/raw/` and `results/` are ignored by git. `tools/check_no_microdata.sh` blocks a commit that would add such files.
+Every file derived from microdata (child-band files, prepared datasets, model fits, Snow-unit covariate tables) is written to `data/derived_cbh/`, `data/derived_dhs/` or `data/derived_mics/`. These folders, `data/raw/` and `results/` are ignored by git. `tools/check_no_microdata.sh` blocks a commit that would add such files.
 
 ## Committed inputs
 
 | Input | Files | Source and terms |
 |---|---|---|
 | MAP *P. falciparum* parasite rate, ages 2–10, annual 2000–2024, release `Malaria__202608_Global_Pf_Parasite_Rate` (used since 1 November 2026) | `map_annual_202608/pfpr2_10_YYYY.tif` (band 1, the estimate; every survey-region and Snow-unit exposure) | [Malaria Atlas Project](https://malariaatlas.org/), via `malariaAtlas::getRaster` (`R_inputs/fetch/fetch_map_release_rasters.R 202608 2000 2024`, downloaded 1 November 2026). CC BY 4.0. Not committed (author decision): download them with that script; `INPUTS_MANIFEST.csv` holds their md5s, which the pipeline checks. |
-| MAP national (admin-0) and admin-1 PfPR2-10 estimates with lower and upper bounds, release 202608, 2000–2025 | `map_pfpr_admin0_202608.csv`, `map_pfpr_admin1_202608.csv` (proportions 0–1; MAP does not state the interval level) | MAP's platform API (`https://data.malariaatlas.org/map-platform-app-backend/api/v1/trends/malaria/Pf_PR-rate/{admin0,admin1}/{mean,lci,uci}?version=202608`, the data behind data.malariaatlas.org/trends), via `R_inputs/fetch/fetch_map_national_pfpr.R 202608` (1 November 2026). National PfPR of the burden (2000–2024), its uncertainty draws, and Nigerian state PfPR. |
-| MAP parasite rate, release `Malaria__202508_Global_Pf_Parasite_Rate` (history: the paper's exposure until v13) | `map_annual/pfpr2_10_YYYY.tif`, `pfpr_2to10_africa_2024.tif` | As above, via `R_inputs/fetch/01_fetch_data.R`. No longer read by the pipeline. |
+| MAP national (admin-0) PfPR2-10 estimates with lower and upper bounds, release 202608, 2000–2025 | `map_pfpr_admin0_202608.csv` (proportions 0–1; MAP does not state the interval level) | MAP's platform API (`https://data.malariaatlas.org/map-platform-app-backend/api/v1/trends/malaria/Pf_PR-rate/admin0/{mean,lci,uci}?version=202608`, the data behind data.malariaatlas.org/trends), via `R_inputs/fetch/fetch_map_national_pfpr.R 202608` (1 November 2026). National PfPR of the burden (2000–2024) and its uncertainty draws. |
 | GPW v4 population density 2020, 2.5 arc-minutes | `pop/gpw_v4_population_density_rev11_2020_2.5m.tif` | CIESIN/SEDAC. CC BY 4.0. |
 | National boundaries | `africa_admin0.rds` | `geodata`/GADM via `R_inputs/fetch/01_fetch_data.R`. |
-| DHS survey-region boundaries | `dhs_boundaries/<SurveyId>.rds` (128) | [DHS Spatial Data Repository](https://spatialdata.dhsprogram.com/), via `rdhs::download_boundaries`. |
+| DHS survey-region boundaries | `dhs_boundaries/<SurveyId>.rds` (124) | [DHS Spatial Data Repository](https://spatialdata.dhsprogram.com/), via `rdhs::download_boundaries`. |
 | Snow et al. (2017) sub-national polygons: the 520 malaria-endemic units of analysis (plus 29 malaria-free and 2 island units); also Guinea-Bissau and CAR MICS regions and some MICS region labels | `external/snow_admin1/Africa_New_Admin.*` | Snow malaria prevalence project (KEMRI-Wellcome), released open access with the original publication (Snow et al. 2017, *Nature* 550:515–518; per the authors of this repository, 11 October 2026). |
 | Lakes and reservoirs (Natural Earth 1:10m, v5) | `external/natural_earth/ne_10m_lakes.geojson` | [Natural Earth](https://www.naturalearthdata.com/), from the `nvkelso/natural-earth-vector` repository (downloaded 12 October 2026). Public domain. Drawn on the Figure 1 map only. |
-| UNICEF/WHO immunisation estimates (WUENIC) | `unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_immunisation_subset.csv`, `unicef/CHECKSUMS.csv` | Header plus every `IM_` line of the UNICEF data dump, unchanged (`R_inputs/trim_unicef_fusion.R`). |
+| UNICEF/WHO immunisation estimates (WUENIC) | `unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_immunisation_subset.csv`, `unicef/CHECKSUMS.csv` | Header plus every `IM_` line of the UNICEF data dump, unchanged (`R_inputs/trim_unicef_fusion.R`). Both UNICEF extracts are in `INPUTS_MANIFEST.csv`; `CHECKSUMS.csv` also records the md5 of the dump they were cut from. |
 | UN IGME all-cause deaths under 5 and by age group (<1 month, 1–11 months, 1–4 years) and UN WPP population under 5, both sexes, African countries, 2000–2024 | `unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_igme_wpp_subset.csv`, `unicef/CHECKSUMS.csv` | Header plus the `CME_TMY0T4`, `CME_TMM0`, `CME_TMM1T11`, `CME_TMY1T4` and `DM_POP_U5` lines of the UNICEF data dump, unchanged (`R_inputs/trim_unicef_fusion.R`). |
 | Child HIV epidemiology (UNAIDS 2025 estimates, via UNICEF) | `HIV_Epidemiology_Children_Adolescents_2025.xlsx` | [UNICEF data](https://data.unicef.org/topic/hivaids/). |
 | New HIV infections, children 0–14, Liberia | `unaids_aidsinfo/liberia_new_hiv_infections_children_0_14.csv` | [UNAIDS AIDSinfo](https://aidsinfo.unaids.org/). |
 | GDP per capita (current US$, NY.GDP.PCAP.CD); current health expenditure per capita (current US$, SH.XPD.CHEX.PC.CD); political stability (WGI, GOV_WGI_PV_EST) | `wb_gdp_pc.csv`, `wb_hexp_pc.csv`, `wb_polstab.csv` | World Bank WDI / Worldwide Governance Indicators, CC BY 4.0. Fetch scripts: `R_inputs/fetch/01_fetch_data.R` and `R_inputs/fetch/fetch_world_bank.R`. |
 | IHME GBD all-cause under-five deaths and rates by age group, 45 sub-Saharan countries, 2000–2025 (exported 9 September 2026) | `Data Explorer - … 2026-09-09 10-58-22.csv` | [IHME GBD Results](https://vizhub.healthdata.org/gbd-results/). **IHME terms of use apply** (non-commercial; attribution). |
 | IHME GBD under-five malaria deaths by age (exported 3 September 2026) | `ihme_malaria_u5_deaths_by_age_country_year.csv` | As above. |
-| IHME GBD Nigerian states: all-cause and malaria (exported 16 September 2026) | `external/nigeria_states/` (with `source.json`) | As above. |
-| UN IGME under-five mortality rate (World Bank mirror, SH.DYN.MORT) | `igme_u5mr_by_country.csv` | [UN IGME](https://childmortality.org/). Fetch script: `R_inputs/fetch/fetch_igme_u5mr.R`. |
 | CA-CODE 2026 under-five malaria deaths and malaria share of under-five deaths | `external/figure5/unicef_cacode_u5_malaria_2000_2024.csv`, `external/cacode/unicef_cacode_u5_malaria_fraction_2000_2024.csv` (each with `source.json`) | UNICEF SDMX service behind [childmortality.org](https://childmortality.org/causes-of-death/data), WHO/UNICEF CA-CODE release of 18 March 2026. |
-| MAP PfPR for Nigerian states and DR Congo provinces, 2024 (history: release 202508; replaced by `map_pfpr_admin1_202608.csv`) | `pfpr_admin1_ng_cd_2024.csv` | Computed from the 2024 MAP raster and malariaAtlas admin-1 shapes (`R_inputs/fetch/pfpr_admin1_ng_cd_2024.R`). No longer read by the pipeline. |
 
 ## Frozen copies of fetched inputs (`frozen/`)
 
 The re-run uses the same vintages of internet sources as the paper. `run_pipeline.R` (stage `restore`) copies these files from `frozen/<path>` to `<path>`:
 
 - **DHS survey registry** (`frozen/data/derived_dhs/survey_registry.csv`). This is the DHS catalogue query of `R_inputs/fetch/01_access_dhs_data.R`, with repository-relative paths. Re-querying the live catalogue could add surveys.
-- **DHS API pages.** The published regional indicator pages (`*_page*.json`), the nutrition pages and the StatCompiler indicator table.
-- **National HIV prevalence panel.** A legacy candidate column in the child-band files; the model does not use it.
+- **DHS API pages.** The published national indicator pages (`indicators_page1.json`, `national_*_page1.json`) and the StatCompiler indicator table.
 
 The fetch scripts reuse these caches and download only missing pages. The pipeline blocks network access, so a missing cache fails instead of downloading.
 
-`frozen/` also holds reference copies of the survey-region MAP tables and the child HIV incidence panels from the analysis project. They are used only to diagnose a difference (`run_pipeline.R --map=frozen` uses the MAP tables).
+`frozen/` also holds the paper's child HIV incidence panels and draws (base and extended). Stage `hiv_panels` (`tools/use_frozen_hiv.R`) restores them, and `R_cbh/hiv/03_add_liberia_aidsinfo.R` then adds Liberia to make the panels the models use; the model refit (`R_cbh/hiv/01_fit_incidence.R`, stage `hiv`, optional: `Rscript run_pipeline.R --only=hiv`, not part of `--all`) is only a check.
 
 ## Provenance
 
-`INPUTS_MANIFEST.csv` and `raw_manifest.csv` were written by `tools/import_from_analysis_project.R`, which copied the inputs from the analysis project where the paper's analysis was developed.
+The `source` column of `INPUTS_MANIFEST.csv` records where each committed file came from; most were copied from the analysis project where the paper's analysis was developed (`<analysis project>`). `tools/import_pr_hw.R` adds the PR and HW recodes to `raw_manifest.csv`.

@@ -70,3 +70,6 @@ Rplots.pdf
 # downloads them and data/INPUTS_MANIFEST.csv pins their md5s. The 2025 layer is kept apart from the 2000-2024 folder.
 data/map_annual_202608/
 data/map_annual_202608_extra/
+# Per-survey MAP extraction caches of stage inputs (R_inputs/02_extract_map_pfpr.R, 41_extract_map_window_years.R).
+data/map_region_cache_*/
+data/map_window_cache_*/

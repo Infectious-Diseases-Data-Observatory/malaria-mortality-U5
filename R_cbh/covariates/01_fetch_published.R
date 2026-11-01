@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 # Explicit public-data refresh; never reads or uploads respondent data.
-# Run from project root. The audit itself uses this local snapshot offline.
+# Run from project root. R_cbh/snow/09_covariates_dhs.R validates against the national rows of this local snapshot
+# offline. National level only since 1 November 2026: the sub-national rows fed the removed v9 survey-region overlay.
+# The indicator query is unchanged, so the cached pages (named by level and batch) still match it.
 library(jsonlite)
 source("R_cbh/load_pipeline.R")
 out <- "data/derived_cbh/regional_adjustment"
@@ -36,7 +38,7 @@ fetch <- function(endpoint, query, name) {
 metadata <- fetch("indicators",paste0("indicatorIds=",paste(ids,collapse=",")),"indicators")
 cbh_atomic_csv(metadata,file.path(out,"indicator_metadata.csv"))
 all <- list()
-for(level in c("subnational","national")) {
+for(level in "national") {
   batches <- split(surveys,ceiling(seq_along(surveys)/20))
   for(i in seq_along(batches)) {
     message(level, " batch ",i,"/",length(batches))

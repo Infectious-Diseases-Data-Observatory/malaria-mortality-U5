@@ -5,9 +5,8 @@
 # sub-Saharan Snow polygons (520 endemic + 29 malaria-free + 2 island), and its class: inside one of the 520
 # (>= 90% of its population in one polygon), inside a malaria-free/island unit, split across polygons, or no
 # polygon (Comoros, Zanzibar, Sao Tome and Principe). Regions: every survey-region with eligible records in the
-# child-band shards of the variant's survey universe (all 166 MAP-eligible surveys; the reproduction uses the
-# model_ready rows, as the analysis project did with its v10 sample). The in_v9 column (regions of the v9 primary) was
-# dropped with v9 on 1 November 2026.
+# child-band shards (all 166 MAP-eligible surveys). The in_v9 column (regions of the v9 primary) was dropped with v9
+# on 1 November 2026.
 # Output: <out>/feasibility/{region_snow_overlap,region_classification,survey_feasibility}.csv (aggregates)
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr) })
 sf_use_s2(FALSE)
@@ -16,10 +15,10 @@ S <- snow_dirs(snow_settings(), "feasibility"); out <- file.path(S$out, "feasibi
 snow <- readRDS(file.path(S$private, "polygons_551.rds"))[, c("Admin_ID", "Country_ID", "AFR_Admin", "Type", "in520")]
 
 # Survey-regions and their eligible records. Feasibility covers every built shard so that the unit construction
-# does not depend on which surveys a sample later keeps (the reproduction as in the analysis project).
+# does not depend on which surveys a sample later keeps.
 reg <- rbindlist(lapply(snow_all_shards(), function(s) {
-  d <- as.data.table(readRDS(snow_shard_path(s))$data[, c("survey", "country", "region", "regkey", "death", "model_ready")])
-  d <- d[snow_eligible(d, S)]
+  d <- as.data.table(readRDS(snow_shard_path(s))$data[, c("survey", "country", "region", "regkey", "death")])
+  d <- d[snow_eligible(d)]
   d[, c("survey", "country", "region", "regkey") := lapply(.SD, as.character), .SDcols = c("survey", "country", "region", "regkey")]
   d[, .(records = .N, deaths = sum(death)), by = .(survey, country, region, regkey)]
 }))

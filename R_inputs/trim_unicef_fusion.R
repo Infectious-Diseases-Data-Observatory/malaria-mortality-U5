@@ -3,8 +3,7 @@
 # The dump (fusion_GLOBAL_DATAFLOW_UNICEF_1.0_all.csv, 563 MB, data/unicef/original/, not committed)
 # is too large for git. Two extracts are kept, each a byte-for-byte subset of the original (the header and,
 # unchanged and in order, the selected lines):
-#   immunisation: every line containing "IM_", read by R_inputs/02b_extract_unicef_immunisation.R,
-#     R_cbh/covariates/07_prepare_unicef.R and R_mics/09_regional_covariates.R;
+#   immunisation: every line containing "IM_", read by R_cbh/covariates/07_prepare_unicef.R (the WUENIC fallback);
 #   igme_wpp (added 27 October 2026): UN IGME all-cause deaths under 5 and by age group (neonatal, 1-11 months,
 #     1-4 years) and UN WPP population under 5, both sexes, 2000-2024, African countries (countrycode continent;
 #     the World Bank's sub-Saharan region would omit Djibouti), read by R_cbh/burden/04_annual_comparison.R.

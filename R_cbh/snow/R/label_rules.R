@@ -1,7 +1,7 @@
 # Classification of DHS answer labels for the recode covariates (labels lower-cased and trimmed; rdhs keeps labels,
-# not codes). Ported unchanged from the analysis project (R_cbh/snow_units/label_rules.R); built from the label inventory of the 98 v9 DHS surveys (06_label_inventory.R). Every non-blank label
+# not codes). Ported unchanged from the analysis project (R_cbh/snow_units/label_rules.R); built from the label inventory of the 98 v9 DHS surveys. Every non-blank label
 # must be classified: an unknown label stops. Blank ("") = item not asked of that row -> NA (outside the denominator).
-# "missing" stays in the denominator as "no", as in the DHS tables and 17_recode_replacements.R.
+# "missing" stays in the denominator as "no", as in the DHS tables and v9's recode replacements.
 snow_unclassified <- function(x, out, what) {
   bad <- unique(x[!is.na(x) & nzchar(x) & is.na(out)])
   if (length(bad)) stop(what, ": unclassified labels: ", paste(head(bad, 20), collapse = " | "), call. = FALSE)

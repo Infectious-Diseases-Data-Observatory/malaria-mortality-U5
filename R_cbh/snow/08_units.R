@@ -5,7 +5,6 @@
 #     record's unit is the Snow polygon holding >= 90% of its smallest reported admin unit's population, else the
 #     union of the polygons each holding >= 5%; records whose unit is more than half malaria-free are dropped; one row
 #     per record, w = 1. Records of a survey with the same polygon set form one unit; units of a survey can overlap.
-#   split (reproduction only): one row per record and polygon, w = population share, as in the analysis project.
 # Writes <private>/records_units.rds (record level; private) and, in <out>/units/, units.csv (one row per survey x unit),
 # units_by_survey.csv and dropped_malaria_free.csv (aggregates).
 suppressPackageStartupMessages(library(data.table))
@@ -15,17 +14,11 @@ rec <- readRDS(file.path(S$private, "records_placed.rds"))
 pl <- unique(rec[, .(id = child_id, Admin_ID, w, rule)])
 stopifnot(!anyDuplicated(pl[, .(id, Admin_ID)]))
 un <- snow_assign(pl, S)
-if (identical(S$rule, "merge")) {
-  base <- unique(rec[, !c("Admin_ID", "w", "rule"), with = FALSE])
-  stopifnot(!anyDuplicated(base[, .(child_id, age_band)]))
-  d <- merge(base, un[, .(child_id = id, unit, w, rule, n_polygons, malaria_free)], by = "child_id")
-  mfree <- pl[, .(malaria_free = pmax(0, 1 - sum(w))), by = .(child_id = id)]
-  dropped <- merge(base[!child_id %in% un$id], mfree, by = "child_id")
-} else {
-  d <- merge(rec, un[, .(child_id = id, Admin_ID = unit, n_polygons, malaria_free)], by = c("child_id", "Admin_ID"))
-  d[, unit := Admin_ID]
-  dropped <- rec[0][, malaria_free := numeric()]
-}
+base <- unique(rec[, !c("Admin_ID", "w", "rule"), with = FALSE])
+stopifnot(!anyDuplicated(base[, .(child_id, age_band)]))
+d <- merge(base, un[, .(child_id = id, unit, w, rule, n_polygons, malaria_free)], by = "child_id")
+mfree <- pl[, .(malaria_free = pmax(0, 1 - sum(w))), by = .(child_id = id)]
+dropped <- merge(base[!child_id %in% un$id], mfree, by = "child_id")
 stopifnot(all(d$w > 0 & d$w <= 1), d[, sum(w), by = .(child_id, age_band)]$V1 <= 1 + 1e-9)
 saveRDS(d, file.path(S$private, "records_units.rds"))
 units <- d[, .(n_polygons = n_polygons[1], records = sum(w), deaths = sum(w * death), children = uniqueN(child_id)), by = .(survey, country, unit)]

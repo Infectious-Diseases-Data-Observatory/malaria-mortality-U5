@@ -10,9 +10,9 @@
 #             R_cbh/snow/config/name_aliases.csv ("alias"; an alias to a malaria-free unit counts as malaria-free).
 # The variable placing the most records is kept. Records are the eligible child-band records of the shards, linked to
 # their recode row through child_id (survey:c:<row>), which holds for DHS and MICS.
-# Reviewed fixes (primary only, settings rule_fixes): variables describing a previous residence are never location
-# variables (R_cbh/snow/config/finer_variable_exclusions.csv; UG7BFL s104), and a variable that places no record is
-# not chosen (its records use their survey-region, as before).
+# Reviewed fixes (made after the reproduction of the analysis project's split dataset): variables describing a previous
+# residence are never location variables (R_cbh/snow/config/finer_variable_exclusions.csv; UG7BFL s104), and a
+# variable that places no record is not chosen (its records use their survey-region, as before).
 # Output: <out>/feasibility/finer_{variable_choice,unit_crosswalk}.csv, record_placement_by_region.csv,
 #         survey_feasibility_final_all.csv (aggregates)
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr); library(haven) })
@@ -26,7 +26,7 @@ registry <- fread("data/derived_dhs/survey_registry.csv")
 setup <- fread("data/derived_mics/survey_setup.csv")
 dens <- crop(rast("data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"), ext(-26, 60, -36, 28))
 popc <- dens * cellSize(dens, unit = "km")
-excl <- if (S$rule_fixes) fread("R_cbh/snow/config/finer_variable_exclusions.csv") else data.table(survey = character(), variable = character())
+excl <- fread("R_cbh/snow/config/finer_variable_exclusions.csv")
 
 # Population share of each polygon in each Snow polygon; returns the largest share and its polygon.
 overlay <- function(p) {
@@ -44,8 +44,8 @@ stopifnot(nrow(aliases) == nrow(fread("R_cbh/snow/config/name_aliases.csv")))
 
 # Eligible records of every shard (one row per child: records = number of its child-band records).
 rd <- rbindlist(lapply(cls[, unique(survey)], function(s) {
-  d <- as.data.table(readRDS(snow_shard_path(s))$data[, c("survey", "regkey", "region", "child_id", "model_ready")])
-  d <- d[snow_eligible(d, S)]
+  d <- as.data.table(readRDS(snow_shard_path(s))$data[, c("survey", "regkey", "region", "child_id")])
+  d <- d[snow_eligible(d)]
   d[, c("survey", "regkey", "child_id") := lapply(.SD, as.character), .SDcols = c("survey", "regkey", "child_id")]
   d[, .(records = .N), by = .(survey, regkey, child_id)]
 }))
@@ -53,7 +53,7 @@ setorder(rd, child_id)   # child_id order, as when the v9 counts were merged in 
 rd[, row := as.integer(sub(".*:c:", "", child_id))]
 rd <- merge(rd, cls[, .(survey, regkey, class)], by = c("survey", "regkey"))
 split_surveys <- cls[class == "split across Snow polygons", unique(survey)]
-skip <- paste0("lived before|circumcis|fistula|unicef|cluster|ward|locality|parish|moved", if (S$rule_fixes) "|previous|lived in" else "")
+skip <- "lived before|circumcis|fistula|unicef|cluster|ward|locality|parish|moved|previous|lived in"
 
 choice <- list(); crosswalk <- list(); placement <- list()
 for (s in split_surveys) {
@@ -101,14 +101,14 @@ for (s in split_surveys) {
   })
   placed_methods <- c("geometry", "name", "name part", "alias")
   # A finer unit that is itself split ("geometry: split") still narrows the record's location.
-  informative <- c(placed_methods, if (S$rule_fixes) "geometry: split")
+  informative <- c(placed_methods, "geometry: split")
   score <- vapply(res, function(r) sum(r$u$split_records[r$u$method %in% placed_methods]), 0)
   info <- vapply(res, function(r) sum(r$u$split_records[r$u$method %in% informative]), 0)
   k <- which.max(score)
-  if (S$rule_fixes && info[k] == 0 && max(info) == 0) {
+  if (info[k] == 0 && max(info) == 0) {
     choice[[s]] <- data.table(survey = s, variable = NA_character_, note = "no finer variable places or narrows a record"); next
   }
-  if (S$rule_fixes && score[k] == 0) k <- which.max(info)
+  if (score[k] == 0) k <- which.max(info)
   u <- res[[k]]$u
   crosswalk[[s]] <- u
   x[, finer_method := u$method[match(res[[k]]$val, u$value)]]

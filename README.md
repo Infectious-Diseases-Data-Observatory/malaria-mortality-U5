@@ -87,7 +87,7 @@ must be refreshed after a rerun.
 - R 4.6.0 with the package versions that `run_pipeline.R` checks, Python 3, and about 16 GB of memory.
 - Put the DHS, MIS and MICS microdata in `data/raw/` ([data/README.md](data/README.md)) and download the MAP rasters:
   `Rscript R_inputs/fetch/fetch_map_release_rasters.R 202608 2000 2024`. Every other input is committed.
-- Run everything (about 5 to 6 hours; network access is blocked during the run):
+- Run everything (about 5 hours; network access is blocked during the run):
 
   ```bash
   ./run_detached.sh --all
@@ -102,10 +102,12 @@ must be refreshed after a rerun.
 
 ```
 run_pipeline.R   runs every stage in order          run_detached.sh   the same, detached from the terminal
-R_inputs/        survey-region MAP PfPR, immunisation and other input producers; fetch/ = download scripts
-R_mics/          MICS conversion to the DHS layout, regions, PfPR, child bands, covariates
+R_inputs/        survey-region MAP PfPR, region centroids and the UNICEF extracts; fetch/ = download scripts
+R_mics/          MICS conversion to the DHS layout, regions, PfPR, child bands
 R_cbh/           child bands, covariates, HIV model, Snow units (snow/), primary model (primary/), burden and
                  uncertainty (burden/), figures and tables (reporting/), sensitivity analyses (sensitivity/)
+tools/           restore of the frozen inputs and HIV panels, DHS PR/HW recode import, output comparison, the
+                 microdata commit guard
 data/            committed inputs and manifests        paper/   figures, tables and captions for the manuscript
 ```
 

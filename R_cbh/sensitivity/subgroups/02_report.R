@@ -5,8 +5,8 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 source("R_cbh/sensitivity/subgroups/settings.R")
 library(ggplot2)
-args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--dhs-only"))
-st <- cbh_subgroup_settings(cbh_subgroup_sample(args)); primary <- cbh_primary_settings(st$primary_version)
+args <- commandArgs(trailingOnly = TRUE); stopifnot(!length(args))
+st <- cbh_subgroup_settings(); primary <- cbh_primary_settings(st$primary_version)
 read <- function(x) cbh_read_csv(file.path(st$out, x))
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 ages <- cbh_config()$age_bands$age_band
@@ -39,8 +39,7 @@ paper <- theme_minimal(base_size = 9.9, base_line_size = .35) + theme(panel.grid
   legend.text = element_text(size = 9.9), legend.title = element_blank(), legend.margin = margin(0, 0, 0, 0),
   legend.box.spacing = grid::unit(6, "pt"), legend.key.spacing.y = grid::unit(1, "pt"),
   panel.spacing = grid::unit(10, "pt"), plot.margin = margin(4, 10, 4, 4))
-# One spline figure per group of subsets (st$figures): v9 one figure with every subset; the Snow-unit suite one figure
-# for Sahel and the survey periods and one for the UN M49 sub-regions.
+# One spline figure per group of subsets (st$figures): Sahel, the UN M49 sub-regions and the periods.
 for (fig_name in names(st$figures)) {
 shown <- d[d$within_central_support & d$subgroup %in% c("map_full", st$figures[[fig_name]]), ]
 shown$series <- droplevels(shown$series)
@@ -79,16 +78,6 @@ contrasts <- do.call(rbind, lapply(c(0, 40), function(x) {
 }))
 write_csv(contrasts, "pfpr_contrasts.csv")
 cz <- contrasts[contrasts$contrast == "40% to 20%", ]
-cz$age_label <- factor(cz$age_band, levels = rev(ages))
-pc <- ggplot(cz, aes(hazard_ratio, age_label, colour = series)) +
-  geom_vline(xintercept = 1, colour = "grey60", linetype = 2, linewidth = .23) +
-  geom_pointrange(aes(xmin = lower_95, xmax = upper_95), position = position_dodge(width = .7), size = .23, linewidth = .23) +
-  scale_x_log10(breaks = c(.5, .7, .8, .9, 1, 1.1, 1.25)) + scale_colour_manual(values = colours) +
-  guides(colour = guide_legend(ncol = 2)) +
-  labs(x = "Hazard ratio, PfPR 40% to 20% (95% interval, log scale)", y = "Age (completed months)") + paper
-ggsave(file.path(st$out, "pfpr_40_to_20_by_subgroup.png"), pc, width = 6.5,
-       height = if (length(st$labels) > 5) 5 else 4.5, dpi = 320,
-       device = ragg::agg_png, bg = "white")
 
 ## ---- caption and report --------------------------------------------------------------
 sample <- read("sample_summary.csv"); defs <- readLines(file.path(st$out, "subgroup_definitions.csv"))
@@ -97,11 +86,10 @@ cc <- grep("^records_period_cutoff,", defs, value = TRUE)
 calendar_cutoff <- if (length(cc)) as.numeric(sub("^records_period_cutoff,([0-9.]+).*$", "\\1", cc)) else NA_real_
 fmt <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
 row <- function(s) sample[sample$subgroup == s, ]
-describe <- function(s) sprintf(paste0("%s: %s children, %s records, %s deaths, %d ", if (identical(primary$unit, "snow")) "survey × unit areas" else "survey-regions", ", %d surveys, %d countries"),
+describe <- function(s) sprintf("%s: %s children, %s records, %s deaths, %d survey × unit areas, %d surveys, %d countries",
   st$labels[[s]], fmt(row(s)$distinct_children), fmt(row(s)$records), fmt(row(s)$deaths),
   row(s)$survey_regions, row(s)$surveys, row(s)$countries)
-subset_text <- c(sahel = if (identical(primary$unit, "snow")) "records whose survey-region boundary centroid lies at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel)"
-    else "survey regions with boundary centroids at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel)",
+subset_text <- c(sahel = "records whose survey-region boundary centroid lies at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel)",
   east_africa = "UN M49 Eastern Africa countries", west_africa = "UN M49 Western Africa countries",
   central_africa = "UN M49 Middle (Central) Africa countries",
   early = paste0("surveys conducted up to the median survey year (", cutoff, ")"), late = "surveys conducted after it",
@@ -137,13 +125,12 @@ lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
   "## Figures", "",
   unlist(lapply(names(st$figures), function(f) c(sprintf("![%s](%s.png)", c(sfig_pfpr_splines_by_subgroup = "Splines by subgroup",
     sfig_pfpr_splines_by_subregion = "Splines by UN sub-region", sfig_pfpr_splines_by_period = "Splines by period")[[f]], f), "", caption_for(st$figures[[f]]), ""))),
-  "![40% to 20% contrasts](pfpr_40_to_20_by_subgroup.png)", "",
   "## Hazard ratios, PfPR 40% to 20%", "", "Values below one indicate lower mortality at 20% than at 40%. Intervals are pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   table_lines, "",
   "## Validation", "",
   sprintf("All %d subgroup fits converged with full rank, finite coefficients and covariances and positive smoothing-Hessian eigenvalues; %d needed the tighter-tolerance restart (see restarts.csv where present). Fitted model columns were checked against the selected input rows; curves are anchored at zero at 20%% PfPR. Total pure fitting time %.0f seconds.",
     nrow(diag), sum(grepl("strict", cbh_read_csv(file.path(st$out, "fit_manifest.csv"))$selected_version)), sum(diag$elapsed_seconds)), "",
-  paste0("Reproduce: `Rscript R_cbh/sensitivity/subgroups/01_fit.R` then `Rscript R_cbh/sensitivity/subgroups/02_report.R`", if (st$sample == "dhs") " (both with `--dhs-only`)" else "", ". Only aggregate tables and figures are published; fitted objects stay under the ignored data directory. Primary fits, burden estimates and manuscript files are unchanged."))
+  paste0("Reproduce: `Rscript R_cbh/sensitivity/subgroups/01_fit.R` then `Rscript R_cbh/sensitivity/subgroups/02_report.R`", ". Only aggregate tables and figures are published; fitted objects stay under the ignored data directory. Primary fits, burden estimates and manuscript files are unchanged."))
 writeLines(lines, file.path(st$out, "REPORT.md"))
 source_files <- c(full_path, file.path(primary$out, "fit_diagnostics.csv"),
   file.path(st$out, c("pfpr_curves.csv", "fit_diagnostics.csv", "sample_summary.csv")),

@@ -1,7 +1,0 @@
-file,class,detail
-data/derived_dhs/map_pfpr_by_survey_region.csv,identical,""
-data/derived_dhs/map_pfpr_window_years.csv,identical,""
-data/derived_dhs/unicef_immunisation_country_year.csv,identical,""
-data/derived_dhs/dhs_region_centroids.csv,DIFFERENT,columns differ: SurveyId iso3 year regkey lon lat
-results/who_wmr2025_global_deaths.csv,identical,""
-results/who_wmr2025_africa_deaths.csv,identical,""

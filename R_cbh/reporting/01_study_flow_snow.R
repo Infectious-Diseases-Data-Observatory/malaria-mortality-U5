@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
-# Study flow (Figure S1) for the Snow-unit primary: the v9 ledger of R_cbh/reporting/01_study_flow.R with the
-# survey-region MAP step replaced by placement in the Snow et al. (2017) polygons (R_cbh/snow/). Aggregate inputs,
-# except the count of mothers, which reads the record shards as 03_survey_map.R does.
+# Study flow (Figure S1) for the Snow-unit primary: the ledger of the former survey-region (v9) study flow
+# (R_cbh/reporting/01_study_flow.R, removed 1 November 2026) with the survey-region MAP step replaced by placement in
+# the Snow et al. (2017) polygons (R_cbh/snow/). Aggregate inputs, except the count of mothers, which reads the record
+# shards as 03_survey_map.R does.
 # The full ledger (flow_counts.csv) runs: survey registry -> band entries within 5 years of interview -> eligible
 # child-age bands -> placed in a Snow polygon -> primary analysis sample, with exclusions for surveys not processed (no
 # MAP geography) or without a complete birth history; band eligibility; not placed (survey-region not matched; no Snow

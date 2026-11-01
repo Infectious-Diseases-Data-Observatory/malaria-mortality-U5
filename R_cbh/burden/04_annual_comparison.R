@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Figure 5 inputs and annual point estimates. No model refitting or downloads.
+# Annual country and sub-Saharan point estimates, 2000-2024. No model refitting or downloads.
 # Malaria-attributable mortality rates are estimated from two all-cause sources (main analysis from 27 October
 # 2026, user request): IHME (country_estimates_2000_2024.csv, unchanged) and UN IGME, side by side in the
 # source_*_2000_2024.csv files.
@@ -9,7 +9,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(mgcv))
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"))
 out <- file.path(settings$out, "annual_comparison")
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 years <- 2000:2024
@@ -92,21 +92,19 @@ setnames(m, c("Year", "Number", "Rate (per 100,000)"),
 setnames(denominators, "Year", "year")
 denominators <- merge(denominators, m, by = c("iso3", "year"), all.x = TRUE)
 denominators[, malaria_denominator_relative_difference := malaria_native_person_years / under5_person_years - 1]
-cbh_atomic_csv(denominators, file.path(out, "denominator_audit.csv"))
 
-# Check every required country-year, never allow a changing annual country set.
+# Check every required country-year, never allow a changing annual country set. (The audit tables of these checks,
+# read only by the former annual figure, were dropped on 1 November 2026.)
 grid <- CJ(iso3 = countries$iso3, year = years)
 coverage <- merge(grid, denominators, by = c("iso3", "year"), all.x = TRUE)
 coverage <- merge(coverage, who, by = c("iso3", "year"), all.x = TRUE)
 coverage[, complete := is.finite(allcause_deaths) & is.finite(under5_person_years) &
   is.finite(ihme_malaria_deaths) & is.finite(who_cacode_deaths)]
-cbh_atomic_csv(coverage, file.path(out, "country_year_input_audit.csv"))
 stopifnot(nrow(coverage) == 42 * length(years), all(coverage$complete))
 nat <- as.data.table(cbh_map_national(countries$iso3, years))
 map_audit <- nat[, .(country_years = .N, years = paste(range(year), collapse = "-"), map_release = map_release[1],
   min_pfpr_pct = min(pfpr_pct), max_pfpr_pct = max(pfpr_pct), lci_zero = sum(pfpr_lci_pct == 0)), by = iso3]
 stopifnot(nrow(nat) == nrow(grid), setequal(nat$iso3, countries$iso3), all(map_audit$country_years == length(years)))
-cbh_atomic_csv(map_audit, file.path(out, "map_input_audit.csv"))
 cbh_atomic_csv(countries, file.path(out, "included_countries.csv"))
 metadata <- rbindlist(lapply(list(allcause, malaria), function(z)
   unique(z[, .(Condition, Data_Suite, Data_Type, Data_Type_Level)])))
@@ -164,8 +162,6 @@ check[, `:=`(death_difference = model_deaths - previous_deaths,
   ihme_difference = ihme_malaria_deaths - previous_ihme)]
 stopifnot(nrow(check) == 126, max(abs(check$death_difference)) < .01,
   max(abs(check$pfpr_difference)) < 1e-6, max(abs(check$ihme_difference)) < 1e-6)
-cbh_atomic_csv(check[, .(iso3, year, death_difference, pfpr_difference, ihme_difference)],
-  file.path(out, "agreement_with_existing_primary.csv"))
 annual <- totals[, .(countries = .N, under5_person_years = sum(under5_person_years),
   model_deaths = sum(model_deaths), ihme_malaria_deaths = sum(ihme_malaria_deaths),
   who_cacode_deaths = sum(who_cacode_deaths)), by = year]

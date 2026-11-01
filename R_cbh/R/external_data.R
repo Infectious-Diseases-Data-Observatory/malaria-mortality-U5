@@ -7,7 +7,7 @@ cbh_external_inputs <- function(cfg) {
     spec <- cfg$annual_panels[[name]]
     d <- cbh_read_csv(spec$path, required = FALSE)
     if (!is.null(d)) {
-      cbh_require(d, c("iso3", "year", unname(spec$columns), unname(spec$source_status)), name)
+      cbh_require(d, c("iso3", "year", unname(spec$columns)), name)
       cbh_unique(d, c("iso3", "year"), name)
     }
     d
@@ -38,24 +38,15 @@ cbh_attach_external <- function(d, survey, boundaries, inputs, cfg) {
     for (out in names(spec$columns)) {
       v <- if (is.null(panel)) rep(NA_real_, n) else cbh_num(panel[[spec$columns[[out]]]][j])
       valid <- is.finite(v)
-      if (out %in% spec$percent) valid <- valid & v >= 0 & v <= 100
       if (out %in% c("gdp_pc", "health_expenditure_pc")) valid <- valid & v > 0
       status <- ifelse(is.na(j), if (is.null(panel)) "missing_panel" else "missing_country_year",
                        ifelse(valid, "observed", "missing_or_invalid_value"))
-      if (out %in% names(spec$source_status) && !is.null(panel)) {
-        source_status <- as.character(panel[[spec$source_status[[out]]]][j])
-        allowed <- !is.na(source_status) & source_status %in% spec$allowed_status
-        rejected <- !is.na(j) & !allowed
-        status[rejected] <- paste0("not_observed:", ifelse(is.na(source_status[rejected]), "unknown", source_status[rejected]))
-        valid <- valid & allowed
-      }
       d[[out]] <- ifelse(valid, v, NA_real_)
       d[[paste0(out, "_status")]] <- status
     }
   }
-  # No arbitrary positive constant is added to a zero prevalence.
-  for (pair in list(c("hiv_prev_pct", "log_hiv_prev"), c("gdp_pc", "log_gdp_pc"),
-                   c("health_expenditure_pc", "log_health_expenditure_pc"))) {
+  # Logs of positive values only; no constant is added.
+  for (pair in list(c("gdp_pc", "log_gdp_pc"), c("health_expenditure_pc", "log_health_expenditure_pc"))) {
     v <- d[[pair[1]]]
     d[[pair[2]]] <- log(ifelse(is.finite(v) & v > 0, v, NA_real_))
   }

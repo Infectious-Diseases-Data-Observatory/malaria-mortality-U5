@@ -1,8 +1,7 @@
 #!/usr/bin/env Rscript
-# Place every eligible child-band record of the variant's surveys in the 520 Snow polygons (rules in
-# R_cbh/snow/R/placement.R; ported from the analysis project's R_cbh/snow_units/05_placement.R). Eligible records are
-# the shards' rows whose survey-region is matched (primary), or v9's model_ready rows (reproduction); national
-# covariates come from the shards and the child HIV incidence panel of the primary settings, as in v9.
+# Place every eligible child-band record in the 520 Snow polygons (rules in R_cbh/snow/R/placement.R; ported from the
+# analysis project's R_cbh/snow_units/05_placement.R). Eligible records are the shards' rows whose survey-region is
+# matched; national covariates come from the shards and the child HIV incidence panel of the primary settings, as in v9.
 # Writes: <out>/placement/finer_unit_shares.csv and placement_summary.csv (aggregates);
 #         <private>/records_placed.rds (record level; private, under the ignored data/).
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr); library(haven) })
@@ -10,11 +9,10 @@ sf_use_s2(FALSE)
 source("R_cbh/load_pipeline.R"); source("R_cbh/analysis/model.R"); source("R_cbh/primary/settings.R")
 source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/placement.R")
 S <- snow_dirs(snow_settings(), "placement"); pout <- file.path(S$out, "placement")
-settings <- cbh_primary_settings("regional_mics")   # HIV incidence panel (unchanged from v9)
+settings <- cbh_primary_settings("snow_merge")   # child HIV incidence panel
 registry <- fread("data/derived_dhs/survey_registry.csv"); setup <- fread("data/derived_mics/survey_setup.csv")
 cls <- fread(file.path(S$out, "feasibility", "region_classification.csv"))
-surveys <- intersect(snow_surveys(S), cls$survey)
-if (identical(S$universe, "v9")) stopifnot(length(surveys) == 135L)
+surveys <- intersect(snow_all_shards(), cls$survey)
 
 # 1. Population shares of finer units that are themselves split ("geometry: split").
 snow <- readRDS(file.path(S$private, "polygons_551.rds"))[, c("Admin_ID", "Country_ID", "Type", "in520")]
@@ -52,7 +50,7 @@ finer_key <- function(s, rows) {   # chosen finer variable of a split survey, at
 pieces <- list(); summ <- list()
 for (s in surveys) {
   d <- as.data.table(cbh_attach_incidence(readRDS(snow_shard_path(s))$data, hiv))
-  d <- d[snow_eligible(d, S), ..keep]
+  d <- d[snow_eligible(d), ..keep]
   d[, c("survey", "country", "region", "regkey") := lapply(.SD, as.character), .SDcols = c("survey", "country", "region", "regkey")]
   kids <- unique(d[, .(child_id, survey, regkey)])
   kids[, `:=`(id = child_id, finer_key = finer_key(s, as.integer(sub(".*:c:", "", child_id))))]

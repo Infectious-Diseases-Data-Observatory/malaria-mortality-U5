@@ -121,38 +121,6 @@ zero$lower_95 <- 1-exp(zero$log_hazard_ratio+1.96*zero$standard_error)
 zero$upper_95 <- 1-exp(zero$log_hazard_ratio-1.96*zero$standard_error)
 zero$zero_below_observed_support <- zero$pfpr_min>0
 cbh_atomic_csv(zero,file.path(root,"pfpr_20_to_zero_contrasts.csv"))
-anchors <- do.call(rbind,lapply(components,function(piece) {
-  nd <- data.frame(pfpr_pct=c(10,20,30,50));zero <- nd;zero$pfpr_pct <- 0
-  L <- PredictMat(piece$smooth,zero)-PredictMat(piece$smooth,nd)
-  estimate <- drop(L%*%piece$coef);variance <- rowSums((L%*%piece$covariance)*L)
-  stopifnot(all(is.finite(variance)),min(variance)>=-1e-9)
-  se <- sqrt(pmax(variance,0))
-  data.frame(age_band=piece$age_band,pfpr_pct=nd$pfpr_pct,reference_pct=0,
-    attributable_fraction=1-exp(estimate),lower_95=1-exp(estimate+1.96*se),upper_95=1-exp(estimate-1.96*se),
-    zero_below_observed_support=piece$support[1]>0,
-    current_outside_observed_support=nd$pfpr_pct<piece$support[1] | nd$pfpr_pct>piece$support[4])
-}))
-cbh_atomic_csv(anchors,file.path(root,"pfpr_attributable_fraction_anchors.csv"))
-# Synthetic-cohort life table for DRC. Annual death counts remain separate.
-life <- do.call(rbind,lapply(years,function(y) {
-  z <- r[r$year==y & r$iso3=="COD",];z <- z[match(ages,z$age_band),]
-  ip <- file.path("results/cbh/national_burden_inputs",paste0("country_burden_",y),"ihme_disjoint_age_inputs.csv")
-  inputs <<- c(inputs,ip)
-  src <- cbh_read_csv(ip);src <- src[src$iso3=="COD",]
-  edges <- c(0,28/365.25*12,6,12,24,36,48,60)
-  H <- z$ihme_rate_per100000/1e5*diff(edges)/12
-  early <- src$rate_per100000[src$source_age=="0 to 6 days (early neonatal)"]
-  late <- src$rate_per100000[src$source_age=="7 to 27 days (late neonatal)"]
-  stopifnot(length(early)==1,length(late)==1)
-  H[1] <- early/1e5*7/365.25+late/1e5*21/365.25
-  H0 <- H*z$hr_zero_vs_current
-  q <- -expm1(-H);q0 <- -expm1(-H0)
-  S <- exp(-cumsum(H));S0 <- exp(-cumsum(H0))
-  stopifnot(max(abs(S-cumprod(1-q)))<1e-12,max(abs(S0-cumprod(1-q0)))<1e-12)
-  data.frame(year=y,iso3="COD",age_band=ages,start_month=edges[-8],end_month=edges[-1],
-    observed_q=q,zero_pfpr_q=q0,observed_survival=S,zero_pfpr_survival=S0)
-}))
-cbh_atomic_csv(life,file.path(out,"drc_life_table.csv"))
 inputs <- unique(c(inputs,curve_path,sm_path,"R_cbh/primary/02_effects.R","R_cbh/primary/settings.R"))
 cbh_atomic_csv(data.frame(file=inputs,md5=vapply(inputs,cbh_file_hash,"")),file.path(out,"provenance.csv"))
 message("Primary effects and country burden complete; 2024 attributable deaths = ",

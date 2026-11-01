@@ -17,7 +17,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages(library(data.table))
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional_mics"))
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge"))
 out <- file.path(st$out, "tables"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 table_year <- 2024L
 paths <- c(rates = file.path(st$out, "annual_comparison/source_country_rates_2000_2024.csv"),

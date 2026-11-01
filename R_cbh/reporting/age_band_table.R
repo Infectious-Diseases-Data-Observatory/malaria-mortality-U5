@@ -1,4 +1,5 @@
-# Shared aggregate-only table generator; no model fitting or manuscript writes.
+# Shared aggregate-only table generator; no model fitting or manuscript writes. Writes tables/age_band_results.csv
+# (the Markdown and LaTeX versions were dropped on 1 November 2026; the paper takes its numbers from the CSV).
 cbh_primary_age_table <- function(root, ages) {
   paths <- file.path(root,c("fit_diagnostics.csv","pfpr_40_to_20_contrasts.csv",
     "pfpr_20_to_zero_contrasts.csv","pfpr_edf.csv","primary_sample.csv"))
@@ -34,58 +35,10 @@ cbh_primary_age_table <- function(root, ages) {
     hr_40_to_20=h$hazard_ratio_40_to_20,hr_40_to_20_lower_95=h$lower_95,hr_40_to_20_upper_95=h$upper_95,
     hr_20_to_zero=z$hazard_ratio_20_to_zero,hr_20_to_zero_lower_95=lo0,hr_20_to_zero_upper_95=hi0,
     zero_below_observed_support=z$zero_below_observed_support)
-  fmt <- function(x) format(x,big.mark=",",scientific=FALSE,trim=TRUE)
-  hr <- function(x,lo,hi,dash="–") sprintf("%.2f (%.2f%s%.2f)",x,lo,dash,hi)
-  note <- paste0("Deaths are observed deaths in the primary analysis sample; percentages use all ",fmt(total),
-    " under-five deaths as the denominator. Displayed percentages use largest-remainder rounding to one decimal place and sum to 100.0%. ",
-    "Records are child–age-band observations, so a child can contribute multiple records. EDF: effective degrees of freedom of the PfPR spline. ",
-    "Both contrast columns are adjusted mortality hazard ratios for reducing PfPR from the first value to the second. ",
-    "Intervals are conditional on fitted smoothing parameters, exposure, the fixed HIV imputation and filled regional covariates; zero PfPR is below observed exposure support in every band.")
-  md <- c("| Completed months | Records | Deaths (% of U5 deaths) | PfPR EDF | HR: 40% to 20% (95% interval) | HR: 20% to 0% (95% interval) |",
-    "|---|---:|---:|---:|---:|---:|",
-    vapply(seq_along(ages),function(i) sprintf("| %s | %s | %s (%.1f%%) | %.2f | %s | %s |",ages[i],fmt(d$rows[i]),
-      fmt(d$deaths[i]),pct[i],e$edf[i],hr(data$hr_40_to_20[i],h$lower_95[i],h$upper_95[i]),
-      hr(data$hr_20_to_zero[i],lo0[i],hi0[i])),""),
-    sprintf("| **Total** | **%s** | **%s (100.0%%)** | — | — | — |",fmt(sum(d$rows)),fmt(total)),"",note)
   out <- file.path(root,"tables")
   dir.create(out,recursive=TRUE,showWarnings=FALSE)
   cbh_atomic_csv(data,file.path(out,"age_band_results.csv"))
-  writeLines(c("# Primary age-band results","",md),file.path(out,"age_band_results.md"))
-  tex_ages <- ifelse(ages=="<1","$<1$",gsub("-","--",ages,fixed=TRUE))
-  tex <- c(
-    "% Standalone table fragment; uses booktabs (already present in the manuscript).",
-    "% Generated from the saved primary MAP gamma=2 aggregate results.",
-    "\\begin{table}[tbp]",
-    "\\centering",
-    "\\caption{Age-specific associations between malaria prevalence and all-cause mortality.}",
-    "\\label{tab:primary-age-band-effects}",
-    "\\small",
-    "\\setlength{\\tabcolsep}{3pt}",
-    "\\renewcommand{\\arraystretch}{1.15}",
-    "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}lrrrcc@{}}",
-    "\\toprule",
-    "\\shortstack[l]{Age\\\\(months)} & \\shortstack{Child-band\\\\records} & \\shortstack{Deaths\\\\(\\% of U5 deaths)} & \\shortstack{PfPR\\\\EDF} & \\shortstack{HR (95\\% interval)\\\\40\\% $\\to$ 20\\%} & \\shortstack{HR (95\\% interval)\\\\20\\% $\\to$ 0\\%} \\\\",
-    "\\midrule",
-    vapply(seq_along(ages),function(i) sprintf("%s & %s & %s (%.1f\\%%) & %.2f & %s & %s \\\\",tex_ages[i],fmt(d$rows[i]),
-      fmt(d$deaths[i]),pct[i],e$edf[i],hr(data$hr_40_to_20[i],h$lower_95[i],h$upper_95[i],"--"),
-      hr(data$hr_20_to_zero[i],lo0[i],hi0[i],"--")),""),
-    "\\midrule",
-    sprintf("Total & %s & %s (100.0\\%%) & -- & -- & -- \\\\",fmt(sum(d$rows)),fmt(total)),
-    "\\bottomrule",
-    "\\end{tabular*}",
-    "\\par\\vspace{0.5em}",
-    "\\begin{minipage}{\\linewidth}",
-    "\\footnotesize",
-    paste0("Deaths are observed deaths in the primary analysis sample; percentages use all ",fmt(total)," under-five deaths as the denominator. "),
-    "Displayed percentages use largest-remainder rounding to one decimal place and sum to 100.0\\%.",
-    "Records are child--age-band observations; a child can contribute multiple records.",
-    "EDF: effective degrees of freedom of the PfPR spline. HR: adjusted mortality hazard ratio for reducing PfPR from the first value to the second.",
-    "Models were fitted separately by age band using MAP prevalence and $\\gamma=2$.",
-    "Intervals condition on fitted smoothing parameters, exposure, the fixed HIV imputation and filled regional covariates; zero PfPR is below observed exposure support in every band.",
-    "\\end{minipage}",
-    "\\end{table}")
-  writeLines(trimws(tex,which="right"),file.path(out,"age_band_results.latex.txt"))
   inputs <- c(paths,"R_cbh/reporting/age_band_table.R")
   cbh_atomic_csv(data.frame(file=inputs,md5=vapply(inputs,cbh_file_hash,"")),file.path(out,"provenance.csv"))
-  invisible(md)
+  invisible(data)
 }

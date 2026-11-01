@@ -1,16 +1,15 @@
 #!/usr/bin/env Rscript
-# Child HIV incidence imputation model.
+# Child HIV incidence imputation model (stage hiv of run_pipeline.R: an optional check; the paper's frozen panels
+# are restored by tools/use_frozen_hiv.R).
 #   default      : the frozen panel used by the current primary (refit only with --force)
 #   --extended   : adds countries with no UNAIDS adolescent series (latent adolescent
 #                  path) and writes *_extended outputs for the imputed-covariate version
-#   --cv         : five-fold country-held-out validation of child series
-#   --validate-latent : (with --extended) treat two observed West and Central Africa
-#                  countries' adolescent series as latent and withhold their child
-#                  series, to check imputation for countries without adolescent data
+# The country-held-out (--cv) and latent-adolescent (--validate-latent) validations were removed on 1 November 2026
+# (git history).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/hiv/model.R")
 args<-commandArgs(trailingOnly=TRUE)
-stopifnot(all(args %in% c("--cv","--force","--extended","--validate-latent")))
+stopifnot(all(args %in% c("--force","--extended")))
 extended<-"--extended" %in% args
 private<-"data/derived_cbh/hiv_incidence"
 out<-"results/cbh/hiv_incidence"
@@ -82,51 +81,5 @@ if(extended) {
   }
   new<-panel[panel$hiv_incidence_status=="imputed_no_adolescent_series",]
   cbh_atomic_csv(new,file.path(out,"imputed_no_adolescent_series.csv"))
-}
-if("--validate-latent" %in% args) {
-  stopifnot(extended)
-  # Two observed West and Central Africa countries with complete child series.
-  wca<-unique(d$iso3[d$region=="West and Central Africa" & !d$adolescent_missing])
-  full<-vapply(wca,function(i) all(is.finite(d$child_rate[d$iso3==i])),logical(1))
-  latent<-sort(wca[full])[1:2]
-  message("Latent-adolescent validation countries: ",paste(latent,collapse=", "))
-  f<-run_fit("fit_extended_latent_validation",held_out=latent,latent=latent,chains=2L,iter=2000L,seed=20260918L)
-  pred<-hiv_child_draws(f$fit,f$stan_data,d,n_draws=400L,seed=20260918L)
-  ii<-which(d$iso3 %in% latent)
-  v<-data.frame(d[ii,c("iso3","region","year","child_rate")],
-    predicted=exp(apply(pred[,ii,drop=FALSE],2,median)),
-    lower_95=exp(apply(pred[,ii,drop=FALSE],2,quantile,.025)),
-    upper_95=exp(apply(pred[,ii,drop=FALSE],2,quantile,.975)))
-  v$covered<-v$child_rate>=v$lower_95 & v$child_rate<=v$upper_95
-  v$log_error<-log(v$predicted/v$child_rate)
-  cbh_atomic_csv(v,file.path(out,"latent_adolescent_validation.csv"))
-  message(sprintf("Latent-adolescent validation: coverage %.0f%%, median |log error| %.2f",
-    100*mean(v$covered),median(abs(v$log_error))))
-}
-if("--cv" %in% args) {
-  # Five folds stratified by region; whole child series withheld, including censoring.
-  countries<-unique(d[is.finite(d$child_rate) | d$child_censored,c("iso3","region")])
-  set.seed(20260908)
-  countries$fold<-0L
-  for(r in unique(countries$region)) {
-    ii<-which(countries$region==r)
-    countries$fold[ii]<-sample(rep(1:5,length.out=length(ii)))
-  }
-  cbh_atomic_csv(countries,file.path(out,paste0("validation_folds",suffix,".csv")))
-  cv<-list()
-  for(k in 1:5) {
-    message("Country-held-out validation fold ",k,"/5")
-    held<-countries$iso3[countries$fold==k]
-    f<-run_fit(paste0("cv",k,suffix),held,chains=2L,iter=2000L,seed=20260908L+k)
-    pred<-hiv_child_draws(f$fit,f$stan_data,d,n_draws=400L,seed=20260908L+k)
-    ii<-which(d$iso3 %in% held & (is.finite(d$child_rate)|d$child_censored))
-    cv[[k]]<-data.frame(d[ii,c("iso3","region","year","child_rate","child_censored")],fold=k,
-      predicted=exp(apply(pred[,ii,drop=FALSE],2,median)),
-      lower_95=exp(apply(pred[,ii,drop=FALSE],2,quantile,.025)),
-      upper_95=exp(apply(pred[,ii,drop=FALSE],2,quantile,.975)),
-      probability_below_limit=colMeans(pred[,ii,drop=FALSE]<log(.01)))
-    cbh_atomic_csv(do.call(rbind,cv),file.path(out,paste0("country_held_out_predictions",suffix,".csv")))
-    rm(f,pred);gc(FALSE)
-  }
 }
 message("Child incidence panel and posterior trajectories saved to ",private)

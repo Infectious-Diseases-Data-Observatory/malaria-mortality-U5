@@ -1,9 +1,19 @@
 #!/usr/bin/env Rscript
 # Extract actual estimates from the existing public UNICEF snapshot. No network,
-# no fabricated zeros, no nearest-year filling, no modification of legacy panel.
+# no fabricated zeros, no nearest-year filling.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/covariates/unicef.R")
 library(data.table)
+# cbh_unicef_fill (the WUENIC fallback of R_cbh/primary/00_prepare_snow.R): exact-year matching, observed values and
+# reported zeros kept, duplicate panel rows rejected (moved from the removed 05_validate.R, 1 November 2026).
+panel <- data.frame(country=c("TST","TST","TST"),year=c(2020,2021,2020),
+  variable=c("dtp3_pct","dtp3_pct","hib3_pct"),value=c(70,90,0),source="UNICEF_WUENIC_country_year")
+input <- data.frame(country=c("TST","TST","TST"),survey_year=c(2020,2021,2019),
+  entry_year=c(2020,2020,2019),dtp3_pct=c(NA,55,NA),hib3_pct=c(NA,30,NA))
+y <- cbh_unicef_fill(input,panel,c("dtp3_pct","hib3_pct"))
+stopifnot(identical(y$dtp3_pct,c(70,55,NA_real_)),identical(y$hib3_pct,c(0,30,NA_real_)),
+  identical(y$dtp3_pct_imputed,c(TRUE,FALSE,FALSE)),identical(y$hib3_pct_imputed,c(TRUE,FALSE,FALSE)),
+  inherits(try(cbh_unicef_fill(input,rbind(panel,panel[1,]),"dtp3_pct"),silent=TRUE),"try-error"))
 path <- "data/unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_immunisation_subset.csv"
 out <- "data/derived_cbh/regional_adjustment/unicef"
 dir.create(out,recursive=TRUE,showWarnings=FALSE)

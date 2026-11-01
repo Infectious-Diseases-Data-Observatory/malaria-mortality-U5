@@ -1,24 +1,24 @@
 #!/usr/bin/env Rscript
 # Regional covariates of each (DHS survey, Snow unit), recomputed from the recodes (user decision, 6 October 2026)
 # with the definitions of the v9 covariates (ported from the analysis project's 07_covariates_dhs.R in its
-# Snow-unit folder; only the grouping, paths and survey list differ):
+# Snow-unit folder; only the grouping, paths and survey list differ; the v9 survey-region code that defined them,
+# R_cbh/covariates/regional.R, 11_extract_first_birth_age.R and 17_recode_replacements.R, was removed on 1 November 2026):
 #   BR (women's weight v005): mean maternal age at first birth (v212), education years (v133), wealth quintile (v190)
-#     and urban % (v025) over mothers with a live birth in the 60 months before interview, one row per mother
-#     (R_cbh/covariates/regional.R, 11_extract_first_birth_age.R); DTP3 (all of h3/h5/h7) and measles (h9) among
-#     living children 12-23 months; facility delivery (m15) among births 0-59 months; short birth interval (b11 7-23
-#     months) among non-first births 0-59 months (17_recode_replacements.R).
+#     and urban % (v025) over mothers with a live birth in the 60 months before interview, one row per mother;
+#     DTP3 (all of h3/h5/h7) and measles (h9) among living children 12-23 months; facility delivery (m15) among
+#     births 0-59 months; short birth interval (b11 7-23 months) among non-first births 0-59 months.
 #   PR (household weight hv005): improved water (hv201), improved sanitation (hv205) and electricity (hv206) over
 #     households (one PR row per hv001/hv002); stunting (hc70) and wasting (hc72) < -2 SD among de facto children
-#     0-59 months with a valid WHO z-score, from the HW file for surveys whose PR predates the WHO standards (17).
+#     0-59 months with a valid WHO z-score, from the HW file for surveys whose PR predates the WHO standards.
 #   DTP3 counts at least three doses of any DTP-containing vaccine across h3/h5/h7 and the survey's extra series in
 #     config/vaccine_series.csv; measles counts any measles-containing vaccine (h9 or the extra series).
 #   Labels are classified by label_rules.R, then the reviewed survey-specific decisions in config/label_overrides.csv
-#   (each reproduces the published national value). Unknown labels stop (see 06_label_inventory.R). Blank items (not asked) are outside the
+#   (each reproduces the published national value). Unknown labels stop (label_rules.R). Blank items (not asked) are outside the
 #   denominator; "missing" answers count as "no". Water labels without type information ("spring", "water vendor")
 #   take, per survey, the classification whose national value is closest to the published national value.
 # Placement (R_cbh/snow/R/placement.R): BR rows by their survey-region and finer location; PR rows by their cluster
-# (hv001 = v001), located from the BR rows of that cluster; then their analysis unit (snow_assign): under the merge rule
-# one unit per row (weight = survey weight); under the split rule (reproduction) weight = survey weight x share.
+# (hv001 = v001), located from the BR rows of that cluster; then their analysis unit (snow_assign, merge rule): one
+# unit per row (weight = survey weight).
 # Outputs: <private>/covariates_dhs_long.csv (survey x unit x variable; private) and, in <out>/covariates/:
 #   dhs_national_validation.csv, dhs_region_consistency.csv, dhs_audit.csv.
 # Optional: --survey=AO71FL,BF62FL to run a subset (outputs then carry a _subset suffix).
@@ -31,7 +31,7 @@ reg <- cbh_read_csv(cfg$registry); rules <- cbh_read_csv(cfg$survey_rules)
 bounds <- unique(cbh_read_csv(cfg$boundary_regions)[c("svkey", "region", "regkey")]); ov <- cbh_read_csv(cfg$region_overrides)
 priv <- S$private; out <- file.path(S$out, "covariates")
 cls <- fread(file.path(S$out, "feasibility", "region_classification.csv"))
-surveys <- intersect(snow_surveys(S), cls[programme == "DHS", unique(survey)])
+surveys <- intersect(snow_all_shards(), cls[programme == "DHS", unique(survey)])
 only <- sub("^--survey=", "", grep("^--survey=", commandArgs(TRUE), value = TRUE))
 suffix <- if (length(only)) "_subset" else ""
 if (length(only)) surveys <- intersect(surveys, strsplit(only, ",")[[1]])

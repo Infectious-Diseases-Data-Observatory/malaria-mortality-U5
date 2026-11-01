@@ -17,7 +17,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 suppressPackageStartupMessages({library(data.table); library(ggplot2); library(patchwork)})
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional_mics"))
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge"))
 fig_year <- 2024L
 out <- file.path(st$out, "malaria_share"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 paths <- c(totals = file.path(st$out, "burden/country_totals.csv"),
@@ -64,44 +64,6 @@ cbh_atomic_csv(d[, .(iso3, country, year = fig_year, pfpr_pct, ihme_share_pct = 
   pfpr_acm_share_pct = 100 * acm, pfpr_acm_share_lower95_pct = 100 * acm_lower,
   pfpr_acm_share_upper95_pct = 100 * acm_upper)],
   file.path(out, "malaria_share_vs_pfpr_2024.csv"))
-
-## Table (added 1 October 2026, user request): the three shares for all 42 countries --------------
-# Sorted by PfPR as in the figure. Dagger: CA-CODE uses WHO malaria estimates. Final row: unweighted medians across
-# countries.
-f1 <- function(x) formatC(x, format = "f", digits = 1)
-ci <- function(v, lo, hi) sprintf("%s (%s–%s)", f1(100 * v), f1(100 * lo), f1(100 * hi))
-tab <- d[, .(country, pfpr = f1(pfpr_pct), acm = ci(acm, acm_lower, acm_upper),
-             ihme = f1(100 * ihme), igme = ci(igme, igme_lower, igme_upper), who = igme_who_malaria)]
-medians <- d[, .(pfpr = f1(median(pfpr_pct)), acm = f1(median(100 * acm)), ihme = f1(median(100 * ihme)),
-                 igme = f1(median(100 * igme)))]
-cbh_atomic_csv(d[, .(country, iso3, pfpr_pct = round(pfpr_pct, 2),
-  pfpr_acm_share_pct = round(100 * acm, 2), pfpr_acm_lower95_pct = round(100 * acm_lower, 2),
-  pfpr_acm_upper95_pct = round(100 * acm_upper, 2), ihme_share_pct = round(100 * ihme, 2),
-  igme_cacode_share_pct = 100 * igme, igme_cacode_lower_pct = 100 * igme_lower, igme_cacode_upper_pct = 100 * igme_upper,
-  igme_cacode_uses_who_malaria = igme_who_malaria)], file.path(out, "malaria_share_table_2024.csv"))
-note <- paste("PfPR-ACM model: share of IHME all-cause under-five deaths attributable to malaria (current *Pf*PR against *Pf*PR 0), including indirect deaths, with 95% intervals from the age-band hazard-ratio uncertainty only.",
-  "IHME: under-five malaria deaths divided by all-cause under-five deaths (no interval in the export used).",
-  "UN IGME: CA-CODE 2026 published malaria share of under-five deaths with its published bounds (interval level not stated).",
-  "† CA-CODE input file flags WHO malaria estimates for this country.",
-  "Last row: unweighted medians across the 42 countries.")
-md <- c("# Malaria's share of under-five deaths by country, 2024", "",
-  "| Country | *Pf*PR~2–10~ 2024 (%) | PfPR-ACM model (%) | IHME (%) | UN IGME (%) |", "|---|---:|---:|---:|---:|",
-  tab[, sprintf("| %s | %s | %s | %s | %s%s |", country, pfpr, acm, ihme, igme, fifelse(who, " †", ""))],
-  medians[, sprintf("| **Median, 42 countries** | %s | %s | %s | %s |", pfpr, acm, ihme, igme)], "", note)
-writeLines(md, file.path(out, "malaria_share_table_2024.md"))
-tex_name <- function(x) gsub("ô", "\\^{o}", x, fixed = TRUE)
-tex <- c("% Replacement table source; saved as plain text. No manuscript file is edited.",
-  "\\begin{table}[htbp]", "\\centering\\small",
-  "\\caption{Malaria's share of under-five deaths in 2024 by country, from the PfPR-ACM model, IHME and UN IGME (CA-CODE), ordered by national \\textit{Pf}PR$_{2-10}$.}",
-  "\\label{tab:malaria_share}", "\\begin{tabular}{lrrrr}", "\\toprule",
-  "Country & \\textit{Pf}PR$_{2-10}$ (\\%) & PfPR-ACM model (\\%) & IHME (\\%) & UN IGME (\\%) \\\\", "\\midrule",
-  tab[, sprintf("%s & %s & %s & %s & %s%s \\\\", tex_name(country), pfpr,
-                gsub("–", "--", acm), ihme, gsub("–", "--", igme), fifelse(who, "$^{\\dagger}$", ""))],
-  "\\midrule", medians[, sprintf("Median, 42 countries & %s & %s & %s & %s \\\\", pfpr, acm, ihme, igme)],
-  "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", "\\begin{minipage}{\\linewidth}\\footnotesize",
-  gsub("\\*Pf\\*PR", "\\\\textit{Pf}PR", gsub("%", "\\\\%", gsub("†", "$^{\\\\dagger}$", gsub("‡", "$^{\\\\ddagger}$", note)))),
-  "\\end{minipage}", "\\end{table}")
-writeLines(tex, file.path(out, "malaria_share_table_2024.latex.txt"))
 
 ## Figure -------------------------------------------------------------------------------------------
 # Saved 157 mm wide and printed at \linewidth (165 mm), so printed text is 1.05 times the script size and meets the

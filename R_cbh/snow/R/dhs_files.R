@@ -1,6 +1,6 @@
 # Local paths of the DHS Household Member Recode (PR) and WHO height/weight recode (HW) of a survey, from
-# R_cbh/snow/config/dhs_pr_hw_files.csv (file names frozen by tools/freeze_pr_hw_table.R; files in data/raw/dhs/,
-# imported by tools/import_pr_hw.R). A PR can carry a different recode version from the BR (BF43 BR / BF44 PR,
+# R_cbh/snow/config/dhs_pr_hw_files.csv (file names frozen from the analysis project's recode list; files in
+# data/raw/dhs/, imported by tools/import_pr_hw.R). A PR can carry a different recode version from the BR (BF43 BR / BF44 PR,
 # NG4B / NG4C, ...). The HW file exists only for older surveys; NA otherwise.
 snow_pr_hw <- local({ cache <- NULL; function() {
   if (is.null(cache)) cache <<- data.table::fread("R_cbh/snow/config/dhs_pr_hw_files.csv", na.strings = "")

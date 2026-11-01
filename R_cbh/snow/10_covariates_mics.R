@@ -1,12 +1,11 @@
 #!/usr/bin/env Rscript
-# Snow-unit version of R_mics/09_regional_covariates.R (ported from the analysis project's 08_covariates_mics.R in its
-# Snow-unit folder, which copied R_mics/09 on 6 October 2026): the 13 regional covariates of each (MICS survey, Snow
-# unit) for the MICS surveys of the variant, with every indicator definition, survey-specific rule and check of the
-# original unchanged. Only the grouping differs: region_of() returns a placement key (analysis region + finer location),
-# and add() gives each row its analysis unit (R_cbh/snow/R/placement.R, snow_assign; under the split rule of the
-# reproduction, spread over polygons with weight = survey weight x share). National values, and the regression lock on
-# them, are computed as before. The fallbacks (WUENIC, within-survey mean) are applied with the DHS values in
-# R_cbh/primary/00_prepare_snow.R.
+# Snow-unit version of the v9 survey-region MICS covariates (R_mics/09_regional_covariates.R, removed on 1 November 2026;
+# ported from the analysis project's 08_covariates_mics.R in its Snow-unit folder, which copied R_mics/09 on 6 October
+# 2026): the 13 regional covariates of each (MICS survey, Snow unit), with every indicator definition, survey-specific
+# rule and check of the original unchanged. Only the grouping differs: region_of() returns a placement key (analysis
+# region + finer location), and add() gives each row its analysis unit (R_cbh/snow/R/placement.R, snow_assign, merge
+# rule). National values, and the regression lock on them, are computed as in R_mics/09. The fallbacks (WUENIC,
+# within-survey mean) are applied with the DHS values in R_cbh/primary/00_prepare_snow.R.
 # Output: <private>/covariates_mics_long.csv (private), <out>/covariates/mics_*.csv
 suppressPackageStartupMessages({ library(haven); library(data.table) })
 source("R_cbh/R/geography.R")
@@ -18,7 +17,7 @@ setup <- fread(file.path(D, "survey_setup.csv")); reg <- fread(file.path(D, "sur
 rmap <- fread(file.path(D, "region_map.csv")); inv <- fread("results/mics_inventory/survey_inventory.csv")
 built <- fread(file.path(D, "cbh_build/survey_manifest.csv"))[status %in% c("built", "cached")]$survey   # cached = reused shard
 setup <- setup[svkey %in% built]
-mics <- intersect(snow_surveys(S), fread(file.path(S$out, "feasibility", "region_classification.csv"))[programme == "MICS", unique(survey)])
+mics <- intersect(snow_all_shards(), fread(file.path(S$out, "feasibility", "region_classification.csv"))[programme == "MICS", unique(survey)])
 setup <- setup[svkey %in% mics]; stopifnot(nrow(setup) == length(mics))
 setup[, year := reg$year[match(svkey, reg$svkey)]]; setup[, iso3 := substr(folder, 1, 3)]
 card_only <- c("MC_GIN2016", "MC_COM2022", "MC_TCD2019")   # recall doses unusable: WUENIC fallback (user decision)
@@ -393,7 +392,7 @@ L <- rbindlist(long); N <- rbindlist(nat); VD <- rbindlist(vacc_diag)
 exp <- data.table(survey = c("MC_MRT2011", "MC_MRT2011", "MC_COG2014", "MC_BEN2021", "MC_MDG2018", "MC_TGO2017", "MC_GHA2017", "MC_GNB2018", "MC_MOZ2008", "MC_MOZ2008", "MC_ZWE2009"),
   variable = c("dtp3_pct", "measles_pct", "dtp3_pct", "measles_pct", "measles_pct", "measles_pct", "measles_pct", "measles_pct", "dtp3_pct", "measles_pct", "dtp3_pct"),
   value = c(55.65, 70.45, 65.27, 53.55, 54.67, 73.27, 86.49, 75.54, 73.31, 73.73, 67.28))
-exp <- exp[survey %in% setup$svkey]   # surveys of the variant
+exp <- exp[survey %in% setup$svkey]   # surveys built and placed
 chk <- merge(exp, N, by = c("survey", "variable")); stopifnot(nrow(chk) == nrow(exp), all(abs(chk$national - chk$value) < 0.15))
 # The WB7 completed-grade adjustment ran exactly in the MICS6 surveys with the WB6A/WB6B/WB7 layout.
 w7x <- setup$svkey[inv$round[match(setup$folder, inv$survey)] >= 6]

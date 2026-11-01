@@ -6,18 +6,16 @@
 #             endemic polygons (R_cbh/snow/02_pfpr_polygons.R), identical to an extraction over their union;
 #   regional covariates: the 13 v9 covariates of each (survey, unit) from the recodes (R_cbh/snow/09, 10), then the v9
 #             fallbacks in the v9 order: national WUENIC DTP3/measles for the survey year (cbh_unicef_fill), then the
-#             within-survey mean of the units with a value, variable by variable (weighted by the units' records in the
-#             primary; arithmetic, as in the analysis project, in the reproduction);
-#   national: the declared substitutions of R_cbh/primary/national_substitutions.R (merge variant only; the reproduction
-#             keeps the analysis project's inputs): South Sudan's GDP per capita, health expenditure per capita and
-#             political stability for band-entry years before independence (2011) are Sudan's for the same year, from
-#             the cbh_config()$annual_panels files; its child HIV incidence is its own; and the declared fills of
-#             R_cbh/primary/national_interpolations.R (merge variant only): political stability in 2001, a year without
-#             a WGI round, is the mean of the country's 2000 and 2002 values, and health expenditure in 2024, not yet
-#             published, is the country's 2023 value;
+#             within-survey mean of the units with a value, variable by variable (weighted by the units' records);
+#   national: the declared substitutions of R_cbh/primary/national_substitutions.R: South Sudan's GDP per capita,
+#             health expenditure per capita and political stability for band-entry years before independence (2011)
+#             are Sudan's for the same year, from the cbh_config()$annual_panels files; its child HIV incidence is its
+#             own; and the declared fills of R_cbh/primary/national_interpolations.R: political stability in 2001, a
+#             year without a WGI round, is the mean of the country's 2000 and 2002 values, and health expenditure in
+#             2024, not yet published, is the country's 2023 value;
 #   unit:     region = survey : unit (the analogue of the v9 survey-region random effect).
-# Complete cases on the v9 requirements; z-scores as in v9 (weighted by w only in the split reproduction).
-# Writes the prepared dataset (private) in the layout of 00_prepare_regional.R, and summaries in the result folder:
+# Complete cases on the v9 requirements; z-scores as in v9 (the merge rule gives one row per record, w = 1).
+# Writes the prepared dataset (private) in the layout of v9's preparation, and summaries in the result folder:
 # prepared_sample.csv, prepared_selection_by_survey.csv, covariate_scaling.csv, covariate_fallbacks.csv,
 # national_substitutions.csv (one row per substituted country and covariate; header only when none applies),
 # national_interpolations.csv (one row per filled covariate, country and year),
@@ -34,7 +32,7 @@ stopifnot(length(covs) == 17L)
 for (p in c(settings$out, settings$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 cfg <- cbh_config()
 rel <- function(p) ifelse(startsWith(p, paste0(cfg$root, "/")), substring(p, nchar(cfg$root) + 2L), p)   # repository-relative
-rules <- cbh_national_substitutions(); if (!identical(S$variant, "merge")) rules <- rules[0, ]
+rules <- cbh_national_substitutions()
 sv <- cbh_substituted_covariates(); stopifnot(setequal(sv$variable, setdiff(national, "log_hiv_incidence")))
 src <- c(records = file.path(S$private, "records_units.rds"), dhs = file.path(S$private, "covariates_dhs_long.csv"),
          mics = file.path(S$private, "covariates_mics_long.csv"), pfpr = file.path(S$out, "pfpr", "pfpr_polygon_year.csv"),
@@ -64,11 +62,10 @@ for (v in regional) if (!v %in% names(W)) W[, (v) := NA_real_]
 observed <- W[, lapply(.SD, function(x) sum(is.finite(x))), .SDcols = regional]
 panel <- cbh_read_csv(src[["unicef"]])
 W <- as.data.table(cbh_unicef_fill(as.data.frame(W), panel, c("dtp3_pct", "measles_pct")))
-weighted_fallback <- isTRUE(S$rule_fixes)
 for (v in regional) {
   W[, paste0(v, "_regional_mean_imputed") := !is.finite(get(v)) & any(is.finite(get(v))), by = survey]
   W[, (v) := { x <- get(v); ok <- is.finite(x)
-    if (!any(ok)) x else ifelse(ok, x, if (weighted_fallback) sum(x[ok] * records[ok]) / sum(records[ok]) else mean(x[ok])) }, by = survey]
+    if (!any(ok)) x else ifelse(ok, x, sum(x[ok] * records[ok]) / sum(records[ok])) }, by = survey]
 }
 fills <- rbindlist(lapply(regional, function(v) data.table(variable = v, survey_units = nrow(W), observed = observed[[v]],
   wuenic = if (v %in% c("dtp3_pct", "measles_pct")) sum(W[[paste0(v, "_imputed")]]) else 0L,
@@ -94,13 +91,12 @@ for (v in sv$variable) {
   if (!all(is.finite(ns[[v]]))) stop("No ", v, " in the source panel for ", paste(unique(paste(ns$source_country, ns$year)[!is.finite(ns[[v]])]), collapse = ", "))
   if (nrow(ns)) set(d, ns$row, v, ns[[v]])
 }
-# Declared fills (merge variant), after the substitutions, where the record has no value: political stability in a WGI
-# gap year, and health expenditure in a carried year.
-merge_variant <- identical(S$variant, "merge")
-gi <- if (merge_variant) which(!is.finite(d$political_stability) & d$entry_year %in% cbh_wgi_gap_years()) else integer()
+# Declared fills, after the substitutions, where the record has no value: political stability in a WGI gap year, and
+# health expenditure in a carried year.
+gi <- which(!is.finite(d$political_stability) & d$entry_year %in% cbh_wgi_gap_years())
 gv <- as.numeric(cbh_political_stability_interpolated(as.character(d$country[gi]), d$entry_year[gi], cfg))
 if (length(gi)) set(d, gi, "political_stability", gv)
-hi <- if (merge_variant) which(!is.finite(d$log_health_expenditure_pc) & as.character(d$entry_year) %in% names(cbh_health_expenditure_carry_years())) else integer()
+hi <- which(!is.finite(d$log_health_expenditure_pc) & as.character(d$entry_year) %in% names(cbh_health_expenditure_carry_years()))
 hv <- as.numeric(cbh_health_expenditure_carried(as.character(d$country[hi]), d$entry_year[hi], cfg))
 if (length(hi)) set(d, hi, "log_health_expenditure_pc", hv)
 required <-c("death", "age_band", "pfpr_pct", "calendar_year", "band_years", "survey", "country", "region", covs)
@@ -131,12 +127,9 @@ d[, age_band := factor(age_band, levels = ages)]
 for (v in c("survey", "country", "region")) d[, (v) := factor(get(v))]
 stopifnot(all(d$w > 0 & d$w <= 1), d[, sum(w), by = .(child_id, age_band)]$V1 <= 1 + 1e-9, all(table(d$age_band) > 0),
           all(d$death %in% 0:1), all(d$band_years > 0))
-unweighted <- all(d$w == 1)
-if (unweighted) stopifnot(!anyDuplicated(d[, .(child_id, age_band)]))
-wsd <- function(x, w) sqrt(sum(w * (x - weighted.mean(x, w))^2) / sum(w))
-scaling <- data.frame(variable = covs,
-  mean = vapply(covs, function(v) if (unweighted) mean(d[[v]]) else weighted.mean(d[[v]], d$w), 0),
-  sd = vapply(covs, function(v) if (unweighted) sd(d[[v]]) else wsd(d[[v]], d$w), 0), row.names = NULL)
+stopifnot(all(d$w == 1), !anyDuplicated(d[, .(child_id, age_band)]))
+scaling <- data.frame(variable = covs, mean = vapply(covs, function(v) mean(d[[v]]), 0),
+  sd = vapply(covs, function(v) sd(d[[v]]), 0), row.names = NULL)
 stopifnot(all(is.finite(scaling$sd) & scaling$sd > 0))
 for (i in seq_len(nrow(scaling))) d[, (paste0("z_", scaling$variable[i])) := (get(scaling$variable[i]) - scaling$mean[i]) / scaling$sd[i]]
 keep <- unique(c(required, paste0("z_", covs), "child_id", "entry_year", "survey_year", "regkey", "unit", "n_polygons", "rule", "w"))

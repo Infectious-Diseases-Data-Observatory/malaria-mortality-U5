@@ -1,2 +1,0 @@
-survey,reason
-SL61FL,"SL2013DHS API subnational rows are mis-assigned against the recode: no Western row; 'Southern' matches Western Area plus Pujehun and 'North Western' matches Bo/Bonthe/Moyamba. Subnational rows dropped; national rows kept; regional values from 17_recode_replacements.R with DHS definitions"

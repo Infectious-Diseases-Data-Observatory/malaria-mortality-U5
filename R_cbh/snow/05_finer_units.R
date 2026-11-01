@@ -9,12 +9,12 @@
 #             name such as "Trarza & Nouakchott" ("name part"), then to the documented spelling aliases in
 #             R_cbh/snow/config/name_aliases.csv ("alias"; an alias to a malaria-free unit counts as malaria-free).
 # The variable placing the most records is kept. Records are the eligible child-band records of the shards, linked to
-# their recode row through child_id (survey:c:<row>), which holds for DHS and MICS; v9 counts are kept separately.
-# Reviewed fixes (primary only, settings rule_fixes): variables describing a previous residence are never location
-# variables (R_cbh/snow/config/finer_variable_exclusions.csv; UG7BFL s104), and a variable that places no record is
-# not chosen (its records use their survey-region, as before).
+# their recode row through child_id (survey:c:<row>), which holds for DHS and MICS.
+# Reviewed fixes (made after the reproduction of the analysis project's split dataset): variables describing a previous
+# residence are never location variables (R_cbh/snow/config/finer_variable_exclusions.csv; UG7BFL s104), and a
+# variable that places no record is not chosen (its records use their survey-region, as before).
 # Output: <out>/feasibility/finer_{variable_choice,unit_crosswalk}.csv, record_placement_by_region.csv,
-#         survey_feasibility_final_{v9,all}.csv (aggregates)
+#         survey_feasibility_final_all.csv (aggregates)
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr); library(haven) })
 sf_use_s2(FALSE)
 source("R_cbh/R/geography.R"); source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/placement.R")
@@ -26,7 +26,7 @@ registry <- fread("data/derived_dhs/survey_registry.csv")
 setup <- fread("data/derived_mics/survey_setup.csv")
 dens <- crop(rast("data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"), ext(-26, 60, -36, 28))
 popc <- dens * cellSize(dens, unit = "km")
-excl <- if (S$rule_fixes) fread("R_cbh/snow/config/finer_variable_exclusions.csv") else data.table(survey = character(), variable = character())
+excl <- fread("R_cbh/snow/config/finer_variable_exclusions.csv")
 
 # Population share of each polygon in each Snow polygon; returns the largest share and its polygon.
 overlay <- function(p) {
@@ -42,20 +42,18 @@ aliases <- fread("R_cbh/snow/config/name_aliases.csv")
 aliases <- merge(aliases, snow_names[, .(country = Country_ID, snow_name = AFR_Admin, Admin_ID, in520)], by = c("country", "snow_name"))
 stopifnot(nrow(aliases) == nrow(fread("R_cbh/snow/config/name_aliases.csv")))
 
-# Eligible records of every shard (one row per child: records = number of its child-band records), with v9 counts.
+# Eligible records of every shard (one row per child: records = number of its child-band records).
 rd <- rbindlist(lapply(cls[, unique(survey)], function(s) {
-  d <- as.data.table(readRDS(snow_shard_path(s))$data[, c("survey", "regkey", "region", "child_id", "model_ready")])
-  d <- d[snow_eligible(d, S)]
+  d <- as.data.table(readRDS(snow_shard_path(s))$data[, c("survey", "regkey", "region", "child_id")])
+  d <- d[snow_eligible(d)]
   d[, c("survey", "regkey", "child_id") := lapply(.SD, as.character), .SDcols = c("survey", "regkey", "child_id")]
   d[, .(records = .N), by = .(survey, regkey, child_id)]
 }))
-v9 <- as.data.table(readRDS("data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9_map202608/complete_case_dataset.rds")$data[, "child_id", drop = FALSE])
-v9 <- v9[, .(records_v9 = .N), by = .(child_id = as.character(child_id))]
-rd <- merge(rd, v9, by = "child_id", all.x = TRUE)[is.na(records_v9), records_v9 := 0L]; rm(v9)
+setorder(rd, child_id)   # child_id order, as when the v9 counts were merged in (keeps the crosswalk's row order)
 rd[, row := as.integer(sub(".*:c:", "", child_id))]
 rd <- merge(rd, cls[, .(survey, regkey, class)], by = c("survey", "regkey"))
 split_surveys <- cls[class == "split across Snow polygons", unique(survey)]
-skip <- paste0("lived before|circumcis|fistula|unicef|cluster|ward|locality|parish|moved", if (S$rule_fixes) "|previous|lived in" else "")
+skip <- "lived before|circumcis|fistula|unicef|cluster|ward|locality|parish|moved|previous|lived in"
 
 choice <- list(); crosswalk <- list(); placement <- list()
 for (s in split_surveys) {
@@ -103,18 +101,18 @@ for (s in split_surveys) {
   })
   placed_methods <- c("geometry", "name", "name part", "alias")
   # A finer unit that is itself split ("geometry: split") still narrows the record's location.
-  informative <- c(placed_methods, if (S$rule_fixes) "geometry: split")
+  informative <- c(placed_methods, "geometry: split")
   score <- vapply(res, function(r) sum(r$u$split_records[r$u$method %in% placed_methods]), 0)
   info <- vapply(res, function(r) sum(r$u$split_records[r$u$method %in% informative]), 0)
   k <- which.max(score)
-  if (S$rule_fixes && info[k] == 0 && max(info) == 0) {
+  if (info[k] == 0 && max(info) == 0) {
     choice[[s]] <- data.table(survey = s, variable = NA_character_, note = "no finer variable places or narrows a record"); next
   }
-  if (S$rule_fixes && score[k] == 0) k <- which.max(info)
+  if (score[k] == 0) k <- which.max(info)
   u <- res[[k]]$u
   crosswalk[[s]] <- u
   x[, finer_method := u$method[match(res[[k]]$val, u$value)]]
-  placement[[s]] <- x[, .(survey, child_id, regkey, class, finer_method, records, records_v9)]
+  placement[[s]] <- x[, .(survey, child_id, regkey, class, finer_method, records)]
   choice[[s]] <- data.table(survey = s, variable = cand$variable[k], label = cand$label[k], n_values = cand$n_values[k],
     boundary = basename(u$boundary[1]), split_records = sum(u$split_records),
     pct_split_placed_geometry = round(100 * sum(u$split_records[u$method == "geometry"]) / sum(u$split_records), 1),
@@ -138,20 +136,17 @@ rd[, placed := fcase(class %like% "^inside one of the 520", "assignable (survey-
                      class == "inside a malaria-free/island unit" | finer_method %in% "malaria-free (alias)", "malaria-free or island unit",
                      class == "no polygon", "outside the shapefile (Comoros, Zanzibar, Sao Tome)",
                      default = "not assignable (split, no finer location)")]
-fwrite(rd[, .(records = sum(records), records_v9 = sum(records_v9)), by = .(survey, regkey, class, finer_method, placed)],
+fwrite(rd[, .(records = sum(records)), by = .(survey, regkey, class, finer_method, placed)],
        file.path(out, "record_placement_by_region.csv"))
-meta <- cls[, .(programme = programme[1], country = country[1], in_v9 = any(in_v9)), by = survey]
-for (lab in c("v9", "all")) {
-  w <- if (lab == "v9") "records_v9" else "records"
-  f <- rd[get(w) > 0, .(records = sum(get(w))), by = .(survey, placed)]
-  wide <- dcast(f, survey ~ placed, value.var = "records", fill = 0)
-  wide <- merge(meta, wide, by = "survey")
-  num <- setdiff(names(wide), names(meta)); wide[, total := rowSums(.SD), .SDcols = num]
-  for (cc in c("assignable (survey-region)", "assignable (finer variable)")) if (!cc %in% names(wide)) wide[, (cc) := 0]
-  wide[, pct_assignable := round(100 * (get("assignable (survey-region)") + get("assignable (finer variable)")) / total, 1)]
-  wide <- merge(wide, choice[, .(survey, finer_variable = variable)], by = "survey", all.x = TRUE)
-  fwrite(wide[order(pct_assignable)], file.path(out, sprintf("survey_feasibility_final_%s.csv", lab)))
-  tot <- f[, .(records = sum(records)), by = placed][, pct := round(100 * records / sum(records), 1)][order(-records)]
-  cat(sprintf("\n== %s: %d surveys, %s records ==\n", lab, uniqueN(f$survey), format(sum(f$records), big.mark = ",")))
-  print(tot)
-}
+meta <- cls[, .(programme = programme[1], country = country[1]), by = survey]
+f <- rd[records > 0, .(records = sum(records)), by = .(survey, placed)]
+wide <- dcast(f, survey ~ placed, value.var = "records", fill = 0)
+wide <- merge(meta, wide, by = "survey")
+num <- setdiff(names(wide), names(meta)); wide[, total := rowSums(.SD), .SDcols = num]
+for (cc in c("assignable (survey-region)", "assignable (finer variable)")) if (!cc %in% names(wide)) wide[, (cc) := 0]
+wide[, pct_assignable := round(100 * (get("assignable (survey-region)") + get("assignable (finer variable)")) / total, 1)]
+wide <- merge(wide, choice[, .(survey, finer_variable = variable)], by = "survey", all.x = TRUE)
+fwrite(wide[order(pct_assignable)], file.path(out, "survey_feasibility_final_all.csv"))
+tot <- f[, .(records = sum(records)), by = placed][, pct := round(100 * records / sum(records), 1)][order(-records)]
+cat(sprintf("\n== all: %d surveys, %s records ==\n", uniqueN(f$survey), format(sum(f$records), big.mark = ",")))
+print(tot)

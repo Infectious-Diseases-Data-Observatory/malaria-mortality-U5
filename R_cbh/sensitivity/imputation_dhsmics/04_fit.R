@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Point-imputation fits for the DHS+MICS imputed-covariate sensitivity (v6): the seven
+# Point-imputation fits for the imputed-covariate sensitivity of the Snow-unit primary: the seven
 # primary age-band models (17 covariates, reference knots, gamma = 2, fREML, discrete)
 # refitted on the prepared dataset from 03_prepare.R. Same fitting and acceptance rules
 # as the other sensitivity refits (R_cbh/sensitivity/nutrition/01_fit.R). Aggregate
@@ -20,8 +20,6 @@ provenance <- data.frame(file = files, md5 = vapply(files, cbh_file_hash, ""))
 write_csv(provenance, "fit_input_provenance.csv")
 prepared <- readRDS(st$data)
 input <- prepared$data; input_signature <- prepared$signature; rm(prepared); gc(FALSE)
-if (!is.null(st$expected_records)) stopifnot(nrow(input) == st$expected_records, sum(input$death) == st$expected_deaths,
-          nlevels(input$region) == st$expected_regions)
 outside_knots <- list()
 form <- cbh_primary_regional_formula(st)
 writeLines(deparse(form), file.path(st$out, "model_formula.txt"))
@@ -47,10 +45,8 @@ for (i in seq_along(ages)) {
   knots <- setNames(lapply(c("pfpr_pct", "calendar_year"), function(v) {
     k <- knot_table[knot_table$age_band == age & knot_table$variable == v, ]; k$value[order(k$index)] }), c("pfpr_pct", "calendar_year"))
   stopifnot(length(knots$pfpr_pct) == 5L, length(knots$calendar_year) == 6L)
-  # v9: survey-region PfPR lies within the reference knots. Snow units reach slightly beyond them at both ends (unit
-  # PfPR 0.009-96.3 against 0.0165-94.76); the cr basis then extrapolates linearly, as in the primary fit, and the
-  # records outside are reported.
-  if (!identical(st$unit, "snow")) stopifnot(min(d$pfpr_pct) >= min(knots$pfpr_pct) - 1e-9, max(d$pfpr_pct) <= max(knots$pfpr_pct) + 1e-9)
+  # Snow units reach slightly beyond the reference knots at both ends (unit PfPR 0.009-96.3 against 0.0165-94.76); the
+  # cr basis then extrapolates linearly, as in the primary fit, and the records outside are reported.
   outside_knots[[age]] <- data.frame(age_band = age, below_first_knot = sum(d$pfpr_pct < min(knots$pfpr_pct)),
     above_last_knot = sum(d$pfpr_pct > max(knots$pfpr_pct)), records = nrow(d))
   write_csv(do.call(rbind, outside_knots), "records_outside_knots.csv")

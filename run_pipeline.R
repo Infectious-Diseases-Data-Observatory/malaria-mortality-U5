@@ -6,65 +6,54 @@
 #   Rscript run_pipeline.R --from=STAGE           run STAGE and every later stage (re-running them)
 #   Rscript run_pipeline.R --only=STAGE           run one stage (re-running it)
 #   Rscript run_pipeline.R --to=STAGE             with --all or --from: stop after STAGE
-#   Rscript run_pipeline.R --only=snow_repro      optional check (not part of --all): rebuild the analysis project's
-#                                                 Snow split dataset (needs SNOW_POLYGONS_GPKG; verification/snow_reproduction.md)
-#   options: --map=frozen  use the frozen survey-region MAP tables instead of recomputing them
-#            --hiv=refit   use today's refitted HIV panels instead of the paper's frozen panels (default frozen)
+#   Rscript run_pipeline.R --only=hiv             optional check (not part of --all): refit the child HIV incidence model
+#                                                 (after edits to the HIV code the base fit stops on its old cache:
+#                                                 refit it by hand with Rscript R_cbh/hiv/01_fit_incidence.R --force)
+#   options: --hiv=refit   use the panels refitted by --only=hiv instead of the paper's frozen panels (default frozen)
 #            --ignore-versions  run with package versions that differ from the recorded ones
 #
 # The primary analysis uses the Snow et al. (2017) polygons as its unit (stages snow_units, snow_covariates, primary;
-# R_cbh/snow/README.md); the survey-region primary of v9 is kept as stage primary_v9 for comparison.
-# The full run takes about 6 hours;
+# R_cbh/snow/README.md). The v9 survey-region primary (stage primary_v9) and its comparison with the Snow units were
+# removed on 1 November 2026 (author decision), with the Snow split reproduction check (stage snow_repro), the
+# merge-unit and boundary maps (stage snow_maps) and the outputs main.tex does not use (git history keeps them).
+# The full run takes about 5 hours;
 # run it detached: ./run_detached.sh --all   (logs in logs/, completion markers in logs/state/).
 # No stage downloads anything: network access is blocked for every step (fetch scripts are in
 # R_inputs/fetch/ and are run by hand). Only one pipeline process may run at a time, because the
 # prepared dataset needs about 3 GB of memory per process.
 args <- commandArgs(trailingOnly = TRUE)
 opt <- function(name) { a <- grep(paste0("^--", name, "="), args, value = TRUE); if (length(a)) sub("^[^=]+=", "", a[1]) else NULL }
-known <- "^--(list|all|ignore-versions|from=.+|only=.+|to=.+|map=(recompute|frozen)|hiv=(frozen|refit))$"
+known <- "^--(list|all|ignore-versions|from=.+|only=.+|to=.+|hiv=(frozen|refit))$"
 if (!length(args) || any(!grepl(known, args))) {
-  cat("Usage: Rscript run_pipeline.R --list | --all | --from=STAGE | --only=STAGE [--to=STAGE] [--map=frozen] [--hiv=refit] [--ignore-versions]\n")
+  cat("Usage: Rscript run_pipeline.R --list | --all | --from=STAGE | --only=STAGE [--to=STAGE] [--hiv=refit] [--ignore-versions]\n")
   quit(status = if (!length(args)) 0 else 1)
 }
 if (!file.exists("run_pipeline.R") || !file.exists("R_cbh/00_config.R")) stop("Run from the repository root.")
 if (grepl("MIS:DHS malaria prevalence", getwd(), fixed = TRUE)) stop("This is the analysis project, not this repository.")
-map_frozen <- identical(opt("map"), "frozen")
-# The frozen survey-region MAP tables are the release 202508 extraction; the pipeline uses 202608 since 1 November 2026.
-if (map_frozen) stop("--map=frozen would restore the MAP 202508 survey-region tables, but the analysis uses release 202608 (cbh_config()$map_release).")
 hiv_refit <- identical(opt("hiv"), "refit")
 
 R <- function(script, ..., env = character()) list(cmd = file.path(R.home("bin"), "Rscript"), args = c(script, ...), script = script, env = env)
 PY <- function(script, ..., env = character()) list(cmd = "python3", args = c(script, ...), script = script, env = env)
-# Versions are passed to each step (child processes): v9 survey-region primary, Snow-unit primary, Snow reproduction.
-V9 <- c("CBH_PRIMARY_VERSION=regional_mics")
+# The version is passed to each step (child processes): the Snow-unit primary.
 SNOW <- c("CBH_PRIMARY_VERSION=snow_merge", "SNOW_VARIANT=merge")
-REPRO <- c("CBH_PRIMARY_VERSION=snow_split_repro", "SNOW_VARIANT=split_repro",
-           paste0("SNOW_POLYGONS_GPKG=", shQuote(Sys.getenv("SNOW_POLYGONS_GPKG"))))
 snow_unit_steps <- function(env) c(lapply(c("01_polygons.R", "02_pfpr_polygons.R", "03_feasibility.R", "04_location_variables.R",
-  "05_finer_units.R", "06_label_inventory.R", "06b_check_labels.R", "07_placement.R", "08_units.R", "09_covariates_dhs.R",
-  "10_covariates_mics.R"), function(f) R(file.path("R_cbh/snow", f), env = env)))
+  "05_finer_units.R", "07_placement.R", "08_units.R", "09_covariates_dhs.R", "10_covariates_mics.R"),
+  function(f) R(file.path("R_cbh/snow", f), env = env)))
 stages <- list(
-  restore = list(R("tools/restore_frozen.R", if (map_frozen) "--map")),
-  inputs = c(if (!map_frozen) list(R("R_inputs/02_extract_map_pfpr.R"), R("R_inputs/41_extract_map_window_years.R")),
-             list(R("R_inputs/02b_extract_unicef_immunisation.R"), R("R_inputs/dhs_region_centroids.R"),
-                  R("R_inputs/who_wmr2025_tables.R"))),
-  # The HIV model is refitted as a check; by default the paper's frozen panels are then used (stage hiv_panels).
+  restore = list(R("tools/restore_frozen.R")),
+  inputs = list(R("R_inputs/02_extract_map_pfpr.R"), R("R_inputs/41_extract_map_window_years.R"),
+                R("R_inputs/dhs_region_centroids.R")),
+  # The HIV model refit is an optional check; the paper's frozen panels are used by default (stage hiv_panels).
   hiv = list(R("R_cbh/hiv/01_fit_incidence.R"), R("R_cbh/hiv/01_fit_incidence.R", "--extended")),
   hiv_panels = c(if (!hiv_refit) list(R("tools/use_frozen_hiv.R")), list(R("R_cbh/hiv/03_add_liberia_aidsinfo.R"))),
   dhs_bands = list(R("R_cbh/01_make_analysis_data.R")),
-  covariates = list(R("R_cbh/covariates/01_fetch_published.R"), PY("R_cbh/covariates/12_fetch_nutrition.py"),
-                    R("R_cbh/covariates/run.R"), R("R_cbh/covariates/11_extract_first_birth_age.R"),
-                    R("R_cbh/covariates/13_audit_planned17.R"), R("R_cbh/covariates/14_exclusion_attribution.R"),
-                    R("R_cbh/covariates/14_exclusion_attribution.R", "--liberia")),
+  covariates = list(R("R_cbh/covariates/01_fetch_published.R"), R("R_cbh/covariates/07_prepare_unicef.R")),
   mics = lapply(c("00a_extract.R", "00_dump_metadata.R", "01_inventory.R", "04_boundaries_gnb_caf.R", "05_region_map.R",
-                  "06_polygons_pfpr_registry.R", "07_make_recodes.R", "08_build_child_bands.R", "09_regional_covariates.R",
-                  "10_exclusion_attribution_mics.R", "11_region_centroids.R"), function(f) R(file.path("R_mics", f))),
-  primary_v9 = list(R("R_cbh/primary/run_regional.R", env = V9)),
-  snow_units = snow_unit_steps(SNOW)[1:9],
-  snow_covariates = snow_unit_steps(SNOW)[10:11],
+                  "06_polygons_pfpr_registry.R", "07_make_recodes.R", "08_build_child_bands.R",
+                  "11_region_centroids.R"), function(f) R(file.path("R_mics", f))),
+  snow_units = snow_unit_steps(SNOW)[1:7],
+  snow_covariates = snow_unit_steps(SNOW)[8:9],
   primary = list(R("R_cbh/primary/run_regional.R", env = SNOW)),
-  snow_maps = list(R("R_cbh/snow/21_map_merge_units.R", env = SNOW), R("R_cbh/snow/22_map_boundary_agreement.R", env = SNOW),
-                   R("R_cbh/reporting/22_compare_v9_snow.R", env = SNOW)),
   subgroups = list(R("R_cbh/sensitivity/subgroups/01_fit.R", env = SNOW), R("R_cbh/sensitivity/subgroups/02_report.R", env = SNOW),
                    R("R_cbh/sensitivity/subgroups/03_survival_by_subregion.R", env = SNOW),
                    R("R_cbh/sensitivity/subgroups/04_subregion_units_map.R", env = SNOW)),
@@ -73,12 +62,11 @@ stages <- list(
   imputation = lapply(c("01_impute_national.R", "02_impute_regional.R", "03_prepare.R", "04_fit.R", "05_propagate.R",
                         "06_report.R"), function(f) R(file.path("R_cbh/sensitivity/imputation_dhsmics", f), env = SNOW)),
   validate = list(R("R_cbh/reporting/10_validate_reporting.R", env = SNOW)),
-  export = list(PY("R_cbh/reporting/export_paper.py", "--destination", "paper", "--copy", env = SNOW)),
-  snow_repro = c(snow_unit_steps(REPRO), list(R("R_cbh/primary/00_prepare_snow.R", env = REPRO))))
-optional <- "snow_repro"   # run only when named with --only
-minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 20, mics = 30, primary_v9 = 20,
-             snow_units = 20, snow_covariates = 12, primary = 25, snow_maps = 2, subgroups = 45, nutrition = 20, country_fe = 20, imputation = 90, validate = 1,
-             export = 1, snow_repro = 30)
+  export = list(PY("R_cbh/reporting/export_paper.py", "--destination", "paper", "--copy", env = SNOW)))
+optional <- "hiv"   # run only when named with --only
+minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 2, mics = 30,
+             snow_units = 15, snow_covariates = 12, primary = 25, subgroups = 45, nutrition = 20, country_fe = 20, imputation = 90, validate = 1,
+             export = 1)
 # A stage's dependency set: its scripts, the other code and config in their folders, and the shared helpers. A completion
 # marker whose recorded md5s differ from the current files is stale, so the stage is pending again.
 helpers <- c(list.files("R_cbh/R", "[.]R$", full.names = TRUE), "R_cbh/00_config.R", "R_cbh/load_pipeline.R",
@@ -155,7 +143,7 @@ if (length(size_bad)) stop("Raw files differ in size from data/raw_manifest.csv:
 # Block network access for every step, so that a missing cache fails instead of downloading.
 Sys.setenv(http_proxy = "http://127.0.0.1:9", https_proxy = "http://127.0.0.1:9", HTTP_PROXY = "http://127.0.0.1:9",
            HTTPS_PROXY = "http://127.0.0.1:9", ALL_PROXY = "http://127.0.0.1:9", no_proxy = "", NO_PROXY = "",
-           CBH_PRIMARY_VERSION = "regional_mics")   # steps that need another version set it (V9, SNOW, REPRO)
+           CBH_PRIMARY_VERSION = "snow_merge")
 commit <- tryCatch(system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE), error = function(e) NA_character_)
 dirty <- length(tryCatch(system2("git", c("status", "--porcelain", "--untracked-files=no"), stdout = TRUE, stderr = FALSE),
                          error = function(e) character())) > 0

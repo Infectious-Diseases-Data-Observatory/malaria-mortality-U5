@@ -19,8 +19,8 @@ if (!file.exists(cfg$region_overrides))
     regkey = character(), region_id = character()), cfg$region_overrides, row.names = FALSE)
 dir.create(cfg$output_dir, recursive = TRUE, showWarnings = FALSE)
 args <- commandArgs(trailingOnly = TRUE)
-# Rewrites manifest.rds even when every shard is cached, which invalidates the DHS+MICS primary
-# (v5) and every sensitivity fit on it; see R_mics/README.md.
+# Rewrites manifest.rds even when every shard is cached; its md5 enters the imputation
+# sensitivity's signature (imputation_dhsmics/03_prepare.R) and the reporting provenance.
 res <- cbh_build(cfg, surveys = NULL, force = "--force" %in% args)
 m <- readRDS(file.path(cfg$output_dir, "manifest.rds"))$manifest
 cat("MICS build complete:", sum(m$status %in% c("built", "cached")), "built of", nrow(m), "\n")

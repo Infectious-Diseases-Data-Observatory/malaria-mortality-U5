@@ -31,5 +31,5 @@ Figures for the paper carry no title, subtitle or caption text inside the image 
 caption file (`CAPTION*.md`). Panel tags (A, B, C), facet strip labels, axis titles, legends and in-panel annotations
 that label the data remain.
 
-The Overleaf `main.tex` is read-only for this work: propose text and captions in the repo (`docs/manuscript/`) and
-never edit it.
+The Overleaf `main.tex` is read-only for this work: the author edits it by hand. Give proposed text and captions in the
+conversation and never edit `main.tex`; manuscript drafts are not kept in the repo (author decision, 1 November 2026).

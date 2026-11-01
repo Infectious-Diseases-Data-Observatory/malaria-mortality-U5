@@ -1,16 +1,16 @@
 # =============================================================================
 # R_inputs/00_config.R
 # Shared configuration for the input producers in R_inputs/ (survey-region MAP
-# PfPR, UNICEF immunisation panel) and the network fetch scripts in R_inputs/fetch/.
+# PfPR, DHS region centroids) and the network fetch scripts in R_inputs/fetch/.
 #
 # Exact-line subset of R_dhs/00_config.R from the analysis project: only the
-# definitions these scripts use are kept (tools/check_trimmed_config.R checks
-# that every kept definition is unchanged). Deliberate edits: the repository-root
+# definitions these scripts use are kept, unchanged (checked by the one-off
+# tools/check_trimmed_config.R, removed 1 November 2026). Deliberate edits: the repository-root
 # check names this file; raw DHS recodes live in data/raw/dhs (no rdhs cache
-# fallback) and local_recode_path() returns repository-relative paths; the UNICEF
-# dump is the immunisation extract made by R_inputs/trim_unicef_fusion.R; status
+# fallback) and local_recode_path() returns repository-relative paths; status
 # tables go to results/inputs; the MAP raster folder, its per-survey extraction cache and the
 # dataset id name MAP release 202608 (1 November 2026, author request; was 202508; cbh_config()$map_release).
+# The UNICEF immunisation panel (02b) and its paths were removed on 1 November 2026 (no model reads it).
 # Run all scripts from the repository root.
 # =============================================================================
 
@@ -29,15 +29,6 @@ DHS_LOCAL_DIR  <- file.path(DATA_DIR, "raw", "dhs")
 BOUNDARY_DIR   <- file.path(DATA_DIR, "dhs_boundaries")
 MAP_RASTER_DIR <- file.path(DATA_DIR, "map_annual_202608")
 MAP_REGION_DIR <- file.path(DATA_DIR, "map_region_cache_202608")
-UNICEF_GLOBAL_CSV <- file.path(
-  DATA_DIR, "unicef", "fusion_GLOBAL_DATAFLOW_UNICEF_1.0_immunisation_subset.csv"
-)
-UNICEF_IMMUNISATION_CSV <- file.path(
-  DERIVED_DIR, "unicef_immunisation_country_year.csv"
-)
-UNICEF_IMMUNISATION_SUMMARY_CSV <- file.path(
-  RESULTS_DIR, "unicef_immunisation_extraction_summary.csv"
-)
 
 for (d in c(DERIVED_DIR, RESULTS_DIR, BOUNDARY_DIR, MAP_RASTER_DIR, MAP_REGION_DIR)) {
   dir.create(d, recursive = TRUE, showWarnings = FALSE)

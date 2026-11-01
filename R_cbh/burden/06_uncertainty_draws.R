@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 # Uncertainty in malaria-attributable mortality (author request, 1 November 2026): 500 joint draws of the three inputs,
-# pushed through the arithmetic of R_cbh/burden/04_annual_comparison.R draw by draw (design: docs/manuscript/
-# uncertainty_first_pass.md). 95% uncertainty intervals are the 2.5% and 97.5% quantiles of the draws; the point
+# pushed through the arithmetic of R_cbh/burden/04_annual_comparison.R draw by draw. 95% uncertainty intervals are the 2.5% and 97.5% quantiles of the draws; the point
 # estimate stays 04's deterministic value. Totals, rates and contrasts are computed inside each draw, never from bounds.
 #   PfPR-death spline: each band's PfPR coefficients ~ MVN(beta, Vc) (Vc includes smoothing-parameter uncertainty),
 #     read from the saved fits; one draw per band shared by every country and year; bands independent.
@@ -20,7 +19,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({ library(data.table); library(mgcv) })
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional_mics"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge"))
 cfg <- list(draws = 500L, seed = 20261101L, igme_level = 0.90, ihme_level = 0.95, map_level = 0.95, ui = c(.025, .975))
 ac <- file.path(settings$out, "annual_comparison")
 out <- file.path(settings$out, "uncertainty"); dir.create(out, recursive = TRUE, showWarnings = FALSE)

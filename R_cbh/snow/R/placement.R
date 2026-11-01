@@ -9,9 +9,9 @@
 #     and the rest renormalised; the share in malaria-free or island units is then dropped, not renormalised;
 #     only polygons of the survey's own country count;
 #   - records in malaria-free or island units, or with no Snow polygon at all (Comoros, Zanzibar, Sao Tome), are excluded.
-# snow_assign() turns a placement into analysis units: under the merge rule (primary) one polygon if it holds >= 90% of
-# the location unit's population, else the union of the polygons each holding >= 5% (w = 1; dropped if more than half
-# malaria-free); under the split rule (reproduction only) one unit per polygon with weight = share.
+# snow_assign() turns a placement into analysis units under the merge rule: one polygon if it holds >= 90% of the
+# location unit's population, else the union of the polygons each holding >= 5% (w = 1; dropped if more than half
+# malaria-free).
 snow_clean_key <- function(v) {   # as in 05_finer_units.R: drop urban/rural words and zone prefixes, then cbh_rkey
   v <- tolower(as.character(v))
   v <- gsub("\\b(rural|urban|urbain|urbaine|rurale|urb|rur)\\b", " ", v)
@@ -65,12 +65,10 @@ snow_place <- function(d, R) {
 }
 
 # Analysis units of placed ids. pl: id, Admin_ID, w, rule (from snow_place). Returns id, unit, w, rule, n_polygons,
-# malaria_free (share of the location unit's population in malaria-free or island units); ids dropped under the merge
-# rule (malaria-free share > 0.5) do not appear. Units are Admin_IDs joined by "+" in sorted order.
+# malaria_free (share of the location unit's population in malaria-free or island units); ids dropped (malaria-free
+# share > 0.5) do not appear. Units are Admin_IDs joined by "+" in sorted order.
 snow_assign <- function(pl, S) {
   if (!nrow(pl)) return(data.table(id = pl$id, unit = character(), w = numeric(), rule = character(), n_polygons = integer(), malaria_free = numeric()))
-  if (identical(S$rule, "split"))
-    return(pl[, .(id, unit = Admin_ID, w, rule, n_polygons = 1L, malaria_free = NA_real_)])
   pl[, `:=`(mf = pmax(0, 1 - sum(w)), top = max(w)), by = id]
   u <- pl[, {
     keep <- if (top[1] >= S$whole) Admin_ID[which.max(w)] else if (any(w >= S$link)) Admin_ID[w >= S$link] else Admin_ID

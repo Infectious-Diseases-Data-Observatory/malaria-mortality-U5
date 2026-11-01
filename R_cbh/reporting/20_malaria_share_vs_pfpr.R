@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 # Supplementary figure (added 1 October 2026, at the user's request): malaria's share of under-five
 # deaths against national PfPR[2-10] in 2024, by country, for IHME, UN IGME (CA-CODE) and the PfPR-ACM
-# model. x: the national population-weighted MAP PfPR used for the 2024 burden (GPW 2020 weights),
-# from burden/country_totals.csv. IHME: IHME under-5 malaria deaths / IHME all-cause under-5 deaths.
+# model. x: the national PfPR used for the 2024 burden, MAP's own national estimate since 1 November 2026 (formerly
+# the GPW 2020-weighted raster mean, whose raster-coverage marker is dropped), from burden/country_totals.csv. IHME: IHME under-5 malaria deaths / IHME all-cause under-5 deaths.
 # UN IGME: the CA-CODE 2026 published malaria share of under-5 deaths with its published bounds
 # (data/external/cacode/, fetched 1 October 2026). Its denominator is CA-CODE's sum over causes,
 # which in some countries exceeds UN IGME's all-cause under-5 count (DRC 2024: 428,472 vs 385,039),
@@ -48,7 +48,7 @@ acm <- bands[, {
 cc <- fread(paths[["cacode"]])[TIME_PERIOD == fig_year & SEX == "_T" & AGE_GROUP == "Y0T4" &
                                INDICATOR == "FRACTION" & CAUSE_OF_DEATH == "MALARIA" & UNIT_MEASURE == "PCNT"]
 stopifnot(!anyDuplicated(cc$REF_AREA), all(tot$iso3 %in% cc$REF_AREA))
-d <- merge(tot[, .(iso3, country, pfpr_pct, map_coverage = map_population_coverage, acm = attributable_fraction,
+d <- merge(tot[, .(iso3, country, pfpr_pct, acm = attributable_fraction,
                    ihme = ihme_malaria_deaths / ihme_under5_deaths)], acm, by = "iso3")
 d <- merge(d, cc[, .(iso3 = REF_AREA, igme = OBS_VALUE / 100, igme_lower = LOWER_BOUND / 100,
                      igme_upper = UPPER_BOUND / 100)], by = "iso3")
@@ -62,19 +62,19 @@ cbh_atomic_csv(d[, .(iso3, country, year = fig_year, pfpr_pct, ihme_share_pct = 
   igme_cacode_share_pct = 100 * igme, igme_cacode_share_lower_pct = 100 * igme_lower,
   igme_cacode_share_upper_pct = 100 * igme_upper, igme_cacode_uses_who_malaria = igme_who_malaria,
   pfpr_acm_share_pct = 100 * acm, pfpr_acm_share_lower95_pct = 100 * acm_lower,
-  pfpr_acm_share_upper95_pct = 100 * acm_upper, map_population_coverage = map_coverage)],
+  pfpr_acm_share_upper95_pct = 100 * acm_upper)],
   file.path(out, "malaria_share_vs_pfpr_2024.csv"))
 
 ## Table (added 1 October 2026, user request): the three shares for all 42 countries --------------
-# Sorted by PfPR as in the figure. Dagger: CA-CODE uses WHO malaria estimates; double dagger: the 2024
-# MAP surface covers under 95% of the population. Final row: unweighted medians across countries.
+# Sorted by PfPR as in the figure. Dagger: CA-CODE uses WHO malaria estimates. Final row: unweighted medians across
+# countries.
 f1 <- function(x) formatC(x, format = "f", digits = 1)
 ci <- function(v, lo, hi) sprintf("%s (%s–%s)", f1(100 * v), f1(100 * lo), f1(100 * hi))
-tab <- d[, .(country, pfpr = f1(pfpr_pct), low_coverage = map_coverage < .95, acm = ci(acm, acm_lower, acm_upper),
+tab <- d[, .(country, pfpr = f1(pfpr_pct), acm = ci(acm, acm_lower, acm_upper),
              ihme = f1(100 * ihme), igme = ci(igme, igme_lower, igme_upper), who = igme_who_malaria)]
 medians <- d[, .(pfpr = f1(median(pfpr_pct)), acm = f1(median(100 * acm)), ihme = f1(median(100 * ihme)),
                  igme = f1(median(100 * igme)))]
-cbh_atomic_csv(d[, .(country, iso3, pfpr_pct = round(pfpr_pct, 2), map_coverage_below_95pct = map_coverage < .95,
+cbh_atomic_csv(d[, .(country, iso3, pfpr_pct = round(pfpr_pct, 2),
   pfpr_acm_share_pct = round(100 * acm, 2), pfpr_acm_lower95_pct = round(100 * acm_lower, 2),
   pfpr_acm_upper95_pct = round(100 * acm_upper, 2), ihme_share_pct = round(100 * ihme, 2),
   igme_cacode_share_pct = 100 * igme, igme_cacode_lower_pct = 100 * igme_lower, igme_cacode_upper_pct = 100 * igme_upper,
@@ -82,11 +82,11 @@ cbh_atomic_csv(d[, .(country, iso3, pfpr_pct = round(pfpr_pct, 2), map_coverage_
 note <- paste("PfPR-ACM model: share of IHME all-cause under-five deaths attributable to malaria (current *Pf*PR against *Pf*PR 0), including indirect deaths, with 95% intervals from the age-band hazard-ratio uncertainty only.",
   "IHME: under-five malaria deaths divided by all-cause under-five deaths (no interval in the export used).",
   "UN IGME: CA-CODE 2026 published malaria share of under-five deaths with its published bounds (interval level not stated).",
-  "† CA-CODE input file flags WHO malaria estimates for this country. ‡ The 2024 MAP surface covers under 95% of the population.",
+  "† CA-CODE input file flags WHO malaria estimates for this country.",
   "Last row: unweighted medians across the 42 countries.")
 md <- c("# Malaria's share of under-five deaths by country, 2024", "",
   "| Country | *Pf*PR~2–10~ 2024 (%) | PfPR-ACM model (%) | IHME (%) | UN IGME (%) |", "|---|---:|---:|---:|---:|",
-  tab[, sprintf("| %s | %s%s | %s | %s | %s%s |", country, pfpr, fifelse(low_coverage, " ‡", ""), acm, ihme, igme, fifelse(who, " †", ""))],
+  tab[, sprintf("| %s | %s | %s | %s | %s%s |", country, pfpr, acm, ihme, igme, fifelse(who, " †", ""))],
   medians[, sprintf("| **Median, 42 countries** | %s | %s | %s | %s |", pfpr, acm, ihme, igme)], "", note)
 writeLines(md, file.path(out, "malaria_share_table_2024.md"))
 tex_name <- function(x) gsub("ô", "\\^{o}", x, fixed = TRUE)
@@ -95,7 +95,7 @@ tex <- c("% Replacement table source; saved as plain text. No manuscript file is
   "\\caption{Malaria's share of under-five deaths in 2024 by country, from the PfPR-ACM model, IHME and UN IGME (CA-CODE), ordered by national \\textit{Pf}PR$_{2-10}$.}",
   "\\label{tab:malaria_share}", "\\begin{tabular}{lrrrr}", "\\toprule",
   "Country & \\textit{Pf}PR$_{2-10}$ (\\%) & PfPR-ACM model (\\%) & IHME (\\%) & UN IGME (\\%) \\\\", "\\midrule",
-  tab[, sprintf("%s & %s%s & %s & %s & %s%s \\\\", tex_name(country), pfpr, fifelse(low_coverage, "$^{\\ddagger}$", ""),
+  tab[, sprintf("%s & %s & %s & %s & %s%s \\\\", tex_name(country), pfpr,
                 gsub("–", "--", acm), ihme, gsub("–", "--", igme), fifelse(who, "$^{\\dagger}$", ""))],
   "\\midrule", medians[, sprintf("Median, 42 countries & %s & %s & %s & %s \\\\", pfpr, acm, ihme, igme)],
   "\\bottomrule", "\\end{tabular}", "\\par\\smallskip", "\\begin{minipage}{\\linewidth}\\footnotesize",
@@ -225,9 +225,8 @@ ggsave(file.path(out, "sfig_malaria_share_vs_pfpr.png"), fig, width = 157, heigh
 sp <- function(v, rows = TRUE) cor(d$pfpr_pct[rows], v[rows], method = "spearman")
 med <- function(v) median(100 * v)
 who_in <- d[igme_who_malaria == TRUE, country]
-low_cov <- d[map_coverage < .95][order(map_coverage)]
 writeLines(c("# Supplementary figure: malaria's share of under-five deaths against PfPR and between sources, 2024", "",
-  sprintf(paste("Malaria's share of under-five deaths in %d against national population-weighted MAP *Pf*PR~2–10~ for %d sub-Saharan African countries.",
+  sprintf(paste("Malaria's share of under-five deaths in %d against the Malaria Atlas Project's national *Pf*PR~2–10~ estimates for %d sub-Saharan African countries.",
     "The share for the *Pf*PR–all-cause mortality (PfPR-ACM) model is attributable: the share of IHME all-cause under-five deaths that would not occur at *Pf*PR 0, from the seven age-band hazard ratios, so it includes deaths caused indirectly by malaria.",
     "The IHME and UN IGME shares count deaths assigned to malaria as the cause.",
     "In panels A and B each country appears at its *Pf*PR; grey lines join its %s value (teal circles) to (A) IHME (navy triangles: IHME under-five malaria deaths divided by IHME all-cause under-five deaths) or",
@@ -238,13 +237,11 @@ writeLines(c("# Supplementary figure: malaria's share of under-five deaths again
     "Model intervals (95%%) reflect only the age-band hazard-ratio uncertainty, drawn independently across bands, with *Pf*PR and IHME all-cause deaths held fixed, so they understate total uncertainty; IHME uncertainty intervals are not shown.",
     "The CA-CODE share is computed on CA-CODE's own total of cause-specific deaths, which can differ from the UN IGME all-cause count (DR Congo: 428,472 against 385,039 deaths).",
     "Hollow diamonds mark countries flagged in CA-CODE's published input file for WHO malaria estimates rather than its verbal-autopsy model (%s).",
-    "National *Pf*PR is the population-weighted mean over the area covered by the 2024 MAP surface (fixed 2020 population weights); coverage is below 95%% of the population in %d countries (%s).",
     "Across countries the %s share rises with *Pf*PR almost by construction; Spearman correlation with *Pf*PR is %.2f for IHME and %.2f for UN IGME (%.2f excluding the WHO-estimate countries).",
     "Unweighted median share across the %d countries: %s %.1f%%, IHME %.1f%%, UN IGME %.1f%%.",
-    "Cabo Verde, Lesotho and São Tomé and Príncipe have no MAP estimate, and Sudan and South Africa are not in the IHME export, so all five are excluded from every panel."),
+    "Lesotho has no MAP national estimate, Cabo Verde and São Tomé and Príncipe are outside the 42-country burden set, and Sudan and South Africa are not in the IHME export, so all five are excluded from every panel."),
     fig_year, nrow(d), model, label_n, model, model, sum(d$acm > d$ihme), nrow(d), sum(d$acm > d$igme),
-    cor(d$acm, d$ihme, method = "spearman"), cor(d$acm, d$igme, method = "spearman"), paste(who_in, collapse = ", "), nrow(low_cov),
-    paste(sprintf("%s %.0f%%", low_cov$country, 100 * low_cov$map_coverage), collapse = ", "), model,
+    cor(d$acm, d$ihme, method = "spearman"), cor(d$acm, d$igme, method = "spearman"), paste(who_in, collapse = ", "), model,
     sp(d$ihme), sp(d$igme), sp(d$igme, !d$igme_who_malaria), nrow(d), model, med(d$acm), med(d$ihme), med(d$igme))),
   file.path(out, "CAPTION.md"))
 inputs <- c(unname(paths), "R_cbh/reporting/20_malaria_share_vs_pfpr.R", "R_cbh/reporting/labels.R")

@@ -18,7 +18,7 @@ ext <- "data/external/nigeria_states"
 allcause_path <- list.files(ext,"^Data Explorer.*All causes.*Deaths.*[.]csv$",full.names=TRUE)
 stopifnot(length(allcause_path)==1)
 malaria_path <- file.path(ext,"GBD NG Malaria mortality incidence prevalence rates 2011-2024.csv")
-pfpr_path <- "data/pfpr_admin1_ng_cd_2024.csv"
+pfpr_path <- cbh_config()$map_admin1   # MAP's own admin-1 estimates of the configured release (1 November 2026)
 component_path <- file.path(settings$private,"pfpr_components.rds")
 national_path <- file.path(root,"burden/country_age_estimates.csv")
 inputs <- c(component_path,file.path(root,c("fit_manifest.csv","fit_diagnostics.csv")),
@@ -32,7 +32,7 @@ stopifnot(length(components)==7,nrow(manifest)==7,all(diag$converged),all(diag$i
 for(piece in components) stopifnot(identical(piece$model_md5,manifest$md5[match(piece$fit_id,manifest$fit_id)]))
 
 # State names differ across sources: IHME writes "FCT (Abuja)" and "Nasarawa",
-# the MAP admin-1 extraction "Abuja" and "Nassarawa".
+# MAP's admin-1 estimates "Abuja" and "Nassarawa".
 state_key <- function(x) {
   k <- gsub("[^a-z0-9]","",tolower(iconv(as.character(x),"","ASCII//TRANSLIT")))
   k[k %in% c("fctabuja","abuja")] <- "fct"; k[k=="nassarawa"] <- "nasarawa"; k
@@ -80,7 +80,8 @@ nat_band <- setNames(nat$ihme_deaths,nat$age_band)[ages]
 stopifnot(max(abs(colSums(band_deaths)-nat_band)/nat_band)<1e-6)
 
 ## ---- MAP PfPR2-10 by state, 2024 ----------------------------------------------
-pf <- cbh_read_csv(pfpr_path);pf <- pf[pf$iso3=="NGA",];pf$key <- state_key(pf$area)
+pf <- cbh_read_csv(pfpr_path);pf <- pf[pf$iso3=="NGA" & pf$year==YEAR,];pf$key <- state_key(pf$name)
+pf$pfpr_pct <- 100*pf$mean
 stopifnot(setequal(pf$key,states),!anyDuplicated(pf$key),all(is.finite(pf$pfpr_pct)))
 pfpr <- setNames(pf$pfpr_pct,pf$key)[states]
 state_name <- setNames(src$state[match(states,src$key)],states)
@@ -154,9 +155,9 @@ stopifnot(nrow(totals)==37,all(is.finite(totals$attributable_under5_deaths)),all
 cbh_atomic_csv(totals[order(-totals$attributable_under5_deaths),],file.path(out,"state_totals_2024.csv"))
 
 ## ---- reconciliation with the national estimate --------------------------------
-# The national calculation evaluates each nonlinear curve at the population-
-# weighted national mean PfPR (24.70%). Summing state estimates evaluated at
-# state prevalence gives a different total; the difference is recorded, not hidden.
+# The national calculation evaluates each nonlinear curve at MAP's national
+# PfPR. Summing state estimates evaluated at MAP's state prevalence gives a
+# different total; the difference is recorded, not hidden.
 national_total <- sum(nat$attributable_deaths)
 state_sum <- sum(totals$attributable_under5_deaths)
 pop_weighted_pfpr <- sum(totals$pfpr_pct*totals$under5_person_years)/sum(totals$under5_person_years)
@@ -168,13 +169,14 @@ recon <- data.frame(year=YEAR,
   national_attributable_fraction=national_total/sum(nat_band),state_sum_attributable_fraction=state_sum/sum(totals$ihme_under5_deaths),
   ihme_malaria_deaths_state_sum=sum(totals$ihme_malaria_deaths),
   model_over_ihme_malaria_national=state_sum/sum(totals$ihme_malaria_deaths),
-  note="National PfPR uses GPW 2020 density x cell area with national admin-0 overlap; the state extraction (archive/20_pfpr_admin1_ng_cd.R) used MAP admin-1 boundaries and density-only GPW weights.")
+  note=paste0("National and state PfPR are MAP's own admin-0 and admin-1 estimates (release ",cbh_config()$map_release,"), each aggregated by MAP with its own population surface."))
 cbh_atomic_csv(recon,file.path(out,"national_reconciliation_2024.csv"))
 stopifnot(abs(recon$relative_difference)<0.05)
 
 writeLines(c(paste0("Secondary subnational burden, Nigerian states, ",YEAR),
   "Model: seven separate primary MAP gamma=2 age-band fits (series map_full), verified against fit_manifest.csv.",
-  "Exposure: population-weighted MAP PfPR2-10 by state for 2024 from data/pfpr_admin1_ng_cd_2024.csv (inherited extraction; see national_reconciliation_2024.csv note).",
+  paste0("Exposure: MAP's own admin-1 PfPR2-10 estimates by state for 2024, release ",cbh_config()$map_release," (",
+    sub(paste0("^",cbh_config()$root,"/"),"",pfpr_path),")."),
   "Baseline: IHME all-cause under-5 deaths and rates by GBD age group and state, both sexes, 2024 (data/external/nigeria_states).",
   "Contrast: HR_zero_vs_current = exp(f_g(0) - f_g(P_state)); attributable = IHME deaths x (1 - HR). Annual person-time held fixed.",
   "Intervals: conditional on fitted smoothing parameters, exposure and the fixed HIV imputation; state totals are point estimates and band limits are not summed.",

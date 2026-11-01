@@ -3,7 +3,8 @@
 # Malaria-attributable mortality rates are estimated from two all-cause sources (main analysis from 27 October
 # 2026, user request): IHME (country_estimates_2000_2024.csv, unchanged) and UN IGME, side by side in the
 # source_*_2000_2024.csv files.
-# Run from project root; --audit-only checks inputs before raster extraction.
+# National PfPR is MAP's own national (admin-0) estimate of the configured release (cbh_map_national; 1 November 2026,
+# author request), as in R_cbh/burden/00_national_inputs.R. Run from project root; --audit-only checks the inputs only.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages(library(data.table))
@@ -20,12 +21,9 @@ who_path <- "data/external/figure5/unicef_cacode_u5_malaria_2000_2024.csv"
 igme_path <- "data/unicef/fusion_GLOBAL_DATAFLOW_UNICEF_1.0_igme_wpp_subset.csv"
 component_path <- file.path(settings$private, "pfpr_components.rds")
 baseline_path <- file.path(settings$out, "burden/country_totals.csv")
-pop_path <- "data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"
-boundary_path <- "data/africa_admin0.rds"
-map_paths <- setNames(ifelse(years == 2024, "data/pfpr_2to10_africa_2024.tif",
-  sprintf("data/map_annual/pfpr2_10_%d.tif", years)), years)
+map_path <- cbh_config()$map_national
 inputs <- c(allcause_path, malaria_path, who_path, "data/external/figure5/source.json", igme_path,
-  component_path, baseline_path, pop_path, boundary_path, map_paths,
+  component_path, baseline_path, map_path, "R_cbh/R/external_data.R", "R_cbh/00_config.R",
   file.path(settings$out, c("fit_manifest.csv", "fit_diagnostics.csv")))
 stopifnot(all(file.exists(inputs)))
 previous <- fread(baseline_path)
@@ -104,40 +102,22 @@ coverage[, complete := is.finite(allcause_deaths) & is.finite(under5_person_year
   is.finite(ihme_malaria_deaths) & is.finite(who_cacode_deaths)]
 cbh_atomic_csv(coverage, file.path(out, "country_year_input_audit.csv"))
 stopifnot(nrow(coverage) == 42 * length(years), all(coverage$complete))
-map_inventory <- rbindlist(lapply(years, function(y) {
-  p <- terra::rast(map_paths[as.character(y)])
-  stopifnot(terra::nlyr(p) == 1, terra::is.lonlat(p))
-  data.table(year = y, path = map_paths[as.character(y)],
-    rows = terra::nrow(p), columns = terra::ncol(p), readable = TRUE)
-}))
-cbh_atomic_csv(map_inventory, file.path(out, "map_input_audit.csv"))
+nat <- as.data.table(cbh_map_national(countries$iso3, years))
+map_audit <- nat[, .(country_years = .N, years = paste(range(year), collapse = "-"), map_release = map_release[1],
+  min_pfpr_pct = min(pfpr_pct), max_pfpr_pct = max(pfpr_pct), lci_zero = sum(pfpr_lci_pct == 0)), by = iso3]
+stopifnot(nrow(nat) == nrow(grid), setequal(nat$iso3, countries$iso3), all(map_audit$country_years == length(years)))
+cbh_atomic_csv(map_audit, file.path(out, "map_input_audit.csv"))
 cbh_atomic_csv(countries, file.path(out, "included_countries.csv"))
 metadata <- rbindlist(lapply(list(allcause, malaria), function(z)
   unique(z[, .(Condition, Data_Suite, Data_Type, Data_Type_Level)])))
 cbh_atomic_csv(metadata, file.path(out, "ihme_release_metadata.csv"))
-message("Input audit passed: 42 countries x ", length(years), " years for all three death series; all MAP rasters readable.")
+message("Input audit passed: 42 countries x ", length(years), " years for all three death series and MAP national PfPR (release ",
+  cbh_config()$map_release, ").")
 if ("--audit-only" %in% commandArgs(TRUE)) quit(save = "no", status = 0)
 
-# Fixed GPW 2020 spatial weights, as in the primary burden calculation.
-# Density must be multiplied by cell area before national population weighting.
-b <- sf::st_make_valid(readRDS(boundary_path))
-b <- b[b$iso %in% countries$iso3, ]
-stopifnot(setequal(b$iso, countries$iso3), !anyDuplicated(b$iso))
-nat <- rbindlist(lapply(years, function(y) {
-  message("National MAP extraction: ", y)
-  p <- terra::rast(map_paths[as.character(y)])
-  density <- terra::resample(terra::crop(terra::rast(pop_path), p), p, method = "bilinear")
-  weights <- terra::ifel(density >= 0, density, NA) * terra::cellSize(p, unit = "km")
-  covered <- terra::mask(weights, p)
-  layers <- c(covered, p * covered, weights)
-  names(layers) <- c("covered", "numerator", "all_pop")
-  agg <- exactextractr::exact_extract(layers, b, "sum", progress = FALSE)
-  data.table(iso3 = b$iso, year = y, pfpr_pct = 100 * agg$sum.numerator / agg$sum.covered,
-    map_population_coverage = agg$sum.covered / agg$sum.all_pop,
-    population_weight_year = 2020L)
-}))
-stopifnot(nrow(nat) == nrow(grid), all(is.finite(nat$pfpr_pct)),
-  all(nat$pfpr_pct >= 0 & nat$pfpr_pct <= 100))
+# MAP's national estimates (read above). The raster-coverage field of the former aggregation has no counterpart.
+nat[, `:=`(map_population_coverage = NA_real_, population_weight_year = NA_integer_)]
+stopifnot(all(is.finite(nat$pfpr_pct)), all(nat$pfpr_pct >= 0 & nat$pfpr_pct <= 100))
 cbh_atomic_csv(nat, file.path(out, "national_pfpr_2000_2024.csv"))
 
 bands <- rbindlist(lapply(seq_len(nrow(grid)), function(i) {
@@ -262,11 +242,11 @@ stopifnot(all(is.finite(source_bands$allcause_deaths)),
   all(source_bands[crisis_year == FALSE, allcause_deaths == allcause_deaths_reported]))
 setorder(source_bands, source, year, iso3, age_band)
 cbh_atomic_csv(source_bands[, .(source, iso3, year, age_band, crisis_year, allcause_deaths_reported, allcause_deaths,
-  attributable_fraction, attributable_deaths)], file.path(out, "source_age_estimates_2000_2024.csv"))
+  rate_denominator, attributable_fraction, attributable_deaths)], file.path(out, "source_age_estimates_2000_2024.csv"))
 rates <- source_bands[, .(crisis_year = crisis_year[1], allcause_deaths_reported = sum(allcause_deaths_reported),
   allcause_deaths = sum(allcause_deaths), attributable_deaths = sum(attributable_deaths)), by = .(source, iso3, year)]
 rates <- merge(rates, person_years, by = c("source", "iso3", "year"))
-rates <- merge(rates, nat[, .(iso3, year, pfpr_pct)], by = c("iso3", "year"))
+rates <- merge(rates, nat[, .(iso3, year, pfpr_pct, pfpr_lci_pct, pfpr_uci_pct)], by = c("iso3", "year"))
 rates <- merge(rates, countries, by = "iso3")
 rates[, `:=`(allcause_rate_per1000_reported = 1000 * allcause_deaths_reported / under5_person_years,
   allcause_rate_per1000 = 1000 * allcause_deaths / under5_person_years,

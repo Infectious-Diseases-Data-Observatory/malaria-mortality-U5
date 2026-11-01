@@ -22,7 +22,7 @@ reg <- rbindlist(lapply(snow_all_shards(), function(s) {
   d[, c("survey", "country", "region", "regkey") := lapply(.SD, as.character), .SDcols = c("survey", "country", "region", "regkey")]
   d[, .(records = .N, deaths = sum(death)), by = .(survey, country, region, regkey)]
 }))
-v9file <- "data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9/complete_case_dataset.rds"
+v9file <- "data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9_map202608/complete_case_dataset.rds"   # v9 on MAP 202608
 v9_regions <- unique(as.character(readRDS(v9file)$data$region))
 reg[, in_v9 := region %in% v9_regions]
 registry <- fread("data/derived_dhs/survey_registry.csv")

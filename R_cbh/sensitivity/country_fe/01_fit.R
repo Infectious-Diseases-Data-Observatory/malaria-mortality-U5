@@ -18,7 +18,7 @@ library(mgcv); library(data.table)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--force"))
 # Snow primary only (the paper's primary since October 2026).
 stopifnot(identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge"))
-st <- list(id = "country_fixed_effects_snow520_merge_gamma2_v1", replaced = "s(country, bs = \"re\")", by = "country")
+st <- list(id = "country_fixed_effects_snow520_merge_gamma2_v2", replaced = "s(country, bs = \"re\")", by = "country")
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
 primary <- cbh_primary_settings("snow_merge"); stopifnot(isTRUE(primary$nutrition))
 for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)

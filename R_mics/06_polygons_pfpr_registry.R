@@ -40,8 +40,10 @@ for (i in seq_len(nrow(setup))) {
   saveRDS(b, file.path(bdir, paste0(s$svkey, ".rds")))
 }
 # 2. Annual PfPR per analysis region.
-rf <- list.files("data/map_annual", pattern = "pfpr2_10_[0-9]{4}[.]tif$", full.names = TRUE)
+source("R_cbh/00_config.R")   # cbh_config()$map_raster_dir: the MAP release of every exposure
+rf <- list.files(cbh_config()$map_raster_dir, pattern = "pfpr2_10_[0-9]{4}[.]tif$", full.names = TRUE)
 ry <- as.integer(regmatches(basename(rf), regexpr("[0-9]{4}", basename(rf))))
+keep <- ry %in% 2000:2024; rf <- rf[keep]; ry <- ry[keep]   # the years of the band entries, whatever else the folder holds
 rasters <- setNames(lapply(rf, rast), as.character(ry))
 w_full <- resample(crop(rast("data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"), rasters[[1]]),
                    rasters[[1]], method = "bilinear")

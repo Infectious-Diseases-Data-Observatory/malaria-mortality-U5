@@ -17,7 +17,8 @@ load_config <- function(root, file) {
 a <- load_config(src, "R_dhs/00_config.R")
 b <- load_config(tgt, "R_inputs/00_config.R")
 deliberate <- c("RESULTS_DIR", "DHS_LOCAL_DIR", "UNICEF_GLOBAL_CSV", "UNICEF_IMMUNISATION_SUMMARY_CSV",
-                "MAP_STATUS_CSV", "local_recode_path", "REPO_ROOT")
+                "MAP_STATUS_CSV", "local_recode_path", "REPO_ROOT",
+                "MAP_RASTER_DIR", "MAP_REGION_DIR", "MAP_DATASET_ID")   # MAP release 202608 (1 November 2026)
 same <- function(x, y) {
   if (is.function(x)) return(identical(deparse(x), deparse(y)))
   if (is.character(x)) return(identical(sub(src, "<ROOT>", x, fixed = TRUE), sub(tgt, "<ROOT>", y, fixed = TRUE)))

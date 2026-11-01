@@ -85,6 +85,26 @@ stopifnot(nrow(national)==42L,
 states <- read("nigeria_states/state_totals_2024.csv")
 recon <- read("nigeria_states/national_reconciliation_2024.csv")
 stopifnot(nrow(states)==37L,abs(sum(states$attributable_under5_deaths)-recon$state_sum_attributable_deaths)<1e-6)
+# MAP release and uncertainty (1 November 2026): every exposure from cbh_config()$map_release, national PfPR equal to
+# MAP's own national estimates, and draw-based intervals that reproduce and bracket the point estimates.
+cfg <- cbh_config()
+stopifnot(any(grepl(paste0('"map_annual_', cfg$map_release, '"'), readLines("R_inputs/00_config.R"), fixed = TRUE)))
+if(snow) {
+  rp <- cbh_read_csv("results/cbh/snow_units/merge/pfpr/pfpr_raster_provenance.csv")
+  stopifnot(nrow(rp)==25L,all(rp$map_release==cfg$map_release),all(dirname(normalizePath(rp$file))==normalizePath(cfg$map_raster_dir)),
+    identical(unname(vapply(rp$file,cbh_file_hash,"")),rp$md5))
+}
+nat <- read("annual_comparison/national_pfpr_2000_2024.csv")
+mn <- cbh_map_national(unique(nat$iso3),2000:2024,cfg)
+stopifnot(nrow(nat)==42L*25L,all(nat$map_release==cfg$map_release),
+  max(abs(nat$pfpr_pct-mn$pfpr_pct[match(paste(nat$iso3,nat$year),paste(mn$iso3,mn$year))]))<1e-9)
+ui <- read("uncertainty/annual_intervals_2000_2024.csv");uc <- read("uncertainty/checks.csv")
+um <- ui[ui$scenario=="main",]
+src <- read("annual_comparison/source_annual_rates_2000_2024.csv")
+stopifnot(nrow(um)==50L,all(um$attributable_deaths_lower<=um$attributable_deaths & um$attributable_deaths<=um$attributable_deaths_upper),
+  max(abs(um$attributable_deaths-src$attributable_deaths[match(paste(um$source,um$year),paste(src$source,src$year))]))<1e-6,
+  as.numeric(uc$value[grepl("^zero-noise",uc$item)])<1e-6,uc$value[uc$item=="draws"]=="500",
+  nrow(read("uncertainty/country_year_intervals_2000_2024.csv"))==2L*42L*25L)
 # Check producer/data hashes, not just whether expected filenames exist.
 provenances <- list.files(root,pattern="provenance[.]csv$",recursive=TRUE,full.names=TRUE)
 provenances <- provenances[!grepl("previous_overleaf",provenances)]
@@ -110,5 +130,6 @@ writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state a
   sprintf("PASS: %d annual totals use 42 countries and reproduce the three national-burden years.",nrow(annual)),
   "PASS: 2024 country table reproduces all three Figure 3 panel C totals for 2024; 37 state totals reconcile.",
   "PASS: producer/data provenance hashes match; table source has valid row terminators.",
+  sprintf("PASS: MAP release %s for every exposure; national PfPR equals MAP's national estimates; 500-draw intervals reproduce and bracket the 50 annual point estimates.",cfg$map_release),
   "PASS: no TeX files created in this result version."),file.path(root,"paper_refresh/validation.txt"))
 message("Primary reporting validation passed")

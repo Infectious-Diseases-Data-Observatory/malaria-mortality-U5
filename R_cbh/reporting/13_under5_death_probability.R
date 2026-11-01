@@ -61,7 +61,7 @@ check <- cur[is.finite(igme_u5mr),.(n=.N,median_ratio=median(1000*q5_allcause/ig
 
 fmt1 <- function(x) sprintf("%.0f",1000*x)
 ## ---- Figure 4 ----------------------------------------------------------------------------------------------
-# Left (narrow) panel: national population-weighted MAP PfPR[2-10] in 2024, the prevalence at which
+# Left (narrow) panel: MAP's national PfPR[2-10] estimate in 2024 (since 1 November 2026), the prevalence at which
 # each country's hazard ratios are evaluated (added 24 September 2026). Right panel: probability of
 # dying before age 5 per 1,000 live births (x axis from 0), all causes from the IHME age-band death
 # rates (light bar) and the part caused by malaria under the PfPR-ACM model (dark bar, 95% interval),
@@ -118,14 +118,14 @@ figure <- file.path(out,"under5_death_probability_2024.png")
 ggsave(figure,fig,width=6.2,height=8.2,dpi=400,device=ragg::agg_png,bg="white")
 top <- cur[order(-q5_attributable)][1:3]
 caption <- paste0("Probability of dying before age 5 in ",max(st$years)," per 1,000 live births, by country (",nrow(cur)," sub-Saharan African countries in the burden comparison, ordered by the probability caused by malaria). ",
-  sprintf("Left: national MAP PfPR[2–10] in %d, population-weighted (GPW 2020, all ages) over MAP-covered pixels, the prevalence at which each country's malaria-caused probability is evaluated (median %.1f%%, range %.1f–%.1f%%). ",max(st$years),median(cur$pfpr_pct),min(cur$pfpr_pct),max(cur$pfpr_pct)),
+  sprintf("Left: the Malaria Atlas Project's national PfPR[2–10] estimate in %d, the prevalence at which each country's malaria-caused probability is evaluated (median %.1f%%, range %.1f–%.1f%%). ",max(st$years),median(cur$pfpr_pct),min(cur$pfpr_pct),max(cur$pfpr_pct)),
   "Right: all causes, from IHME age-specific all-cause death rates (light bars), and the part caused by malaria under the ", cbh_paper_model_label(), " (dark bars, with 95% intervals), and the part caused by malaria implied by IHME cause-specific malaria death rates (diamonds, point estimates); all three values are listed on the right. ",
   "Probabilities are period life-table (synthetic-cohort) calculations, 5q0 = 1 − exp(−Σ_g H_g), over the model's seven age bands (<1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59 completed months), with band cumulative hazards H_g from the IHME death rates. ",
-  "The malaria-caused probability is 5q0 minus the probability with malaria transmission removed, for which each band's hazard is multiplied by the model's hazard ratio for PfPR[2–10] = 0 versus the country's current population-weighted MAP prevalence. ",
+  "The malaria-caused probability is 5q0 minus the probability with malaria transmission removed, for which each band's hazard is multiplied by the model's hazard ratio for PfPR[2–10] = 0 versus the country's current national MAP prevalence. ",
   "The IHME value is 5q0 minus the probability with IHME's malaria death rates removed (late neonatal, post-neonatal and 1–4 years; IHME reports no early-neonatal malaria deaths). ",
   with(cur,sprintf("Across the %d countries the model's malaria-caused probability is a median %.2f times IHME's (interquartile range %.2f–%.2f) and is higher than IHME's in %d. ",
     nrow(cur),median(q5_attributable/q5_ihme_malaria),quantile(q5_attributable/q5_ihme_malaria,.25),quantile(q5_attributable/q5_ihme_malaria,.75),sum(q5_attributable>q5_ihme_malaria))),
-  sprintf("Intervals draw each band's log hazard ratio independently; they condition on the IHME rates and the fitted smoothing parameters. Zero prevalence lies below the observed exposure support, so the counterfactual is an extrapolation. Against UN IGME under-five mortality for %d, the IHME-based all-cause probabilities have median ratio %.2f and correlation %.2f; IHME and UN IGME differ markedly for some countries. ",max(st$years),check$median_ratio,check$cor),
+  sprintf("Intervals draw each band's log hazard ratio independently; they condition on national PfPR, the IHME rates and the fitted smoothing parameters, so they are narrower than the draw-based intervals of the burden (Supplementary Methods). Zero prevalence lies below the observed exposure support, so the counterfactual is an extrapolation. Against UN IGME under-five mortality for %d, the IHME-based all-cause probabilities have median ratio %.2f and correlation %.2f; IHME and UN IGME differ markedly for some countries. ",max(st$years),check$median_ratio,check$cor),
   sprintf("The largest malaria-caused probabilities are in %s (%s per 1,000), %s (%s) and %s (%s); the median is %s per 1,000, %.0f%% of the all-cause probability.",
     top$country[1],fmt1(top$q5_attributable[1]),top$country[2],fmt1(top$q5_attributable[2]),top$country[3],fmt1(top$q5_attributable[3]),fmt1(median(cur$q5_attributable)),100*median(cur$share_attributable)))
 writeLines(c("# Figure 4 caption","",caption),file.path(out,"CAPTION.md"))

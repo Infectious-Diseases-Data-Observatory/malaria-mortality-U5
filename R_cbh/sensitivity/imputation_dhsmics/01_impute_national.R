@@ -159,7 +159,7 @@ snow_text <- if (snow) { r <- unique(ns[c("country", "source_country")]); rules 
     nrow(ns), paste(sprintf("%s %s", cname(r$country), vapply(r$country, function(x) runs(ns$year[ns$country == x]), "")), collapse = "; "),
     paste(unique(tolower(r$source_country)), collapse = "/"),
     if (nrow(gaps)) sprintf(" %s has no WGI estimate for %s; that political stability is interpolated as below.", paste(unique(cname(gaps$source_country)), collapse = ", "), runs(gaps$year)) else ""), "") }
-writeLines(c(if (snow) "# National covariate imputation (DHS and MICS, Snow-unit version imputed_snow_v12)" else "# National covariate imputation (DHS and MICS, imputed_dhsmics_v6)", "",
+writeLines(c(if (snow) "# National covariate imputation (DHS and MICS, Snow-unit version imputed_snow_v15)" else "# National covariate imputation (DHS and MICS, imputed_dhsmics_v6)", "",
   sprintf("Countries: the %d countries with built DHS or MICS surveys; years %d-%d. Methods follow the DHS-only version (`R_cbh/covariates/15_impute_national.R`); the MICS countries add Somalia, South Sudan, the Central African Republic and Guinea-Bissau.",
     length(countries), min(years), max(years)), "", snow_text,
   if (snow) c(sprintf("**Political stability (WGI):** %d country-years in 2001 (no WGI round) filled by the mean of each country's 2000 and 2002 estimates (deterministic, `wgi_2001_interpolated`). %s",

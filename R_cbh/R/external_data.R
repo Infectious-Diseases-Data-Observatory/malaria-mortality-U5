@@ -93,3 +93,19 @@ cbh_attach_external <- function(d, survey, boundaries, inputs, cfg) {
   stopifnot(nrow(d) == n)
   d
 }
+
+# National PfPR2-10 for the burden: MAP's own national (admin-0) estimates of release cbh_config()$map_release, with
+# MAP's lower and upper interval bounds (level not stated by MAP), in percent, for every country-year asked for.
+# Replaced the repository's GPW-weighted aggregation of the rasters on 1 November 2026 (author request).
+cbh_map_national <- function(iso3, years, config = cbh_config()) {
+  m <- cbh_read_csv(config$map_national)
+  cbh_require(m, c("iso3", "year", "mean", "lci", "uci"), config$map_national)
+  cbh_unique(m, c("iso3", "year"), config$map_national)
+  m <- m[m$iso3 %in% iso3 & m$year %in% years, , drop = FALSE]
+  if (nrow(m) != length(unique(iso3)) * length(unique(years)))
+    stop("MAP national PfPR missing for: ", paste(setdiff(iso3, m$iso3), collapse = ", "))
+  stopifnot(all(is.finite(m$mean)), all(m$lci >= 0), all(m$uci <= 1), all(m$lci <= m$mean + 1e-12), all(m$mean <= m$uci + 1e-12))
+  out <- data.frame(iso3 = m$iso3, year = as.integer(m$year), pfpr_pct = 100 * m$mean, pfpr_lci_pct = 100 * m$lci,
+                    pfpr_uci_pct = 100 * m$uci, map_release = config$map_release, stringsAsFactors = FALSE)
+  out[order(out$iso3, out$year), , drop = FALSE]
+}

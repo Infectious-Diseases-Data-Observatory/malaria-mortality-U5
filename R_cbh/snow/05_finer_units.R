@@ -49,7 +49,7 @@ rd <- rbindlist(lapply(cls[, unique(survey)], function(s) {
   d[, c("survey", "regkey", "child_id") := lapply(.SD, as.character), .SDcols = c("survey", "regkey", "child_id")]
   d[, .(records = .N), by = .(survey, regkey, child_id)]
 }))
-v9 <- as.data.table(readRDS("data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9/complete_case_dataset.rds")$data[, "child_id", drop = FALSE])
+v9 <- as.data.table(readRDS("data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9_map202608/complete_case_dataset.rds")$data[, "child_id", drop = FALSE])
 v9 <- v9[, .(records_v9 = .N), by = .(child_id = as.character(child_id))]
 rd <- merge(rd, v9, by = "child_id", all.x = TRUE)[is.na(records_v9), records_v9 := 0L]; rm(v9)
 rd[, row := as.integer(sub(".*:c:", "", child_id))]

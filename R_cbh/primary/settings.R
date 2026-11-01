@@ -21,11 +21,16 @@
 # 2001 are no longer lost to complete-case selection; sensitivities v6. v11 (sensitivities v5) is kept as history.
 # snow_merge v13 (author decision, 29 October 2026): health expenditure in 2024, not yet published for any country in
 # the analysis, is the country's 2023 value (same file), so 2024 band entries are kept; sensitivities v7. v12 (v6) is history.
+# snow_merge v14 (author decision, 1 November 2026): MAP PfPR2-10 release 202608 in place of 202508 for every exposure
+# (cbh_config()$map_release), and MAP's own national (admin-0) and Nigerian state (admin-1) estimates in the burden in
+# place of the GPW-weighted raster means; burden uncertainty from 500 joint draws (R_cbh/burden/06_uncertainty_draws.R);
+# sensitivities v8, country fixed effects v2, imputation v15. v13 (v7) is history; v9 is refitted on 202608 as
+# primary_map_regional17_dhsmics_gamma2_v9_map202608 (the 202508 v9 folder is history).
 cbh_primary_settings <-function(version=Sys.getenv("CBH_PRIMARY_VERSION","regional_mics")) {
   if (version %in% c("snow_merge", "snow_split_repro")) return(cbh_snow_primary_settings(version))
   if (!identical(version, "regional_mics"))
     stop("Unknown primary version: ", version, " (regional_mics = v9, snow_merge, snow_split_repro)")
-  id <- "primary_map_regional17_dhsmics_gamma2_v9"
+  id <- "primary_map_regional17_dhsmics_gamma2_v9_map202608"   # v9 refitted on MAP 202608 (1 November 2026)
   private <- file.path("data/derived_cbh/models", id)
   list(
     id = id,
@@ -47,7 +52,7 @@ cbh_primary_settings <-function(version=Sys.getenv("CBH_PRIMARY_VERSION","region
     unit = "region", prepare = "R_cbh/primary/00_prepare_regional.R")
 }
 cbh_snow_primary_settings <- function(version) {
-  id <- if (identical(version, "snow_merge")) "primary_snow520_merge_dhsmics_gamma2_v13" else "snow_split_repro"
+  id <- if (identical(version, "snow_merge")) "primary_snow520_merge_dhsmics_gamma2_v14" else "snow_split_repro"
   private <- file.path("data/derived_cbh/models", id)
   list(
     id = id, version = version,
@@ -61,8 +66,8 @@ cbh_snow_primary_settings <- function(version) {
     # Expected counts are set from the verified run (verification/reference_key_numbers.csv); NULL = not yet fixed.
     expected_records = NULL, expected_deaths = NULL, expected_regions = NULL,
     mics_output_dir = "data/derived_mics/cbh_build", expected_mics_surveys = NULL,
-    sensitivity_dirs = c(subgroups = "results/cbh/subgroups_snow520_merge_gamma2_v7",
-                         nutrition = "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v7"),
+    sensitivity_dirs = c(subgroups = "results/cbh/subgroups_snow520_merge_gamma2_v8",
+                         nutrition = "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v8"),
     unit = "snow", snow_variant = if (identical(version, "snow_merge")) "merge" else "split_repro",
     prepare = "R_cbh/primary/00_prepare_snow.R")
 }

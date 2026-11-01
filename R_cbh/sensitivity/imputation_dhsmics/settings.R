@@ -44,12 +44,12 @@ cbh_imputed_dhsmics_settings <- function() {
   if (identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")) {
     snow <- cbh_primary_settings("snow_merge")
     st$unit <- "snow"; st$snow_variant <- snow$snow_variant
-    st$id <- "primary_snow520_merge_imputed_gamma2_v12"
+    st$id <- "primary_snow520_merge_imputed_gamma2_v15"
     st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
     st$data <- file.path(st$private, "complete_case_dataset.rds")
     st$reference <- snow$out; st$reference_data <- snow$data
-    st$imputation_private <- "data/derived_cbh/regional_adjustment/imputed_snow_v12"
-    st$imputation_results <- "results/cbh/covariate_imputation_snow_v12"
+    st$imputation_private <- "data/derived_cbh/regional_adjustment/imputed_snow_v15"
+    st$imputation_results <- "results/cbh/covariate_imputation_snow_v15"
     st$imputed_overlay <- file.path(st$imputation_private, "regional_covariates_wide.csv")
     st$imputed_national <- file.path(st$imputation_private, "national_covariates_imputed.csv")
     st$snow_overlay <- file.path(snow$private, "regional_covariates_wide_snow.csv")

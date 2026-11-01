@@ -4,7 +4,8 @@
 # mortality against UN IGME (CA-CODE) malaria deaths over the UN WPP population under 5. B: PfPR-ACM with IHME
 # all-cause mortality against IHME malaria deaths over IHME person-years. One point per country, coloured by UN M49
 # sub-region as in Figure 4; dashed line: equality; both panels share axis limits. Countries at 2.5 or more per
-# 1,000 on either axis are labelled (ISO3 codes). Reads the rates of R_cbh/reporting/25_country_rates_table.R.
+# 1,000 on either axis are labelled (ISO3 codes). Vertical lines: 95% uncertainty intervals of the PfPR-ACM estimates
+# (R_cbh/burden/06_uncertainty_draws.R; 1 November 2026). Reads the rates of R_cbh/reporting/25_country_rates_table.R.
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in; no title or caption in the figure.
 # Outputs (<out>/model_vs_cause_specific/): fig5_model_vs_cause_specific_2024.png, figure_data.csv, CAPTION.md, provenance.csv
 source("R_cbh/load_pipeline.R")
@@ -25,25 +26,34 @@ m49 <- list(`West Africa` = c("BEN","BFA","CIV","CPV","GHA","GIN","GMB","GNB","L
 region_of <- setNames(rep(names(m49), lengths(m49)), unlist(m49))
 colours <- c(`West Africa` = "#0072B2", `Central Africa` = "#CC79A7", `East Africa` = "#009E73", `Southern Africa` = "#E69F00")
 d <- rbind(
-  w[, .(panel = "A", iso3, country, model = malaria_rate_per1000_unigme, cause_specific = cacode_malaria_rate)],
-  w[, .(panel = "B", iso3, country, model = malaria_rate_per1000_ihme, cause_specific = ihme_malaria_rate)])
+  w[, .(panel = "A", iso3, country, model = malaria_rate_per1000_unigme, model_lower = malaria_rate_per1000_lower_unigme,
+    model_upper = malaria_rate_per1000_upper_unigme, cause_specific = cacode_malaria_rate)],
+  w[, .(panel = "B", iso3, country, model = malaria_rate_per1000_ihme, model_lower = malaria_rate_per1000_lower_ihme,
+    model_upper = malaria_rate_per1000_upper_ihme, cause_specific = ihme_malaria_rate)])
 d[, region := factor(region_of[iso3], levels = names(m49))]
 stopifnot(!anyNA(d))
 # Labels are ISO3 codes, as in panel A of the burden comparison figure; full names overlap at this size.
 label_min <- 2.5
 d[, label := fifelse(pmax(model, cause_specific) >= label_min, iso3, "")]
 cbh_atomic_csv(d, file.path(out, "figure_data.csv"))
-lim <- c(0, max(d$model, d$cause_specific) * 1.04)
+# Axes reach the points and every interval no longer than 1.5 times the largest point; a longer interval (South
+# Sudan's, from UN IGME's wide all-cause bounds) is truncated at the edge with an arrow and given in the caption.
+reach <- 1.5 * max(d$model, d$cause_specific)
+lim <- c(0, max(d$model, d$cause_specific, d$model_upper[d$model_upper <= reach]) * 1.04); axis_breaks <- seq(0, 2 * floor(lim[2] / 2), 2)
+d[, `:=`(model_upper_shown = pmin(model_upper, lim[2]), truncated = model_upper > lim[2])]
 # PfPR-ACM on the y-axis, the cause-specific estimate on the x-axis (user request, 28 October 2026).
 panel <- function(p, source_label, tag) ggplot(d[panel == p], aes(cause_specific, model)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey55", linewidth = .35) +
+  geom_linerange(aes(ymin = model_lower, ymax = model_upper_shown, colour = region), linewidth = .3, alpha = .55, show.legend = FALSE) +
+  geom_segment(data = d[panel == p & truncated], aes(x = cause_specific, xend = cause_specific, y = model, yend = lim[2], colour = region),
+    linewidth = .3, alpha = .55, arrow = grid::arrow(length = grid::unit(1.4, "mm")), show.legend = FALSE) +
   geom_point(aes(colour = region), size = 1.7) +
   ggrepel::geom_text_repel(aes(label = label), size = 9 / .pt, colour = "grey20", seed = 20261028L, max.overlaps = Inf,
     min.segment.length = 0, segment.colour = "grey60", segment.size = .25, box.padding = .3, point.padding = .15,
     force = 3, max.iter = 1e5, max.time = 5) +
   scale_colour_manual(values = colours, drop = FALSE, name = NULL) +
-  scale_x_continuous(limits = lim, breaks = seq(0, 8, 2), expand = expansion(mult = c(0, .02))) +
-  scale_y_continuous(limits = lim, breaks = seq(0, 8, 2), expand = expansion(mult = c(0, .02))) +
+  scale_x_continuous(limits = lim, breaks = axis_breaks, expand = expansion(mult = c(0, .02))) +
+  scale_y_continuous(limits = lim, breaks = axis_breaks, expand = expansion(mult = c(0, .02))) +
   coord_equal() +
   # Paper terms (author decision, 30 October 2026): "malaria deaths" for the cause-specific estimates (x),
   # "malaria-attributable deaths" for the PfPR-ACM estimates, which include indirect effects (y).
@@ -57,7 +67,8 @@ p <- panel("A", "UN IGME", "A") + panel("B", "IHME", "B") +
 for (q in p$patches$plots) stopifnot(is.null(q$labels$title), is.null(q$labels$subtitle), is.null(q$labels$caption))
 ggsave(file.path(out, sprintf("fig5_model_vs_cause_specific_%d.png", fig_year)), p, device = ragg::agg_png,
   width = 6.5, height = 4.1, dpi = 400, bg = "white")
-rho <- d[, .(rho = cor(model, cause_specific, method = "spearman"), above = sum(model > cause_specific)), by = panel]
+rho <- d[, .(rho = cor(model, cause_specific, method = "spearman"), above = sum(model > cause_specific),
+  lower_above = sum(model_lower > cause_specific), upper_below = sum(model_upper < cause_specific)), by = panel]
 writeLines(c("# Figure 5 caption — PfPR-ACM against cause-specific malaria mortality, by country", "",
   paste0(sprintf("**Figure. Malaria-attributable under-five mortality in %d: PfPR-ACM model against cause-specific estimates.** ", fig_year),
     "Each point is a country; rates are deaths per 1,000 child-years under 5. ",
@@ -67,7 +78,12 @@ writeLines(c("# Figure 5 caption — PfPR-ACM against cause-specific malaria mor
     "The dashed line is equality; countries are coloured by UN M49 sub-region (Middle Africa as Central Africa), and those at ", label_min, " or more per 1,000 on either axis are labelled with their ISO 3166-1 alpha-3 codes. ",
     sprintf("Spearman correlation: %.2f (A) and %.2f (B); the PfPR-ACM estimate is higher in %d (A) and %d (B) of %d countries. ",
       rho[panel == "A", rho], rho[panel == "B", rho], rho[panel == "A", above], rho[panel == "B", above], nrow(w)),
-    "CA-CODE takes malaria from WHO estimates in 13 low-burden countries; South Sudan's IHME all-cause mortality is its crisis-free value. Point estimates only.")),
+    "Vertical lines are 95% uncertainty intervals of the PfPR-ACM estimates, from 500 joint draws of MAP's national PfPR[2–10], the all-cause deaths and the PfPR–death curves (Supplementary Methods); the cause-specific estimates are shown without their intervals. ",
+    sprintf("The lower bound exceeds the cause-specific estimate in %d (A) and %d (B) countries, and the upper bound is below it in %d (A) and %d (B). ",
+      rho[panel == "A", lower_above], rho[panel == "B", lower_above], rho[panel == "A", upper_below], rho[panel == "B", upper_below]),
+    if (any(d$truncated)) paste0("Intervals beyond the axes are truncated with an arrow: ",
+      paste(d[truncated == TRUE, sprintf("%s in %s (upper bound %.1f)", country, panel, model_upper)], collapse = "; "), ". ") else "",
+    "CA-CODE takes malaria from WHO estimates in 13 low-burden countries; South Sudan's IHME all-cause mortality is its crisis-free value.")),
   file.path(out, "CAPTION.md"))
 provenance <- c(unname(paths), "R_cbh/reporting/27_model_vs_cause_specific.R", "R_cbh/reporting/labels.R")
 cbh_atomic_csv(data.frame(file = provenance, md5 = vapply(provenance, cbh_file_hash, "")), file.path(out, "provenance.csv"))

@@ -11,7 +11,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 suppressPackageStartupMessages({ library(ggplot2); library(data.table); library(mgcv) })
 stopifnot(identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge"))
-st <- list(id = "country_fixed_effects_snow520_merge_gamma2_v1")
+st <- list(id = "country_fixed_effects_snow520_merge_gamma2_v2")
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
 primary <- cbh_primary_settings("snow_merge")
 labels <- c(full = "Country random intercepts (primary analysis)",

@@ -16,7 +16,7 @@ parser.add_argument("--copy", action="store_true", help="Copy after validating; 
 # The primary version (CBH_PRIMARY_VERSION, set by run_pipeline.R): snow_merge = the Snow-unit primary (since
 # 11 October 2026), regional_mics = the v9 survey-region primary.
 snow = os.environ.get("CBH_PRIMARY_VERSION", "regional_mics") == "snow_merge"
-default_root = "results/cbh/primary_snow520_merge_dhsmics_gamma2_v13" if snow else "results/cbh/primary_map_regional17_dhsmics_gamma2_v9"
+default_root = "results/cbh/primary_snow520_merge_dhsmics_gamma2_v14" if snow else "results/cbh/primary_map_regional17_dhsmics_gamma2_v9_map202608"
 parser.add_argument("--root", type=Path, default=Path(default_root))
 args = parser.parse_args()
 root = args.root
@@ -25,11 +25,11 @@ out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
 assert destination.is_dir()
 # Sensitivities refitted on the DHS and MICS sample; the DHS-only versions are kept as history.
-subgroups = Path("results/cbh/subgroups_snow520_merge_gamma2_v7" if snow else "results/cbh/subgroups_dhsmics_map_gamma2_v4")
-nutrition = Path("results/cbh/nutrition_adjustment_snow520_merge_gamma2_v7" if snow else "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
-imputed = Path("results/cbh/primary_snow520_merge_imputed_gamma2_v12" if snow else "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10")
+subgroups = Path("results/cbh/subgroups_snow520_merge_gamma2_v8" if snow else "results/cbh/subgroups_dhsmics_map_gamma2_v4")
+nutrition = Path("results/cbh/nutrition_adjustment_snow520_merge_gamma2_v8" if snow else "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
+imputed = Path("results/cbh/primary_snow520_merge_imputed_gamma2_v15" if snow else "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10")
 # Country fixed effects (31 October 2026): refitted for the Snow primary only.
-country_fe = Path("results/cbh/country_fixed_effects_snow520_merge_gamma2_v1") if snow else None
+country_fe = Path("results/cbh/country_fixed_effects_snow520_merge_gamma2_v2") if snow else None
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -72,6 +72,9 @@ if snow:
     assets.extend([
         (subgroups / "sfig_pfpr_splines_by_subregion.png", Path("Supplementary Figures/sfig_pfpr_splines_by_subregion.png")),
         (subgroups / "CAPTION_sfig_pfpr_splines_by_subregion.md", Path("Supplementary Figures/sfig_pfpr_splines_by_subregion_caption.md")),
+        # Polygons of the regional sub-analyses (author request, 1 November 2026).
+        (subgroups / "sfig_subregion_units_map.png", Path("Supplementary Figures/sfig_subregion_units_map.png")),
+        (subgroups / "CAPTION_sfig_subregion_units_map.md", Path("Supplementary Figures/sfig_subregion_units_map_caption.md")),
         (subgroups / "sfig_pfpr_splines_by_period.png", Path("Supplementary Figures/sfig_pfpr_splines_by_period.png")),
         (subgroups / "CAPTION_sfig_pfpr_splines_by_period.md", Path("Supplementary Figures/sfig_pfpr_splines_by_period_caption.md")),
         (subgroups / "pfpr_40_to_20_by_subgroup.png", Path("Supplementary Figures/sfig_pfpr_40_to_20_by_subgroup.png")),
@@ -103,6 +106,11 @@ if snow:
         # Supplementary table of 2024 country rates by source (user request, 28 October 2026).
         (root / "tables/country_rates_2024.latex.txt", Path("tables/country_rates_2024.latex.txt")),
         (root / "tables/country_rates_2024.csv", Path("tables/country_rates_2024.csv")),
+        # Draw-based 95% uncertainty intervals (R_cbh/burden/06_uncertainty_draws.R; 1 November 2026).
+        (root / "uncertainty/annual_intervals_2000_2024.csv", Path("tables/uncertainty_annual_intervals_2000_2024.csv")),
+        (root / "uncertainty/country_year_intervals_2000_2024.csv", Path("tables/uncertainty_country_year_intervals_2000_2024.csv")),
+        (root / "uncertainty/contrasts.csv", Path("tables/uncertainty_contrasts.csv")),
+        (root / "uncertainty/SPEC.md", Path("tables/uncertainty_specification.md")),
     ])
     for png in sorted((snow_maps / "merge_units").glob("*_merge_units.png")):
         assets.append((png, Path("Supplementary Figures/snow_merge_units") / png.name))
@@ -141,13 +149,17 @@ if snow:
     figure_dirs.append((root / "mortality_rates", "R_cbh/reporting/24_malaria_mortality_rates.R"))
     figure_dirs.append((root / "hazard_ratio_by_age", "R_cbh/reporting/26_hazard_ratio_by_age.R"))
     figure_dirs.append((root / "model_vs_cause_specific", "R_cbh/reporting/27_model_vs_cause_specific.R"))
+if snow:
+    figure_dirs.append((root / "uncertainty", "R_cbh/burden/06_uncertainty_draws.R"))
 for figure_dir, script in figure_dirs:
-    stale = [row["file"] for row in read_csv(figure_dir / "provenance.csv")
+    stale = [row["file"] for row in read_csv(figure_dir / ("input_provenance.csv" if figure_dir.name == "uncertainty" else "provenance.csv"))
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale provenance for {figure_dir}: {', '.join(stale)}; rerun {script}"
 
 sample =read_csv(root / "prepared_sample.csv")[0]
 annual = next(row for row in read_csv(root / "annual_comparison/annual_totals_2000_2024.csv") if row["year"] == "2024")
+ui_2024 = {row["source"]: row for row in read_csv(root / "uncertainty/annual_intervals_2000_2024.csv")
+           if row["scenario"] == "main" and row["year"] == "2024"} if snow else {}
 n_covariates = len(read_csv(root / "covariate_scaling.csv"))
 coverage = read_csv(root / "survey_map/survey_coverage.csv")
 selection = {row["survey"]: row for row in read_csv(root / "prepared_selection_by_survey.csv")}
@@ -269,8 +281,14 @@ The 2024 totals are {fmt(annual['model_deaths'])} PfPR-ACM deaths,
 {fmt(annual['ihme_malaria_deaths'])} IHME deaths and
 {fmt(annual['who_cacode_deaths'])} UN IGME deaths, summed over the
 {annual['countries']} countries in the national burden comparison ({overlap}).
-These are conditional model-based estimates; source and imputation uncertainty
-are not fully propagated.
+{(f"The crisis-free 2024 estimates used in the text are {fmt(ui_2024['UN IGME']['attributable_deaths'])} "
+   f"(95% UI {fmt(ui_2024['UN IGME']['attributable_deaths_lower'])}–{fmt(ui_2024['UN IGME']['attributable_deaths_upper'])}) "
+   f"with UN IGME all-cause deaths and {fmt(ui_2024['IHME']['attributable_deaths'])} "
+   f"({fmt(ui_2024['IHME']['attributable_deaths_lower'])}–{fmt(ui_2024['IHME']['attributable_deaths_upper'])}) with IHME, "
+   "from 500 joint draws of MAP's national PfPR (release 202608), the all-cause deaths and the PfPR–death curves "
+   "([intervals](tables/uncertainty_annual_intervals_2000_2024.csv), [specification](tables/uncertainty_specification.md)). "
+   "Covariate-imputation and structural uncertainty are not included.") if snow else
+  "These are conditional model-based estimates; source and imputation uncertainty are not fully propagated."}
 
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
 subgroups (`{subgroups.name}`), no nutrition covariates (`{nutrition.name}`){f" and country fixed effects (`{country_fe.name}`)" if country_fe else ""}

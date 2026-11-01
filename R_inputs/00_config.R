@@ -9,7 +9,8 @@
 # check names this file; raw DHS recodes live in data/raw/dhs (no rdhs cache
 # fallback) and local_recode_path() returns repository-relative paths; the UNICEF
 # dump is the immunisation extract made by R_inputs/trim_unicef_fusion.R; status
-# tables go to results/inputs.
+# tables go to results/inputs; the MAP raster folder, its per-survey extraction cache and the
+# dataset id name MAP release 202608 (1 November 2026, author request; was 202508; cbh_config()$map_release).
 # Run all scripts from the repository root.
 # =============================================================================
 
@@ -26,8 +27,8 @@ DERIVED_DIR    <- file.path(DATA_DIR, "derived_dhs")
 RESULTS_DIR    <- file.path(REPO_ROOT, "results", "inputs")
 DHS_LOCAL_DIR  <- file.path(DATA_DIR, "raw", "dhs")
 BOUNDARY_DIR   <- file.path(DATA_DIR, "dhs_boundaries")
-MAP_RASTER_DIR <- file.path(DATA_DIR, "map_annual")
-MAP_REGION_DIR <- file.path(DATA_DIR, "map_region_cache")
+MAP_RASTER_DIR <- file.path(DATA_DIR, "map_annual_202608")
+MAP_REGION_DIR <- file.path(DATA_DIR, "map_region_cache_202608")
 UNICEF_GLOBAL_CSV <- file.path(
   DATA_DIR, "unicef", "fusion_GLOBAL_DATAFLOW_UNICEF_1.0_immunisation_subset.csv"
 )
@@ -45,7 +46,7 @@ for (d in c(DERIVED_DIR, RESULTS_DIR, BOUNDARY_DIR, MAP_RASTER_DIR, MAP_REGION_D
 DHS_START_YEAR <- 2000L
 DHS_END_YEAR   <- 2025L
 
-MAP_DATASET_ID <- "Malaria__202508_Global_Pf_Parasite_Rate"
+MAP_DATASET_ID <- "Malaria__202608_Global_Pf_Parasite_Rate"
 MAP_AFRICA_EXTENT <- matrix(c(-18, -35, 52, 38), nrow = 2)
 GPW_TIF <- file.path(
   DATA_DIR, "pop",

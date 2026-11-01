@@ -29,6 +29,8 @@ if (!length(args) || any(!grepl(known, args))) {
 if (!file.exists("run_pipeline.R") || !file.exists("R_cbh/00_config.R")) stop("Run from the repository root.")
 if (grepl("MIS:DHS malaria prevalence", getwd(), fixed = TRUE)) stop("This is the analysis project, not this repository.")
 map_frozen <- identical(opt("map"), "frozen")
+# The frozen survey-region MAP tables are the release 202508 extraction; the pipeline uses 202608 since 1 November 2026.
+if (map_frozen) stop("--map=frozen would restore the MAP 202508 survey-region tables, but the analysis uses release 202608 (cbh_config()$map_release).")
 hiv_refit <- identical(opt("hiv"), "refit")
 
 R <- function(script, ..., env = character()) list(cmd = file.path(R.home("bin"), "Rscript"), args = c(script, ...), script = script, env = env)
@@ -64,7 +66,8 @@ stages <- list(
   snow_maps = list(R("R_cbh/snow/21_map_merge_units.R", env = SNOW), R("R_cbh/snow/22_map_boundary_agreement.R", env = SNOW),
                    R("R_cbh/reporting/22_compare_v9_snow.R", env = SNOW)),
   subgroups = list(R("R_cbh/sensitivity/subgroups/01_fit.R", env = SNOW), R("R_cbh/sensitivity/subgroups/02_report.R", env = SNOW),
-                   R("R_cbh/sensitivity/subgroups/03_survival_by_subregion.R", env = SNOW)),
+                   R("R_cbh/sensitivity/subgroups/03_survival_by_subregion.R", env = SNOW),
+                   R("R_cbh/sensitivity/subgroups/04_subregion_units_map.R", env = SNOW)),
   nutrition = list(R("R_cbh/sensitivity/nutrition/01_fit.R", env = SNOW), R("R_cbh/sensitivity/nutrition/02_report.R", env = SNOW)),
   country_fe = list(R("R_cbh/sensitivity/country_fe/01_fit.R", env = SNOW), R("R_cbh/sensitivity/country_fe/02_report.R", env = SNOW)),
   imputation = lapply(c("01_impute_national.R", "02_impute_regional.R", "03_prepare.R", "04_fit.R", "05_propagate.R",

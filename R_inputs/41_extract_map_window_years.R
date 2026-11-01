@@ -23,7 +23,9 @@ YEARS_BACK <- 5L
 # Fieldwork often runs into the calendar year after the registry's survey year,
 # so the first window can touch survey_year + 1.
 YEARS_FORWARD <- 2L
-CACHE <- file.path(DATA_DIR, "map_window_cache")
+# Release-specific cache (map_window_cache_<release>, from the raster folder name), so a new MAP release never reuses
+# another release's extractions.
+CACHE <- file.path(DATA_DIR, sub("^map_annual", "map_window_cache", basename(MAP_RASTER_DIR)))
 dir.create(CACHE, showWarnings = FALSE, recursive = TRUE)
 OUTPUT <- file.path(DERIVED_DIR, "map_pfpr_window_years.csv")
 
@@ -35,6 +37,8 @@ raster_files <- list.files(MAP_RASTER_DIR, pattern = "pfpr2_10_[0-9]{4}[.]tif$",
                            full.names = TRUE)
 raster_years <- as.integer(regmatches(basename(raster_files),
                                       regexpr("[0-9]{4}", basename(raster_files))))
+# The years of the band entries (2000-2024), whatever else the raster folder holds.
+raster_files <- raster_files[raster_years %in% 2000:2024]; raster_years <- raster_years[raster_years %in% 2000:2024]
 rasters <- setNames(lapply(raster_files, terra::rast), as.character(raster_years))
 reference <- rasters[[1]]
 weights_full <- terra::resample(

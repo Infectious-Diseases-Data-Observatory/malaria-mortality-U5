@@ -9,7 +9,7 @@ library(ggplot2)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--dhs-only"))
 dhs_only <- "--dhs-only" %in% args
 snow <- !dhs_only && identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")
-st <- list(out = file.path("results/cbh", if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else if (snow) "nutrition_adjustment_snow520_merge_gamma2_v7" else "nutrition_adjustment_dhsmics_map_gamma2_v4"))
+st <- list(out = file.path("results/cbh", if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else if (snow) "nutrition_adjustment_snow520_merge_gamma2_v8" else "nutrition_adjustment_dhsmics_map_gamma2_v4"))
 primary <- cbh_primary_settings(if (dhs_only) "regional" else if (snow) "snow_merge" else "regional_mics")
 labels <- c(full = "All 17 covariates (primary analysis)",
             drop = "Wasting and stunting removed (sensitivity)")

@@ -17,7 +17,7 @@ args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% c("--force", "
 dhs_only <- "--dhs-only" %in% args
 # The Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge) has its own refit (11 October 2026).
 snow <- !dhs_only && identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")
-st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else if (snow) "nutrition_adjustment_snow520_merge_gamma2_v7" else "nutrition_adjustment_dhsmics_map_gamma2_v4",
+st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else if (snow) "nutrition_adjustment_snow520_merge_gamma2_v8" else "nutrition_adjustment_dhsmics_map_gamma2_v4",
            dropped = c("wasting_pct", "stunting_pct"))
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
 primary <- cbh_primary_settings(if (dhs_only) "regional" else if (snow) "snow_merge" else "regional_mics"); stopifnot(isTRUE(primary$nutrition))

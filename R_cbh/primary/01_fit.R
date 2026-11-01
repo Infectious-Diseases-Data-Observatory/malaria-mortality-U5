@@ -1,14 +1,13 @@
 #!/usr/bin/env Rscript
 # Refit only the primary MAP models from the saved prepared dataset.
 source("R_cbh/load_pipeline.R")
-source("R_cbh/analysis/model.R")
 source("R_cbh/sensitivity/model.R")
 source("R_cbh/primary/settings.R")
+source("R_cbh/primary/specification.R")
 library(mgcv)
 args <- commandArgs(trailingOnly=TRUE)
 stopifnot(all(args %in% "--force"))
 settings <- cbh_primary_settings()
-if(settings$regional) source("R_cbh/primary/specification.R")
 id <- settings$id; private <- settings$private; out <- settings$out
 for(path in c(private,out)) dir.create(path,recursive=TRUE,showWarnings=FALSE)
 ages <- cbh_config()$age_bands$age_band
@@ -32,15 +31,14 @@ cbh_atomic_csv(data.frame(distinct_children=data.table::uniqueN(input$child_id),
   deaths=sum(input$death),surveys=data.table::uniqueN(input$survey),countries=data.table::uniqueN(input$country)),
   file.path(out,"primary_sample.csv"))
 cbh_atomic_csv(prepared$scaling,file.path(out,"covariate_scaling.csv"))
-form <- if(settings$regional) cbh_primary_regional_formula(settings) else cbh_sensitivity_formula(cbh_trial_spec(),single_age=TRUE)
-if(settings$regional) stopifnot(nrow(prepared$scaling)==length(cbh_primary_regional_spec(settings)$covariates),
+form <- cbh_primary_regional_formula(settings)
+stopifnot(isTRUE(settings$regional),nrow(prepared$scaling)==length(cbh_primary_regional_spec(settings)$covariates),
   identical(prepared$scaling$variable,cbh_primary_regional_spec(settings)$covariates),
   "z_urban_pct" %in% all.vars(form))
 input <- input[unique(c(all.vars(form),"age_band"))]
 rm(prepared);gc(FALSE)
 code <- c("R_cbh/primary/01_fit.R","R_cbh/primary/settings.R",settings$knots,
-  "R_cbh/analysis/model.R","R_cbh/sensitivity/model.R")
-if(settings$regional) code <- c(code,"R_cbh/covariates/regional.R","R_cbh/primary/specification.R",settings$prepare)
+  "R_cbh/sensitivity/model.R","R_cbh/primary/specification.R",settings$prepare)
 code_hash <- vapply(code,cbh_file_hash,"")
 data_hash <- cbh_file_hash(settings$data)
 cbh_atomic_csv(data.frame(file=c(settings$data,code),md5=c(data_hash,unname(code_hash))),file.path(out,"fit_input_provenance.csv"))

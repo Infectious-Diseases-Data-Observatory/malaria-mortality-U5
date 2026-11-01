@@ -22,21 +22,15 @@ stages <- c(prepare=settings$prepare,fit="R_cbh/primary/01_fit.R",
   report="R_cbh/primary/03_report.R",
   flow="R_cbh/reporting/01_study_flow_snow.R",
   survey_map="R_cbh/reporting/03_survey_map.R",
-  units_map=if(identical(settings$snow_variant,"merge")) "R_cbh/reporting/23_analysis_units_map.R" else NA_character_,
+  units_map="R_cbh/reporting/23_analysis_units_map.R",
   hr_by_age="R_cbh/reporting/26_hazard_ratio_by_age.R",age_fractions="R_cbh/reporting/06_attributable_fraction_by_age.R",
   annual_burden="R_cbh/burden/04_annual_comparison.R",uncertainty="R_cbh/burden/06_uncertainty_draws.R",
-  annual_plot="R_cbh/reporting/07_annual_mortality_comparison.R",
   rates_figures="R_cbh/reporting/24_malaria_mortality_rates.R",rates_table="R_cbh/reporting/25_country_rates_table.R",
   model_vs_cause="R_cbh/reporting/27_model_vs_cause_specific.R",
-  nigeria_burden="R_cbh/burden/05_nigeria_state_burden.R",nigeria_plot="R_cbh/reporting/08_nigeria_state_comparison.R",
-  burden_figure="R_cbh/reporting/11_burden_comparison_figure.R",
-  burden_tables="R_cbh/reporting/09_burden_tables.R",agreement="R_cbh/reporting/21_country_agreement_2024.R",
+  ihme_vs_unigme="R_cbh/reporting/28_malaria_rates_ihme_vs_unigme.R",
   source_table="R_cbh/reporting/12_source_comparison_table.R",
-  u5_probability="R_cbh/reporting/13_under5_death_probability.R",
   malaria_share="R_cbh/reporting/20_malaria_share_vs_pfpr.R",
   paper_manifest="R_cbh/reporting/04_paper_figures.R")
-# Figure 1 of the Snow-unit primary (12 October 2026, author request): complete birth histories by analysis unit.
-stages <- stages[!is.na(stages)]
 if("--report-only" %in% args) stages <- stages[!names(stages) %in% c("prepare","fit")]
 dir.create(settings$out,recursive=TRUE,showWarnings=FALSE)
 log <- list()
@@ -53,4 +47,4 @@ files <- list.files(settings$out,recursive=TRUE,full.names=TRUE)
 files <- files[!grepl("output_manifest[.]csv$",files)]
 write.csv(data.frame(file=files,bytes=file.info(files)$size,md5=unname(tools::md5sum(files))),
   file.path(settings$out,"output_manifest.csv"),row.names=FALSE)
-message("Primary pipeline complete: ",settings$out,"/RESULTS.md")
+message("Primary pipeline complete: ",settings$out)

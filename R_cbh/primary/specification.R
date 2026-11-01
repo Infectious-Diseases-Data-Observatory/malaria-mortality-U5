@@ -1,7 +1,6 @@
-# Versioned regional specifications; preserve the 18-variable benchmark.
-source("R_cbh/covariates/regional.R")
+# The primary's 17 adjustment covariates (13 regional, 4 national) and formula.
 cbh_primary_regional_spec <- function(settings) {
-  if(!isTRUE(settings$nutrition))return(cbh_regional_spec())
+  stopifnot(isTRUE(settings$nutrition))
   regional <- c("mean_maternal_age_first_birth","mean_maternal_education_years","mean_wealth_quintile",
     "urban_pct","dtp3_pct","measles_pct","facility_delivery_pct","short_birth_interval_pct",
     "improved_water_pct","improved_sanitation_pct","electricity_pct","wasting_pct","stunting_pct")

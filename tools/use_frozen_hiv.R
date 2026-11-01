@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # Use the paper's child HIV incidence panels (stage hiv_panels of run_pipeline.R).
-# The model is refitted in stage hiv as a check. This script records how the refit differs from the
-# frozen panels (results/cbh/hiv_incidence/refit_vs_frozen.csv), keeps the refit outputs in
+# The model can be refitted as a check (stage hiv, optional: --only=hiv). After a refit, this script records how it
+# differs from the frozen panels (results/cbh/hiv_incidence/refit_vs_frozen.csv), keeps the refit outputs in
 # */hiv_incidence/refit_check/, and restores the frozen base and extended panels and draws, from which
 # R_cbh/hiv/03_add_liberia_aidsinfo.R then rebuilds the Liberia panels used by the models.
 suppressPackageStartupMessages(library(data.table))
@@ -12,9 +12,12 @@ panels <- c("child_incidence_country_year.csv", "child_incidence_country_year_ex
 draws <- c("child_incidence_draws.rds", "child_incidence_draws_extended.rds")
 for (d in file.path(c(priv, out), "refit_check")) dir.create(d, recursive = TRUE, showWarnings = FALSE)
 cmp <- list()
+# A file identical to its frozen copy was restored by an earlier run, not refitted (stage hiv is optional).
+refitted <- function(f) file.exists(file.path(priv, f)) &&
+  !identical(unname(tools::md5sum(file.path(priv, f))), unname(tools::md5sum(file.path("data/frozen", priv, f))))
 for (f in panels) {
   refit <- file.path(priv, f)
-  if (file.exists(refit)) {
+  if (refitted(f)) {
     file.copy(refit, file.path(priv, "refit_check", f), overwrite = TRUE, copy.date = TRUE)
     file.copy(refit, file.path(out, "refit_check", f), overwrite = TRUE, copy.date = TRUE)
     a <- fread(refit); b <- fread(file.path("data/frozen", priv, f))
@@ -26,7 +29,7 @@ for (f in panels) {
       median_abs_log_ratio = median(abs(log_ratio), na.rm = TRUE), max_abs_log_ratio = max(abs(log_ratio), na.rm = TRUE)), by = status]
   }
 }
-for (f in draws) if (file.exists(file.path(priv, f))) file.copy(file.path(priv, f), file.path(priv, "refit_check", f), overwrite = TRUE, copy.date = TRUE)
+for (f in draws) if (refitted(f)) file.copy(file.path(priv, f), file.path(priv, "refit_check", f), overwrite = TRUE, copy.date = TRUE)
 if (length(cmp)) fwrite(rbindlist(cmp), file.path(out, "refit_vs_frozen.csv"))
 for (i in seq_len(nrow(m))) {
   to <- sub("^data/frozen/", "", m$file[i])

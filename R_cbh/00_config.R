@@ -9,12 +9,11 @@ cbh_config <- function(root = getwd()) {
     annual_map = file.path(root, "data/derived_dhs/map_pfpr_window_years.csv"),
     # MAP PfPR2-10 release for every exposure: 202608 from 1 November 2026 (author request; was 202508). Annual 2.5'
     # rasters, band 1 = the estimate, 2000-2024 (R_inputs/fetch/fetch_map_release_rasters.R), and MAP's own national
-    # (admin-0) and admin-1 estimates with interval bounds (R_inputs/fetch/fetch_map_national_pfpr.R). R_inputs/00_config.R
-    # names the same raster folder.
+    # (admin-0) estimates with interval bounds (R_inputs/fetch/fetch_map_national_pfpr.R). R_inputs/00_config.R names
+    # the same raster folder.
     map_release = "202608",
     map_raster_dir = file.path(root, "data/map_annual_202608"),
     map_national = file.path(root, "data/map_pfpr_admin0_202608.csv"),
-    map_admin1 = file.path(root, "data/map_pfpr_admin1_202608.csv"),
     # Countries of the IHME all-cause export that stay out of the burden although MAP now gives them national values:
     # the paper's 42-country set is kept (author decision, 1 November 2026). Lesotho has no MAP national value.
     burden_excluded = c("CPV", "STP"),
@@ -29,18 +28,9 @@ cbh_config <- function(root = getwd()) {
       age_lo = c(0L, 1L, 6L, 12L, 24L, 36L, 48L),
       age_hi = c(1L, 6L, 12L, 24L, 36L, 48L, 60L)),
     # Candidate X variables are retained, not selected or imputed here.
-    # An unavailable optional panel produces NA and a source-status flag.
+    # An unavailable optional panel produces NA and a source-status flag. The legacy HIV prevalence and immunisation
+    # panels, which fed no model, were removed on 1 November 2026 (author decision).
     annual_panels = list(
-      hiv = list(path = file.path(root, "data/derived_dhs/hiv_prevalence_country_year.csv"),
-                 columns = c(hiv_prev_pct = "hiv_prev"), percent = "hiv_prev_pct"),
-      immunisation = list(path = file.path(root, "data/derived_dhs/unicef_immunisation_country_year.csv"),
-                          columns = c(hib3_pct = "hib3_wuenic", pcv3_pct = "pcv3_wuenic",
-                                      rotavirus_pct = "rotac_wuenic"),
-                          percent = c("hib3_pct", "pcv3_pct", "rotavirus_pct"),
-                          source_status = c(hib3_pct = "hib3_wuenic_status",
-                                            pcv3_pct = "pcv3_wuenic_status",
-                                            rotavirus_pct = "rotac_wuenic_status"),
-                          allowed_status = "wuenic_estimate"),
       gdp = list(path = file.path(root, "data/wb_gdp_pc.csv"),
                  columns = c(gdp_pc = "gdp_pc")),
       health_spending = list(path = file.path(root, "data/wb_hexp_pc.csv"),

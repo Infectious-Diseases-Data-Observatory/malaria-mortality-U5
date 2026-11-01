@@ -16,25 +16,24 @@
 # and gamma, with the Snow et al. (2017) polygons as the unit of analysis (R_cbh/snow/): every MAP-eligible DHS and
 # MICS survey; a record's unit is the Snow polygon holding >= 90% of its smallest reported admin unit, else the union
 # of the polygons each holding >= 5%; units more than half malaria-free dropped; exposure = MAP PfPR of the unit;
-# the 13 regional covariates recomputed per (survey, unit) from the recodes. snow_split_repro rebuilds the analysis
-# project's population-share split dataset on the v9 surveys to verify the port (prepared data only; not fitted).
+# the 13 regional covariates recomputed per (survey, unit) from the recodes. The check that rebuilt the analysis
+# project's population-share split dataset (snow_split_repro) was removed on 1 November 2026 (git history).
 # snow_merge v12 (author decision, 29 October 2026): political stability in 2001, a year without a WGI round, is the
 # mean of the country's 2000 and 2002 values (R_cbh/primary/national_interpolations.R), so records entering a band in
 # 2001 are no longer lost to complete-case selection; sensitivities v6. v11 (sensitivities v5) is kept as history.
 # snow_merge v13 (author decision, 29 October 2026): health expenditure in 2024, not yet published for any country in
 # the analysis, is the country's 2023 value (same file), so 2024 band entries are kept; sensitivities v7. v12 (v6) is history.
 # snow_merge v14 (author decision, 1 November 2026): MAP PfPR2-10 release 202608 in place of 202508 for every exposure
-# (cbh_config()$map_release), and MAP's own national (admin-0) and Nigerian state (admin-1) estimates in the burden in
-# place of the GPW-weighted raster means; burden uncertainty from 500 joint draws (R_cbh/burden/06_uncertainty_draws.R);
-# sensitivities v8, country fixed effects v2, imputation v15. v13 (v7) is history; v9 was refitted on 202608
-# (..._v9_map202608) and then removed (1 November 2026).
+# (cbh_config()$map_release), and MAP's own national (admin-0) estimates in the burden in place of the GPW-weighted
+# raster means (and admin-1 for the Nigerian state burden, removed on 1 November 2026); burden uncertainty from 500
+# joint draws (R_cbh/burden/06_uncertainty_draws.R); sensitivities v8, country fixed effects v2, imputation v15. v13
+# (v7) is history; v9 was refitted on 202608 (..._v9_map202608) and then removed (1 November 2026).
 cbh_primary_settings <- function(version = Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge")) {
-  if (!version %in% c("snow_merge", "snow_split_repro"))
-    stop("Unknown primary version: ", version, " (snow_merge, snow_split_repro)")
+  if (!identical(version, "snow_merge")) stop("Unknown primary version: ", version, " (snow_merge)")
   cbh_snow_primary_settings(version)
 }
 cbh_snow_primary_settings <- function(version) {
-  id <- if (identical(version, "snow_merge")) "primary_snow520_merge_dhsmics_gamma2_v14" else "snow_split_repro"
+  id <- "primary_snow520_merge_dhsmics_gamma2_v14"
   private <- file.path("data/derived_cbh/models", id)
   list(
     id = id, version = version,
@@ -45,11 +44,11 @@ cbh_snow_primary_settings <- function(version) {
     years = c(2005L, 2015L, 2024L), gamma = 2, seed = 20260907L,
     nthreads = 2L, regional = TRUE, nutrition = TRUE, imputed = FALSE, mics = TRUE,
     hiv_panel = "data/derived_cbh/hiv_incidence/child_incidence_country_year_lbr.csv",
-    # Expected counts are set from the verified run (verification/reference_key_numbers.csv); NULL = not yet fixed.
+    # Expected counts are set from a verified run; NULL = not yet fixed.
     expected_records = NULL, expected_deaths = NULL, expected_regions = NULL,
     mics_output_dir = "data/derived_mics/cbh_build", expected_mics_surveys = NULL,
     sensitivity_dirs = c(subgroups = "results/cbh/subgroups_snow520_merge_gamma2_v8",
                          nutrition = "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v8"),
-    unit = "snow", snow_variant = if (identical(version, "snow_merge")) "merge" else "split_repro",
+    unit = "snow", snow_variant = "merge",
     prepare = "R_cbh/primary/00_prepare_snow.R")
 }

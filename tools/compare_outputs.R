@@ -3,8 +3,8 @@
 #   Rscript tools/compare_outputs.R --reference="<analysis project>" --checkpoint=NAME [--overleaf="<dir>"]
 # Checkpoints follow the pipeline: inputs, hiv, dhs_bands, covariates, mics, primary (national burden inputs), paper; for
 # the Snow-unit primary also snow_units, snow_primary and snow_sensitivities (reference: a saved copy of this repository).
-# The v9 checkpoints (the v9 fits, its sensitivities) were removed with v9 on 1 November 2026; their records stay in
-# verification/.
+# The v9 checkpoints (the v9 fits, its sensitivities) were removed with v9 on 1 November 2026, and the verification
+# records of earlier runs on the same day (git history keeps them).
 # Each file is classed as
 #   identical   byte-for-byte
 #   equivalent  same after removing volatile columns (hashes, paths, timings) and normalising paths
@@ -18,7 +18,7 @@ ref <- opt("reference"); cp <- opt("checkpoint"); overleaf <- opt("overleaf")
 stopifnot(!is.null(ref), dir.exists(ref), !is.null(cp))
 ref <- normalizePath(ref); tgt <- normalizePath(getwd())
 suppressPackageStartupMessages(library(data.table))
-v11 <- "results/cbh/primary_snow520_merge_dhsmics_gamma2_v11"
+v14 <- "results/cbh/primary_snow520_merge_dhsmics_gamma2_v14"
 # Paths that differ only because of this repository's layout.
 renames <- c("/Users/jameswatson/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/", "~/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/",
   "data/dhs/" = "data/raw/dhs/", "data/MICS_extracted" = "data/raw/MICS_extracted", "data/MICS_Datasets" = "data/raw/MICS_Datasets",
@@ -36,20 +36,19 @@ norm <- function(x) {
 volatile <- "md5|sha256|hash|signature|elapsed|started|finished|retrieved|session|^seconds$|_seconds$|^time$|timestamp|generated"
 sets <- list(
   inputs = c("data/derived_dhs/map_pfpr_by_survey_region.csv", "data/derived_dhs/map_pfpr_window_years.csv",
-             "data/derived_dhs/unicef_immunisation_country_year.csv", "data/derived_dhs/dhs_region_centroids.csv",
-             "results/who_wmr2025_global_deaths.csv", "results/who_wmr2025_africa_deaths.csv"),
+             "data/derived_dhs/dhs_region_centroids.csv"),
   hiv = c("data/derived_cbh/hiv_incidence", "results/cbh/hiv_incidence"),
   dhs_bands = c("data/derived_cbh/survey_manifest.csv", "data/derived_cbh/child_checks.csv", "data/derived_cbh/eligibility_flow.csv",
                 "data/derived_cbh/region_crosswalk.csv", "data/derived_cbh/child_bands"),
-  covariates = c("data/derived_cbh/regional_adjustment", "results/cbh/planned17_covariate_missingness",
-                 "results/cbh/planned17_covariate_missingness_lbr", "results/cbh/regional_adjustment_reduced_v3"),
+  covariates = "data/derived_cbh/regional_adjustment",
   mics = c("data/derived_mics", "results/mics_inventory"),
   primary = "results/cbh/national_burden_inputs",
   # Snow-unit primary: checked against a saved copy of this repository's own earlier outputs (--reference=<copy>).
   snow_units = c("results/cbh/snow_units/merge", "data/derived_cbh/snow/merge"),
-  snow_primary = c(v11, file.path("data/derived_cbh/models", basename(v11), "pfpr_components.rds")),
-  snow_sensitivities = c("results/cbh/subgroups_snow520_merge_gamma2_v5", "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v5",
-                         "results/cbh/primary_snow520_merge_imputed_gamma2_v12", "results/cbh/covariate_imputation_snow_v12"),
+  snow_primary = c(v14, file.path("data/derived_cbh/models", basename(v14), "pfpr_components.rds")),
+  snow_sensitivities = c("results/cbh/subgroups_snow520_merge_gamma2_v8", "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v8",
+                         "results/cbh/country_fixed_effects_snow520_merge_gamma2_v2",
+                         "results/cbh/primary_snow520_merge_imputed_gamma2_v15", "results/cbh/covariate_imputation_snow_v15"),
   paper = "paper")
 stopifnot(cp %in% names(sets))
 skip <- "previous_overleaf|paper_refresh/export_|pipeline_stages[.]csv$|output_manifest[.]csv$|[.]log$|\\.DS_Store$|_cache/|/cache[.]rds$"

@@ -2,7 +2,7 @@
 # Figure 1 (main text): complete birth histories used in the primary analysis, by sub-national polygon of Snow et al.
 # (2017) (user request, 12 October 2026). Each sub-Saharan polygon is coloured by the number of complete birth histories
 # (interviewed mothers) with at least one child-band record in the final sample, summed over the included surveys. The
-# previous Figure 1 (survey map and timing, 03_survey_map.R) moves unchanged to the supplement.
+# previous Figure 1 (survey map and timing) is no longer drawn (1 November 2026); 03_survey_map.R writes its tables only.
 # Rules:
 #   Mothers: the analysed child_ids of the prepared dataset (P$data) are mapped to their mother through the child-band
 #     shards, as in 03_survey_map.R. A mother whose unit is one polygon counts 1 there. A mother whose unit is a union of
@@ -64,8 +64,8 @@ paths <- c(dataset = P$data, records_placed = file.path(S$private, "records_plac
            script = self, primary_settings = "R_cbh/primary/settings.R", snow_settings = "R_cbh/snow/R/settings.R",
            load_pipeline = "R_cbh/load_pipeline.R",                     # and the files it sources (cbh_source())
            # This list must track the paths of cbh_source() in R_cbh/load_pipeline.R (every R_cbh/R/*.R file is asserted below).
-           setNames(file.path("R_cbh", c("00_config.R", file.path("R", c("utils.R", "geography.R", "child_bands.R", "external_data.R", "build.R", "load.R")))),
-                    c("config", "utils", "geography", "child_bands", "external_data", "build", "load")))
+           setNames(file.path("R_cbh", c("00_config.R", file.path("R", c("utils.R", "geography.R", "child_bands.R", "external_data.R", "build.R")))),
+                    c("config", "utils", "geography", "child_bands", "external_data", "build")))
 assert_helpers <- setdiff(file.path("R_cbh/R", list.files("R_cbh/R", "[.]R$")), paths)
 if (length(assert_helpers)) stop("Helper files missing from the provenance list (see cbh_source()): ", paste(assert_helpers, collapse = ", "))
 rm(assert_helpers)

@@ -32,7 +32,7 @@ d <- rbind(
     model_upper = malaria_rate_per1000_upper_ihme, cause_specific = ihme_malaria_rate)])
 d[, region := factor(region_of[iso3], levels = names(m49))]
 stopifnot(!anyNA(d))
-# Labels are ISO3 codes, as in panel A of the burden comparison figure; full names overlap at this size.
+# Labels are ISO3 codes; full names overlap at this size.
 label_min <- 2.5
 d[, label := fifelse(pmax(model, cause_specific) >= label_min, iso3, "")]
 cbh_atomic_csv(d, file.path(out, "figure_data.csv"))

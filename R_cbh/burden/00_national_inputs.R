@@ -54,24 +54,20 @@ for (year in years) {
   pr$exposure_year <- year; pr$population_weight_year <- NA_integer_
   cbh_atomic_csv(pr, file.path(out, year_text("national_pfpr_{year}.csv")))
 
-  # Six disjoint source ages. Early and late neonatal receive the same <1m HR.
+  # Six disjoint source ages. Early and late neonatal receive the same <1m HR. (Their table,
+  # ihme_disjoint_age_inputs.csv, was dropped on 1 November 2026: no paper output read it.)
   source_rows <- do.call(rbind, lapply(countries$iso3, function(iso) {
     z <- x[x$iso3 == iso, ]
-    value <- function(ages, unit, field = "Value") {
+    value <- function(ages, unit) {
       ii <- match(ages, z$Age[z$Unit == unit]); stopifnot(!anyNA(ii))
-      z[[field]][which(z$Unit == unit)[ii]]
+      z$Value[which(z$Unit == unit)[ii]]
     }
     deaths <- value(leaf, "Number"); rate <- value(leaf, "Rate (per 100,000)")
     stopifnot(abs(sum(deaths) - value("Under 5", "Number")) < 1e-5 * sum(deaths),
       abs(sum(deaths[1:4]) - value("Under 1", "Number")) < 1e-5 * sum(deaths[1:4]))
     data.frame(iso3 = iso, source_age = leaf, deaths = deaths, rate_per100000 = rate,
-      implied_person_years = deaths / (rate / 1e5),
-      ihme_deaths_lower = value(leaf, "Number", "Lower"),
-      ihme_deaths_upper = value(leaf, "Number", "Upper"),
-      ihme_rate_lower = value(leaf, "Rate (per 100,000)", "Lower"),
-      ihme_rate_upper = value(leaf, "Rate (per 100,000)", "Upper"))
+      implied_person_years = deaths / (rate / 1e5))
   }))
-  cbh_atomic_csv(source_rows, file.path(out, "ihme_disjoint_age_inputs.csv"))
   bands <- do.call(rbind, lapply(countries$iso3, function(iso) {
     z <- source_rows[source_rows$iso3 == iso, ]; stopifnot(identical(z$source_age, leaf))
     deaths <- c(sum(z$deaths[1:2]), z$deaths[3:5], rep(z$deaths[6] / 3, 3))

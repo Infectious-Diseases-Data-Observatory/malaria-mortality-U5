@@ -66,14 +66,6 @@ annual <- read("annual_comparison/annual_totals_2000_2024.csv")
 burden <- read("burden/year_summary.csv")
 stopifnot(nrow(annual)==25L,identical(as.integer(annual$year),2000:2024),all(annual$countries==42L),
   max(abs(annual$model_deaths[match(burden$year,annual$year)]-burden$attributable_under5_deaths))<.01)
-national <- read("tables/country_comparison_2024.csv")
-stopifnot(nrow(national)==42L,
-  abs(sum(national$model_deaths)-annual$model_deaths[annual$year==2024])<1e-6,
-  abs(sum(national$ihme_malaria_deaths)-annual$ihme_malaria_deaths[annual$year==2024])<1e-6,
-  abs(sum(national$who_cacode_deaths)-annual$who_cacode_deaths[annual$year==2024])<1e-6)
-states <- read("nigeria_states/state_totals_2024.csv")
-recon <- read("nigeria_states/national_reconciliation_2024.csv")
-stopifnot(nrow(states)==37L,abs(sum(states$attributable_under5_deaths)-recon$state_sum_attributable_deaths)<1e-6)
 # MAP release and uncertainty (1 November 2026): every exposure from cbh_config()$map_release, national PfPR equal to
 # MAP's own national estimates, and draw-based intervals that reproduce and bracket the point estimates.
 cfg <- cbh_config()
@@ -103,11 +95,10 @@ checks <- lapply(provenances,function(p) {
 })
 cbh_atomic_csv(do.call(rbind,checks),file.path(root,"paper_refresh/provenance_checks.csv"))
 stopifnot(!length(list.files(root,pattern="[.]tex$",recursive=TRUE)))
-for(p in file.path(root,"tables",c("age_band_results.latex.txt","country_comparison_2024.latex.txt"))) {
-  lines <- readLines(p);rows <- lines[grepl(" & ",lines,fixed=TRUE)]
-  stopifnot(length(rows)>7L,all(endsWith(rows,strrep(intToUtf8(92),2))))
-}
-writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state and annual comparisons; Figure 4 under-5 death probability) reference the revised primary version and match their hashes.",nrow(figures)),
+# Table S1 source (R_cbh/reporting/25_country_rates_table.R).
+lines <- readLines(file.path(root,"tables/country_rates_2024.latex.txt"));rows <- lines[grepl(" & ",lines,fixed=TRUE)]
+stopifnot(length(rows)>7L,all(endsWith(rows,strrep(intToUtf8(92),2))))
+writeLines(c(sprintf("PASS: %d main figures reference the revised primary version and match their hashes.",nrow(figures)),
   "PASS: seven fitted model hashes, convergence flags and gamma=2 verified.",
   sprintf(paste0("PASS: flow, %s, %d ","survey x unit areas",", child-band/death/child totals reconcile."),
     if(isTRUE(st$mics)) sprintf("%d DHS and MICS surveys (%d DHS, %d MICS)",sample$surveys,sum(coverage$type=="DHS"),sum(coverage$type=="MICS"))
@@ -115,8 +106,7 @@ writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state a
   mics_lines,subst_lines,
   "PASS: age-table death percentages sum to 100.0%; both contrasts retained; no fit-time column.",
   sprintf("PASS: %d annual totals use 42 countries and reproduce the three national-burden years.",nrow(annual)),
-  "PASS: 2024 country table reproduces all three Figure 3 panel C totals for 2024; 37 state totals reconcile.",
-  "PASS: producer/data provenance hashes match; table source has valid row terminators.",
+  "PASS: producer/data provenance hashes match; Table S1 source has valid row terminators.",
   sprintf("PASS: MAP release %s for every exposure; national PfPR equals MAP's national estimates; 500-draw intervals reproduce and bracket the 50 annual point estimates.",cfg$map_release),
   "PASS: no TeX files created in this result version."),file.path(root,"paper_refresh/validation.txt"))
 message("Primary reporting validation passed")

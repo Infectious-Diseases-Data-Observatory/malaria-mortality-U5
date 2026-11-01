@@ -66,3 +66,7 @@ results/
 logs/
 Rplots.pdf
 .DS_Store
+# MAP release 202608 rasters: not committed (author decision, 1 November 2026); R_inputs/fetch/fetch_map_release_rasters.R
+# downloads them and data/INPUTS_MANIFEST.csv pins their md5s. The 2025 layer is kept apart from the 2000-2024 folder.
+data/map_annual_202608/
+data/map_annual_202608_extra/

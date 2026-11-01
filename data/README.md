@@ -19,7 +19,9 @@ Every file derived from microdata (child-band files, prepared datasets, model fi
 
 | Input | Files | Source and terms |
 |---|---|---|
-| MAP *P. falciparum* parasite rate, ages 2–10, annual 2000–2024 (release `Malaria__202508_Global_Pf_Parasite_Rate`) | `map_annual/pfpr2_10_YYYY.tif` (survey-region exposure), `pfpr_2to10_africa_2024.tif` (national burden, 2024) | [Malaria Atlas Project](https://malariaatlas.org/), via `malariaAtlas` (`R_inputs/fetch/01_fetch_data.R`). CC BY 4.0. The two 2024 rasters differ (different downloads). |
+| MAP *P. falciparum* parasite rate, ages 2–10, annual 2000–2024, release `Malaria__202608_Global_Pf_Parasite_Rate` (used since 1 November 2026) | `map_annual_202608/pfpr2_10_YYYY.tif` (band 1, the estimate; every survey-region and Snow-unit exposure) | [Malaria Atlas Project](https://malariaatlas.org/), via `malariaAtlas::getRaster` (`R_inputs/fetch/fetch_map_release_rasters.R 202608 2000 2024`, downloaded 1 November 2026). CC BY 4.0. Not committed (author decision): download them with that script; `INPUTS_MANIFEST.csv` holds their md5s, which the pipeline checks. |
+| MAP national (admin-0) and admin-1 PfPR2-10 estimates with lower and upper bounds, release 202608, 2000–2025 | `map_pfpr_admin0_202608.csv`, `map_pfpr_admin1_202608.csv` (proportions 0–1; MAP does not state the interval level) | MAP's platform API (`https://data.malariaatlas.org/map-platform-app-backend/api/v1/trends/malaria/Pf_PR-rate/{admin0,admin1}/{mean,lci,uci}?version=202608`, the data behind data.malariaatlas.org/trends), via `R_inputs/fetch/fetch_map_national_pfpr.R 202608` (1 November 2026). National PfPR of the burden (2000–2024), its uncertainty draws, and Nigerian state PfPR. |
+| MAP parasite rate, release `Malaria__202508_Global_Pf_Parasite_Rate` (history: the paper's exposure until v13) | `map_annual/pfpr2_10_YYYY.tif`, `pfpr_2to10_africa_2024.tif` | As above, via `R_inputs/fetch/01_fetch_data.R`. No longer read by the pipeline. |
 | GPW v4 population density 2020, 2.5 arc-minutes | `pop/gpw_v4_population_density_rev11_2020_2.5m.tif` | CIESIN/SEDAC. CC BY 4.0. |
 | National boundaries | `africa_admin0.rds` | `geodata`/GADM via `R_inputs/fetch/01_fetch_data.R`. |
 | DHS survey-region boundaries | `dhs_boundaries/<SurveyId>.rds` (128) | [DHS Spatial Data Repository](https://spatialdata.dhsprogram.com/), via `rdhs::download_boundaries`. |
@@ -35,7 +37,7 @@ Every file derived from microdata (child-band files, prepared datasets, model fi
 | IHME GBD Nigerian states: all-cause and malaria (exported 16 September 2026) | `external/nigeria_states/` (with `source.json`) | As above. |
 | UN IGME under-five mortality rate (World Bank mirror, SH.DYN.MORT) | `igme_u5mr_by_country.csv` | [UN IGME](https://childmortality.org/). Fetch script: `R_inputs/fetch/fetch_igme_u5mr.R`. |
 | CA-CODE 2026 under-five malaria deaths and malaria share of under-five deaths | `external/figure5/unicef_cacode_u5_malaria_2000_2024.csv`, `external/cacode/unicef_cacode_u5_malaria_fraction_2000_2024.csv` (each with `source.json`) | UNICEF SDMX service behind [childmortality.org](https://childmortality.org/causes-of-death/data), WHO/UNICEF CA-CODE release of 18 March 2026. |
-| MAP PfPR for Nigerian states and DR Congo provinces, 2024 | `pfpr_admin1_ng_cd_2024.csv` | Computed from the 2024 MAP raster and malariaAtlas admin-1 shapes (`R_inputs/fetch/pfpr_admin1_ng_cd_2024.R`). |
+| MAP PfPR for Nigerian states and DR Congo provinces, 2024 (history: release 202508; replaced by `map_pfpr_admin1_202608.csv`) | `pfpr_admin1_ng_cd_2024.csv` | Computed from the 2024 MAP raster and malariaAtlas admin-1 shapes (`R_inputs/fetch/pfpr_admin1_ng_cd_2024.R`). No longer read by the pipeline. |
 
 ## Frozen copies of fetched inputs (`frozen/`)
 

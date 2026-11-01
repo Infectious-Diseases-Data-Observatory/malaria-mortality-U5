@@ -9,7 +9,7 @@ all-cause mortality; Figure 5 the PfPR-ACM estimates against the cause-specific
 estimates of UN IGME and IHME by country in 2024; the burden comparison with IHME and UN IGME and the probability of
 dying before age 5 are supplementary figures) and the
 supplementary inclusion flow use the 17-variable
-regional-adjustment MAP gamma=2 models in `primary_snow520_merge_dhsmics_gamma2_v13`. The analysis contains
+regional-adjustment MAP gamma=2 models in `primary_snow520_merge_dhsmics_gamma2_v14`. The analysis contains
 2,348,875 children, 7,807,872 child-band records and
 108,796 deaths in 1,452 survey x unit areas,
 136 surveys and 37 countries.
@@ -36,17 +36,16 @@ No TeX file has been edited. Update manuscript text and captions manually using:
 - [Annual totals](tables/annual_totals_2000_2024.csv) and
   [Nigerian state totals](tables/nigeria_state_totals_2024.csv).
 
-The 2024 totals are 587,587 PfPR-ACM deaths,
+The 2024 totals are 553,214 PfPR-ACM deaths,
 428,147 IHME deaths and
 440,123 UN IGME deaths, summed over the
 42 countries in the national burden comparison (36 of the 37 survey countries; ZAF contributes survey data but is outside the burden set).
-These are conditional model-based estimates; source and imputation uncertainty
-are not fully propagated.
+The crisis-free 2024 estimates used in the text are 583,105 (95% UI 468,077–688,088) with UN IGME all-cause deaths and 550,936 (425,063–633,936) with IHME, from 500 joint draws of MAP's national PfPR (release 202608), the all-cause deaths and the PfPR–death curves ([intervals](tables/uncertainty_annual_intervals_2000_2024.csv), [specification](tables/uncertainty_specification.md)). Covariate-imputation and structural uncertainty are not included.
 
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
-subgroups (`subgroups_snow520_merge_gamma2_v7`), no nutrition covariates (`nutrition_adjustment_snow520_merge_gamma2_v7`) and country fixed effects (`country_fixed_effects_snow520_merge_gamma2_v1`)
+subgroups (`subgroups_snow520_merge_gamma2_v8`), no nutrition covariates (`nutrition_adjustment_snow520_merge_gamma2_v8`) and country fixed effects (`country_fixed_effects_snow520_merge_gamma2_v2`)
 on this sample, and imputed covariates on the larger sample of every placed record
-(`primary_snow520_merge_imputed_gamma2_v12`, which retains every record placed in a Snow et al. unit: 8,630,306 records, 122,092 deaths, 161 surveys and 38 countries). Malaria's share of under-five deaths against national
+(`primary_snow520_merge_imputed_gamma2_v15`, which retains every record placed in a Snow et al. unit: 8,630,306 records, 122,092 deaths, 161 surveys and 38 countries). Malaria's share of under-five deaths against national
 PfPR in 2024 (`Supplementary Figures/sfig_malaria_share_vs_pfpr.png`) compares IHME and
 UN IGME (CA-CODE) with the PfPR-ACM model. Their captions are exported to
 `Supplementary Figures/`.

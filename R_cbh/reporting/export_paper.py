@@ -28,6 +28,8 @@ assert destination.is_dir()
 subgroups = Path("results/cbh/subgroups_snow520_merge_gamma2_v7" if snow else "results/cbh/subgroups_dhsmics_map_gamma2_v4")
 nutrition = Path("results/cbh/nutrition_adjustment_snow520_merge_gamma2_v7" if snow else "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4")
 imputed = Path("results/cbh/primary_snow520_merge_imputed_gamma2_v12" if snow else "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10")
+# Country fixed effects (31 October 2026): refitted for the Snow primary only.
+country_fe = Path("results/cbh/country_fixed_effects_snow520_merge_gamma2_v1") if snow else None
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -76,6 +78,10 @@ if snow:
         # Raw survival against PfPR by UN sub-region with unadjusted spline fits (user request, 15 October 2026).
         (subgroups / "sfig_survival_vs_pfpr_by_subregion.png", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion.png")),
         (subgroups / "CAPTION_sfig_survival_vs_pfpr_by_subregion.md", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion_caption.md")),
+        # Country fixed effects in place of the country random intercept (author request, 31 October 2026).
+        (country_fe / "sfig_pfpr_splines_country_fixed_effects.png", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects.png")),
+        (country_fe / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects_caption.md")),
+        (country_fe / "SUMMARY.md", Path("tables/country_fixed_effects_summary.md")),
         (snow_maps / "boundary_agreement_map.png", Path("Supplementary Figures/sfig_snow_boundary_agreement_map.png")),
         (snow_maps / "CAPTION_boundary_agreement_map.md", Path("Supplementary Figures/sfig_snow_boundary_agreement_map_caption.md")),
         (root / "comparison_v9/pfpr_hr_curves_v9_vs_snow.png", Path("Supplementary Figures/sfig_pfpr_curves_v9_vs_snow.png")),
@@ -126,7 +132,7 @@ for source, rel in assets:
     check(source, rel)
 # A sensitivity figure is current only if its report was rerun after the last change to its inputs or code
 # (for example R_cbh/sensitivity/subgroups/02_report.R after an axis change).
-for sensitivity in (subgroups, nutrition):
+for sensitivity in [s for s in (subgroups, nutrition, country_fe) if s is not None]:
     stale = [row["file"] for row in read_csv(sensitivity / "report_provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale report provenance in {sensitivity}: {', '.join(stale)}; rerun its report script"
@@ -267,7 +273,7 @@ These are conditional model-based estimates; source and imputation uncertainty
 are not fully propagated.
 
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
-subgroups (`{subgroups.name}`) and no nutrition covariates (`{nutrition.name}`)
+subgroups (`{subgroups.name}`), no nutrition covariates (`{nutrition.name}`){f" and country fixed effects (`{country_fe.name}`)" if country_fe else ""}
 on this sample, and imputed covariates on the larger {'sample of every placed record' if snow else 'MAP-eligible sample'}
 (`{imputed.name}`{v6_text}). Malaria's share of under-five deaths against national
 PfPR in 2024 (`Supplementary Figures/sfig_malaria_share_vs_pfpr.png`) compares IHME and

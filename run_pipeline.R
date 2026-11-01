@@ -66,6 +66,7 @@ stages <- list(
   subgroups = list(R("R_cbh/sensitivity/subgroups/01_fit.R", env = SNOW), R("R_cbh/sensitivity/subgroups/02_report.R", env = SNOW),
                    R("R_cbh/sensitivity/subgroups/03_survival_by_subregion.R", env = SNOW)),
   nutrition = list(R("R_cbh/sensitivity/nutrition/01_fit.R", env = SNOW), R("R_cbh/sensitivity/nutrition/02_report.R", env = SNOW)),
+  country_fe = list(R("R_cbh/sensitivity/country_fe/01_fit.R", env = SNOW), R("R_cbh/sensitivity/country_fe/02_report.R", env = SNOW)),
   imputation = lapply(c("01_impute_national.R", "02_impute_regional.R", "03_prepare.R", "04_fit.R", "05_propagate.R",
                         "06_report.R"), function(f) R(file.path("R_cbh/sensitivity/imputation_dhsmics", f), env = SNOW)),
   validate = list(R("R_cbh/reporting/10_validate_reporting.R", env = SNOW)),
@@ -73,7 +74,7 @@ stages <- list(
   snow_repro = c(snow_unit_steps(REPRO), list(R("R_cbh/primary/00_prepare_snow.R", env = REPRO))))
 optional <- "snow_repro"   # run only when named with --only
 minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 20, mics = 30, primary_v9 = 20,
-             snow_units = 20, snow_covariates = 12, primary = 25, snow_maps = 2, subgroups = 45, nutrition = 20, imputation = 90, validate = 1,
+             snow_units = 20, snow_covariates = 12, primary = 25, snow_maps = 2, subgroups = 45, nutrition = 20, country_fe = 20, imputation = 90, validate = 1,
              export = 1, snow_repro = 30)
 # A stage's dependency set: its scripts, the other code and config in their folders, and the shared helpers. A completion
 # marker whose recorded md5s differ from the current files is stale, so the stage is pending again.

@@ -44,7 +44,7 @@ These are conditional model-based estimates; source and imputation uncertainty
 are not fully propagated.
 
 The supplementary sensitivity figures are refitted on the DHS and MICS surveys:
-subgroups (`subgroups_snow520_merge_gamma2_v7`) and no nutrition covariates (`nutrition_adjustment_snow520_merge_gamma2_v7`)
+subgroups (`subgroups_snow520_merge_gamma2_v7`), no nutrition covariates (`nutrition_adjustment_snow520_merge_gamma2_v7`) and country fixed effects (`country_fixed_effects_snow520_merge_gamma2_v1`)
 on this sample, and imputed covariates on the larger sample of every placed record
 (`primary_snow520_merge_imputed_gamma2_v12`, which retains every record placed in a Snow et al. unit: 8,630,306 records, 122,092 deaths, 161 surveys and 38 countries). Malaria's share of under-five deaths against national
 PfPR in 2024 (`Supplementary Figures/sfig_malaria_share_vs_pfpr.png`) compares IHME and

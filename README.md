@@ -16,7 +16,7 @@ This repository contains only what the manuscript describes. The analysis was de
 | Primary analysis | **Snow-unit primary** (since 11 October 2026), `primary_snow520_merge_dhsmics_gamma2_v13`: DHS and MICS surveys placed in the Snow et al. (2017) polygons (merge rule), 17 covariates, MAP PfPR, γ = 2. South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability for band-entry years before independence (2011) (`R_cbh/primary/national_substitutions.R`). Political stability in 2001, a year without a WGI round, is the mean of the country's 2000 and 2002 values and health expenditure in 2024, not yet published, is the country's 2023 value (`R_cbh/primary/national_interpolations.R`; v12 and v13, 29 October 2026; v11 and v12, which dropped 2001 and 2024 band entries, are kept as history). Branch `snow-polygon-primary`. |
 | Sample | 136 surveys (99 DHS, 37 MICS) in 37 countries; 1,452 survey × unit areas (215 of them unions of polygons) in 465 polygons; 1,125,610 mothers; 2,335,868 children; 7,639,443 child-band records; 105,114 deaths |
 | Sensitivities | Sahel, UN M49 West, Central and East Africa, and period (by survey year and by record calendar year) refits (`subgroups_snow520_merge_gamma2_v7`); without wasting and stunting (`nutrition_adjustment_snow520_merge_gamma2_v7`); imputed covariates (`primary_snow520_merge_imputed_gamma2_v12`) |
-| Previous primary | v9 (`primary_map_regional17_dhsmics_gamma2_v9`, survey-regions; 629,136 attributable deaths in 2024) is kept as stage `primary_v9` and compared in `comparison_v9/` (586,723 under the Snow units, ratio 0.93) |
+| Previous primary | v9 (`primary_map_regional17_dhsmics_gamma2_v9`, survey-regions; 629,136 attributable deaths in 2024, against 586,723 under the Snow units) was removed from the pipeline on 1 November 2026 (author decision); its code is in the git history up to 0a9a198 |
 | Verified | The Snow unit construction reproduces the analysis project record for record ([verification/snow_reproduction.md](verification/snow_reproduction.md)); see [Verification](#verification) |
 
 ## Repository layout
@@ -24,13 +24,13 @@ This repository contains only what the manuscript describes. The analysis was de
 ```
 run_pipeline.R      runs every stage in order (resumable; see below)
 run_detached.sh     runs the pipeline detached from the terminal
-R_inputs/           input producers: survey-region MAP PfPR (v9), UNICEF immunisation panel, region centroids, WHO WMR tables
+R_inputs/           input producers: survey-region MAP PfPR (for the child-band builds), UNICEF immunisation panel, region centroids, WHO WMR tables
   fetch/            network scripts that obtained the frozen inputs (not run by the pipeline)
 R_cbh/              DHS child-band builder, covariates, HIV model, primary model, burden, reporting, sensitivities
   R/                shared builder functions          config/   survey rules and region overrides
   hiv/              child HIV incidence model (Stan)  covariates/  DHS regional covariates
   snow/             Snow et al. polygons: placement, analysis units (merge rule), unit PfPR and covariates, maps
-  primary/          settings (snow_merge, v9), fits, effects, report  burden/  national inputs, annual and Nigerian-state burden
+  primary/          settings (snow_merge), fits, effects, report  burden/  national inputs, annual and Nigerian-state burden
   reporting/        figures, tables, paper export     sensitivity/  subgroups, nutrition, imputation_dhsmics
 R_mics/             MICS conversion to the DHS layout, boundaries, PfPR, child bands, covariates
 tools/              import, restore, comparison and pre-commit checks
@@ -74,11 +74,10 @@ docs/               PAPER_CODE_FLAGS.md
 | `dhs_bands` | DHS/MIS child-band records (`R_cbh/01_make_analysis_data.R`) | ~6 min |
 | `covariates` | DHS published indicators, recode summaries, WUENIC fallbacks, nutrition, first-birth age, complete-case audit | ~20 min |
 | `mics` | MICS extraction, inventory, regions and boundaries, PfPR, BR-layout recodes, child bands, covariates | ~30 min |
-| `primary_v9` | The v9 survey-region primary (comparison) | ~20 min |
 | `snow_units` | Snow polygons, polygon PfPR, survey-region overlay, finer location units, label check, placement, analysis units | ~20 min |
 | `snow_covariates` | The 13 regional covariates per survey × unit from the DHS (BR/PR/HW) and MICS files, with a national validation | ~12 min |
 | `primary` | Snow-unit preparation, seven fits, effects, national burden, Figures 1–4, Tables 1, 2 and S1, Figs S1, S2 and S6, the supplementary survey map and timing | ~25 min |
-| `snow_maps` | Per-country merge-unit maps, boundary-agreement map, comparison with v9 | ~2 min |
+| `snow_maps` | Per-country merge-unit maps, boundary-agreement map | ~2 min |
 | `subgroups` | Sahel, UN M49 West, Central and East Africa, and period refits (Fig S3 and supplementary figures) | ~45 min |
 | `nutrition` | Refits without wasting and stunting (Fig S5) | ~20 min |
 | `imputation` | Imputed-covariate refits and the multiple-imputation propagation (Fig S4) | ~90 min |
@@ -120,14 +119,13 @@ legend text and in-plot labels at least 9 pt); the rule and how to check it are 
 | Supplementary: surveys and timing (Figure 1 until 12 October 2026) | `Supplementary Figures/sfig_survey_map_and_timing.png` | `R_cbh/reporting/03_survey_map.R` |
 | Supplementary: survey-regions against Snow polygons | `Supplementary Figures/sfig_snow_boundary_agreement_map.png` | `R_cbh/snow/22_map_boundary_agreement.R` |
 | Supplementary: merged units, one map per country | `Supplementary Figures/snow_merge_units/<ISO3>_merge_units.png` | `R_cbh/snow/21_map_merge_units.R` |
-| Supplementary: Snow units against v9 | `Supplementary Figures/sfig_pfpr_curves_v9_vs_snow.png`, `tables/comparison_v9_vs_snow.md` | `R_cbh/reporting/22_compare_v9_snow.R` |
 | Results text: 2024 agreement statistics | `results/cbh/…_v13/annual_comparison/country_agreement_2024.csv` | `R_cbh/reporting/21_country_agreement_2024.R` |
 
 ## Verification
 
 **Snow-unit primary (11–13 October 2026).** The ported unit construction (`R_cbh/snow/`), run as `split_repro`, reproduces the analysis project's Snow dataset record for record: placement, units, covariates and the 9,690,169-row prepared dataset, with polygon PfPR within 6e-10 ([verification/snow_reproduction.md](verification/snow_reproduction.md)). The recode covariates of every DHS survey are checked against the published national values: 930 of 933 survey-indicator pairs agree within 2 points (median difference 0.03); the three exceptions (Benin 2006 sanitation, Mali 2001 water and sanitation) are surveys outside the complete-case sample. On 13 October 2026 all 17 stages ran at commit 3e2c721, with South Sudan and the new Figure 1 (run `20261013T083723`, 222.6 minutes). Three of them (`inputs`, `hiv` and `dhs_bands`) reused work saved on 12 October by run `20261012T121428`, which built them from scratch. All 11 validation checks pass (`results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/paper_refresh/validation.txt`). Compared with the outputs of 12 October, the run reproduces them apart from the two author decisions, South Sudan and the new Figure 1 ([verification/snow/VERIFICATION_SNOW.md](verification/snow/VERIFICATION_SNOW.md)). The 60 files exported to `paper/` are now the Snow-unit versions. `paper/figures/fig1_survey_map_and_timing.png` is not part of this export. It is the 12 October survey map, without South Sudan; the current version is `paper/Supplementary Figures/sfig_survey_map_and_timing.png`. `main.tex` (L82) still includes `figures/fig1_survey_map_and_timing.png` as Figure 1, so the stale file should not be synced to Overleaf; the author decides whether to remove it. `main.tex` still describes v9.
 
-**v9 (the previous primary).** On 2–4 October 2026 the whole pipeline was re-run from the raw microdata and compared with the analysis project's outputs ([verification/VERIFICATION.md](verification/VERIFICATION.md)):
+**v9 (the previous primary, removed from the pipeline on 1 November 2026).** On 2–4 October 2026 the whole pipeline was re-run from the raw microdata and compared with the analysis project's outputs ([verification/VERIFICATION.md](verification/VERIFICATION.md)):
 - every figure, table and caption that the manuscript uses is byte-identical to the Overleaf file (27 of 27);
 - the seven primary fits, the burden estimates (629,136 attributable under-five deaths in 2024 against 428,147 from IHME and 440,123 from UN IGME) and the three sensitivities are identical;
 - the 120 DHS/MIS child-band files and all 581 extracted MICS files match.

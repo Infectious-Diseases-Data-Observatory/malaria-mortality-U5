@@ -6,7 +6,7 @@ source("R_cbh/primary/settings.R")
 library(sf)
 library(ggplot2)
 library(patchwork)
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics")); root <- st$out; mics <- isTRUE(st$mics)
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge")); root <- st$out; mics <- isTRUE(st$mics)
 out <- file.path(root,"survey_map")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 paths <- c(coverage=file.path(root,"survey_coverage.csv"),
@@ -56,8 +56,7 @@ all$complete_case_rows <- sel$complete_case_rows[k]
 all$regions <- x$regions[match(all$survey,x$survey)]
 # Snow-unit primary: surveys whose records are all outside the Snow et al. endemic polygons (Comoros, Sao Tome and
 # Principe) join Lesotho (never processed) in the second category.
-snow <- identical(st$unit,"snow")
-status2 <- if(snow) "Excluded: no Snow et al. endemic polygon (Lesotho, Comoros, São Tomé and Príncipe)" else "Excluded: malaria free, no MAP prevalence (Lesotho)"
+status2 <- "Excluded: no Snow et al. endemic polygon (Lesotho, Comoros, São Tomé and Príncipe)"
 all$status <- ifelse(all$survey %in% x$survey,"Included in primary analysis",
   ifelse(is.na(k) | all$pfpr_available_rows==0,status2,
     "Excluded: required covariates unavailable"))
@@ -172,15 +171,14 @@ if(mics) {
   cov_text <- paste0(sprintf("%s DHS, ",sum(cov_type=="DHS")),
     if(cov_mis==mis_total) sprintf("all %s MIS",mis_total) else sprintf("%s of the %s MIS",cov_mis,mis_total),
     sprintf(" and %s MICS surveys",cov_mics),
-    if(cov_mics && snow) "; for each, the first missing covariate is listed in the primary's complete_case_losses.csv" else
-    if(cov_mics) "; the MICS surveys lack anthropometry or a child HIV incidence series, or their band-entry years precede a national series" else "")
+    if(cov_mics) "; for each, the first missing covariate is listed in the primary's complete_case_losses.csv" else "")
   nudge_text <- if(length(nudged)) sprintf(" Where a MICS survey shares a country and year with a DHS or MIS survey (%s), the MICS symbol is drawn slightly above the line.",paste(nudged,collapse=", ")) else ""
-  writeLines(c(if(snow) "# Supplementary figure caption: survey map and timing" else "# Figure 1 caption","",
+  writeLines(c("# Supplementary figure caption: survey map and timing","",
     sprintf("Geographic coverage and timing of the %s DHS and MIS surveys and %s MICS surveys with complete birth histories (%s countries). Circles are DHS and MIS surveys and triangles MICS surveys; filled symbols are the %s DHS and %s MICS surveys that contribute to the primary analysis (%s countries), and open symbols the %s excluded surveys: %s %s, and %s for which a required covariate was unavailable for every %s after the declared substitutions (%s). Country shading indicates the number of included surveys; grey countries have none. Timeline rows are grouped by UN sub-region (Central Africa: UN Middle Africa), and n is the number of mothers (complete birth histories) contributing at least one child to the primary analysis, summed over the country's included surveys (%s in total).%s The %s MICS surveys without a complete birth history are not shown.",
       nd,nm,length(unique(all$country)),inc_d,inc_m,nrow(summary),n_map+n_cov,n_map,
-      if(snow) with(list(m=table(all$country[all$status==status_levels[2]])), sprintf("in Lesotho (%s; malaria free, not processed), the Comoros (%s) and São Tomé and Príncipe (%s), which have no Snow et al. malaria-endemic polygon",
-        m["LSO"],m["COM"],m["STP"])) else "in Lesotho, which is malaria free, so MAP prevalence cannot be assigned",
-      n_cov,if(snow) "survey × unit area" else "region",cov_text,format(sum(mothers$mothers),big.mark=","),nudge_text,sum(!mics_inv$has_bh)),"",
+      with(list(m=table(all$country[all$status==status_levels[2]])), sprintf("in Lesotho (%s; malaria free, not processed), the Comoros (%s) and São Tomé and Príncipe (%s), which have no Snow et al. malaria-endemic polygon",
+        m["LSO"],m["COM"],m["STP"])),
+      n_cov,"survey × unit area",cov_text,format(sum(mothers$mothers),big.mark=","),nudge_text,sum(!mics_inv$has_bh)),"",
     "Country outlines are dissolved from the most recent available boundary file in each country (DHS files, or the analysis-region polygons built for MICS). Survey year describes fieldwork, not the calendar year assigned to each child's band entry. Per-survey exclusion reasons are in survey_timeline_all.csv."),
     file.path(out,"CAPTION.md"))
 } else writeLines(c("# Figure 1 caption","",

@@ -6,7 +6,7 @@ source("R_cbh/reporting/age_band_table.R")
 source("R_cbh/reporting/labels.R")
 source("R_cbh/reporting/log_axes.R")
 library(ggplot2)
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"));out <- settings$out
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"));out <- settings$out
 model_label <- cbh_paper_model_label()
 writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
 ages <- cbh_config()$age_bands$age_band
@@ -135,8 +135,7 @@ md <- c("# Current primary figures and tables", "",
   sprintf("The %s 17-variable PfPR-ACM model uses %s children, %s child-band records and %s deaths in %s surveys and %s countries.",
     if(isTRUE(settings$imputed)) "imputed-covariate (sensitivity)" else "revised",
     fmt(sample$distinct_children),fmt(sample$records),fmt(sample$deaths),fmt(sample$surveys),fmt(sample$countries)), "",
-  if(identical(settings$unit,"snow")) "Seven separate MAP gamma=2 age-band fits, including urban percentage of the survey x unit area, with fixed PfPR/time knots and the declared HIV, UNICEF and within-survey substitutions, and South Sudan's national covariates before independence from Sudan (national_substitutions.csv). The raw-source data and HIV imputation were not refitted. All seven models passed the fitted-input and numerical checks."
-  else "Seven separate MAP gamma=2 age-band fits, including survey-region urban percentage, with fixed PfPR/time knots and the declared HIV, UNICEF and available-region substitutions. The raw-source data and HIV imputation were not refitted. All seven models passed the fitted-input and numerical checks.", "",
+  "Seven separate MAP gamma=2 age-band fits, including urban percentage of the survey x unit area, with fixed PfPR/time knots and the declared HIV, UNICEF and within-survey substitutions, and South Sudan's national covariates before independence from Sudan (national_substitutions.csv). The raw-source data and HIV imputation were not refitted. All seven models passed the fitted-input and numerical checks.", "",
   "![PfPR curves](pfpr_splines.png)", "", age_table, "",
   "[Table CSV](tables/age_band_results.csv) · [LaTeX source as plain text](tables/age_band_results.latex.txt)", "",
   "[40% to 20% contrast figure](pfpr_40_to_20.png) · [40% to 20% contrasts](pfpr_40_to_20_contrasts.csv) · [20% to 0% contrasts](pfpr_20_to_zero_contrasts.csv)", "",

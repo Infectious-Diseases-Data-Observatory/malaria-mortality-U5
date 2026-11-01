@@ -2,7 +2,7 @@
 # Refit the seven primary age-band models in four subgroups of the fitted
 # 17-variable sample: Sahel (>=12N), Eastern Africa, and surveys before/after
 # the median survey year. Subsets the saved prepared data; no data/HIV rebuild.
-# Default: the DHS and MICS primary (v5). --dhs-only: the DHS-only primary (v3).
+# The Snow-unit primary (snow_merge); the v9 and DHS-only refits were removed with v9 (1 November 2026).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/sensitivity/model.R")
@@ -12,8 +12,8 @@ source("R_cbh/sensitivity/subgroups/settings.R")
 library(mgcv)
 library(data.table)
 args <- commandArgs(trailingOnly = TRUE)
-stopifnot(all(args %in% c("--force", "--dhs-only")))
-st <- cbh_subgroup_settings(cbh_subgroup_sample(args)); primary <- cbh_primary_settings(st$primary_version)
+stopifnot(all(args %in% "--force"))
+st <- cbh_subgroup_settings(); primary <- cbh_primary_settings(st$primary_version)
 stopifnot(isTRUE(primary$nutrition))
 for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
@@ -34,10 +34,9 @@ rm(prepared); gc(FALSE)
 if (!is.null(primary$expected_records)) stopifnot(nrow(input) == primary$expected_records, sum(input$death) == primary$expected_deaths,
           uniqueN(input$region) == primary$expected_regions)
 stopifnot(uniqueN(input, by = c("child_id", "age_band")) == nrow(input))
-# Subgroup membership is assigned by the record's source survey-region (country:survey:regkey). In v9 this is the
-# random-effect region itself; under the Snow-unit primary the random effect is the survey x unit.
+# Subgroup membership is assigned by the record's source survey-region (country:survey:regkey); the random effect is
+# the survey x unit.
 input[, src_region := paste(as.character(country), as.character(survey), regkey, sep = ":")]
-if (!identical(primary$unit, "snow")) stopifnot(all(input$src_region == as.character(input$region)))
 
 ## ---- survey and region attributes ------------------------------------------------
 surveys <- unique(as.data.frame(input[, .(survey = as.character(survey), country = as.character(country), survey_year)]))

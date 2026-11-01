@@ -5,13 +5,15 @@
 source("R_cbh/load_pipeline.R"); source("R_cbh/analysis/model.R")
 source("R_cbh/primary/settings.R"); source("R_cbh/primary/specification.R")
 library(data.table)
-st <- cbh_primary_settings("regional_mics"); spec <- cbh_primary_regional_spec(st)
+# The 17 covariates, HIV panel and MICS build folder of the primary settings; the survey-region overlay of
+# 09_regional_covariates.R (the v9 settings, removed 1 November 2026, named the same files).
+st <- cbh_primary_settings("snow_merge"); spec <- cbh_primary_regional_spec(st)
 order_vars <- c("log_hiv_incidence","log_health_expenditure_pc","political_stability","log_gdp_pc",
   "wasting_pct","stunting_pct","facility_delivery_pct","electricity_pct","mean_wealth_quintile",
   "dtp3_pct","measles_pct","short_birth_interval_pct","improved_water_pct","improved_sanitation_pct",
   "urban_pct","mean_maternal_education_years","mean_maternal_age_first_birth")
 stopifnot(setequal(order_vars, spec$covariates))
-wide <- cbh_read_csv(st$mics_overlay); hiv <- cbh_read_csv(st$hiv_panel)
+wide <- cbh_read_csv("data/derived_mics/regional_covariates_wide_mics.csv"); hiv <- cbh_read_csv(st$hiv_panel)
 meta <- readRDS(file.path(st$mics_output_dir, "manifest.rds")); stopifnot(meta$complete)
 m <- meta$manifest[meta$manifest$status %in% c("built","cached"), ]
 tallies <- list()

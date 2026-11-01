@@ -23,7 +23,7 @@ message("Loading existing prepared sample; no data setup or HIV refitting")
 prepared <- readRDS(settings$data)
 input_signature <- prepared$signature
 input <- prepared$data
-# Expected counts: fixed for v9; for the Snow primary they are set from the verified run (NULL until then).
+# Expected counts: set from the verified run (NULL until then).
 if(!is.null(settings$expected_records)) stopifnot(nrow(input)==settings$expected_records,sum(input$death)==settings$expected_deaths)
 stopifnot(!anyNA(input$child_id),data.table::uniqueN(input,by=c("child_id","age_band"))==nrow(input))
 # The Snow primary (merge rule) has one row per record with weight 1; weighted (split) data are not fitted here.

@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
-# Primary analysis (v9: DHS and MICS surveys, 17 adjustment covariates, MAP PfPR, gamma = 2):
+# Primary analysis (the Snow-unit primary, snow_merge: DHS and MICS surveys in Snow et al. polygon units, 17 adjustment
+# covariates, MAP PfPR, gamma = 2):
 # preparation, the seven age-band fits, effects and national burden, and every primary figure and
 # table in the paper. No TeX is written. Normally called by run_pipeline.R (stage "primary").
 # Usage: [CBH_PRIMARY_VERSION=snow_merge] Rscript R_cbh/primary/run_regional.R [--resume | --report-only]
@@ -11,17 +12,17 @@ source("R_cbh/primary/settings.R")
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args)>1L || (length(args) && !args %in% c("--resume","--report-only")))
   stop("Use no arguments (fresh fits), --resume (reuse verified fit caches) or --report-only (saved fits).")
-# The version comes from CBH_PRIMARY_VERSION (default regional_mics = v9; snow_merge = the Snow-unit primary) and is
+# The version comes from CBH_PRIMARY_VERSION (default snow_merge, the Snow-unit primary) and is
 # passed to every step, which run as child processes.
-Sys.setenv(CBH_PRIMARY_VERSION=Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))
+Sys.setenv(CBH_PRIMARY_VERSION=Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"))
 settings <- cbh_primary_settings()
 stages <- c(prepare=settings$prepare,fit="R_cbh/primary/01_fit.R",
   national_inputs="R_cbh/burden/00_national_inputs.R",
   effects="R_cbh/primary/02_effects.R",diagnostics="R_cbh/primary/04_diagnostics.R",
   report="R_cbh/primary/03_report.R",
-  flow=if(identical(settings$unit,"snow")) "R_cbh/reporting/01_study_flow_snow.R" else "R_cbh/reporting/01_study_flow.R",
+  flow="R_cbh/reporting/01_study_flow_snow.R",
   survey_map="R_cbh/reporting/03_survey_map.R",
-  units_map=if(identical(settings$unit,"snow") && identical(settings$snow_variant,"merge")) "R_cbh/reporting/23_analysis_units_map.R" else NA_character_,
+  units_map=if(identical(settings$snow_variant,"merge")) "R_cbh/reporting/23_analysis_units_map.R" else NA_character_,
   hr_by_age="R_cbh/reporting/26_hazard_ratio_by_age.R",age_fractions="R_cbh/reporting/06_attributable_fraction_by_age.R",
   annual_burden="R_cbh/burden/04_annual_comparison.R",uncertainty="R_cbh/burden/06_uncertainty_draws.R",
   annual_plot="R_cbh/reporting/07_annual_mortality_comparison.R",

@@ -12,7 +12,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 suppressPackageStartupMessages({ library(mgcv); library(ggplot2) })
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional_mics")); root <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge")); root <- st$out
 out <- file.path(root, "hazard_ratio_by_age"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 paths <- c(components = file.path(st$private, "pfpr_components.rds"), manifest = file.path(root, "fit_manifest.csv"),
   curves = file.path(root, "pfpr_curves.csv"))

@@ -9,7 +9,8 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 library(data.table)
 # --liberia (24 September 2026): the same attribution with the HIV panel that adds Liberia
-# (R_cbh/hiv/03_add_liberia_aidsinfo.R), for the DHS part of the v7 primary; written to its own folder.
+# (R_cbh/hiv/03_add_liberia_aidsinfo.R), written to its own folder; it was the DHS part of the v7 and v9
+# survey-region primaries (removed 1 November 2026).
 args <- commandArgs(trailingOnly=TRUE); stopifnot(all(args %in% "--liberia")); liberia <- "--liberia" %in% args
 cfg <- cbh_config(); primary <- cbh_primary_settings(); stopifnot(isTRUE(primary$nutrition))
 private <- file.path(cfg$output_dir,"regional_adjustment/planned17_audit")
@@ -26,7 +27,7 @@ order_vars <- c("log_hiv_incidence","log_health_expenditure_pc","political_stabi
 stopifnot(setequal(order_vars,spec$covariates))
 wide <- cbh_read_csv(file.path(private,"regional_covariates_wide.csv"))
 cbh_unique(wide,c("survey","regkey"),"Regional overlay")
-hiv <- cbh_read_csv(if(liberia) cbh_primary_settings("regional_mics")$hiv_panel else cbh_trial_spec()$incidence_panel)
+hiv <- cbh_read_csv(if(liberia) primary$hiv_panel else cbh_trial_spec()$incidence_panel)
 meta <- readRDS(file.path(cfg$output_dir,"manifest.rds")); stopifnot(meta$complete)
 m <- meta$manifest[meta$manifest$status %in% c("built","cached"),]
 key <- function(d) paste(d$survey,d$regkey)
@@ -52,8 +53,8 @@ summary <- summary[match(intersect(order_vars,summary$reason),reason)]
 summary[,share_of_excluded_pct:=100*records/sum(records)]
 cc <- cbh_read_csv(file.path(audit,"complete_case_summary.csv"))
 if(liberia) {
-  # Eligibility is unchanged; the retained DHS records must equal the v7 DHS part.
-  cc$retained_records <- cbh_primary_settings("regional_mics")$expected_dhs_records
+  # Eligibility is unchanged; Liberia's derived HIV incidence changes which records are retained.
+  cc$retained_records <- retained
   cc$missing_records <- cc$eligible_records-cc$retained_records
 }
 stopifnot(eligible==cc$eligible_records,retained==cc$retained_records,sum(summary$records)==cc$missing_records)

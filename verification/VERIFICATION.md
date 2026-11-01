@@ -1,5 +1,7 @@
 # Verification of the full re-run (2–4 October 2026)
 
+(The v9 pipeline verified here was removed on 1 November 2026. This record and its CSVs are kept as history; `tools/compare_outputs.R` no longer has the v9 checkpoints, and its `primary` checkpoint covers only the national burden inputs.)
+
 The whole pipeline was re-run in this repository: raw DHS/MIS recodes and MICS downloads, plus the committed inputs, through to the exported figures and tables. Each stage's outputs were compared with those of the analysis project in which the paper's results were produced. The comparison tool was `tools/compare_outputs.R`, which opened the analysis project read-only. The per-file results are in this folder (`<checkpoint>.csv`).
 
 **Result: the re-run reproduces the paper.**

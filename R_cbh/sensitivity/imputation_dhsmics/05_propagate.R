@@ -1,10 +1,10 @@
 #!/usr/bin/env Rscript
-# Multiple-imputation check for the DHS+MICS imputed-covariate sensitivity (v8), as for
+# Multiple-imputation check for the imputed-covariate sensitivity of the Snow-unit primary, as for
 # the DHS-only version (R_cbh/sensitivity/imputation/01_propagate.R). For each of M
 # imputed datasets (regional mice imputations; national draws of health expenditure,
 # GDP and political stability; child HIV incidence draws), refit the seven age-band
 # models with smoothing parameters fixed at the point-imputation fit and pool the PfPR
-# log hazard ratios with Rubin's rules. Aggregate outputs only. Snow-unit version: the report names the countries
+# log hazard ratios with Rubin's rules. Aggregate outputs only. The report names the countries
 # whose records take national draws (South Sudan's pre-independence values are Sudan's observed values, fixed).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
@@ -33,8 +33,8 @@ spec <- cbh_primary_regional_spec(st); form <- cbh_primary_regional_formula(st)
 ages <- cbh_config()$age_bands$age_band
 knot_table <- cbh_read_csv(st$knots)
 # Row lookups, computed once.
-# Keys: survey-region (v9) or survey x unit (Snow units; the imputation keys' regkey column holds the unit).
-rk <- match(paste(d0$survey, if (identical(st$unit, "snow")) d0$unit else d0$regkey), paste(regional_imp$keys$survey, regional_imp$keys$regkey)); stopifnot(!anyNA(rk))
+# Keys: survey x unit (the imputation keys' regkey column holds the unit).
+rk <- match(paste(d0$survey, d0$unit), paste(regional_imp$keys$survey, regional_imp$keys$regkey)); stopifnot(!anyNA(rk))
 nkey <- paste(d0$country, d0$entry_year)
 nk <- lapply(setNames(national_vars, national_vars), function(v) match(nkey, paste(national_imp[[v]]$keys$iso3, national_imp[[v]]$keys$year)))
 hk <- match(nkey, paste(hiv_draws$keys$iso3, hiv_draws$keys$year)); stopifnot(!anyNA(hk))
@@ -137,9 +137,8 @@ rows <- unlist(lapply(c("40% to 20%", "20% to 0%"), function(c) { z <- contrasts
       fmt(z[c("pooled_hr", "pooled_lower_95", "pooled_upper_95")]), 100 * z$between_imputation_share), "") }))
 writeLines(c("# Multiple-imputation check: imputed-covariate sensitivity, DHS and MICS", "",
   sprintf("The point fit in `%s` uses one imputed dataset (mean of the mice imputations, GAM fitted means and posterior-median HIV incidence). This check refits all seven age-band models in each of %d imputed datasets with the smoothing parameters fixed at the point fit, and pools the PfPR log hazard ratios with Rubin's rules (within-imputation variance from the conditional covariance, between-imputation variance across the %d fits; Barnard–Rubin degrees of freedom).", st$id, M, M), "",
-  if (identical(st$unit, "snow")) sprintf("Varied components per imputation: the mice imputations of the regional covariates; the GAM draws of health expenditure (%s), GDP (%s) and political stability (%s); and one posterior draw of the child HIV incidence series for every country-year whose value is imputed or censored (Liberia's rate is derived from UNAIDS counts and held fixed). Observed values never change, nor do South Sudan's national values before independence, which are Sudan's observed values as in the primary analysis. Records affected:",
-    drawn[["log_health_expenditure_pc"]], drawn[["log_gdp_pc"]], drawn[["political_stability"]])
-  else "Varied components per imputation: the mice imputations of the regional covariates; the GAM draws of health expenditure (Zimbabwe, Somalia, South Sudan, 2024), GDP and political stability (South Sudan before independence); and one posterior draw of the child HIV incidence series for every country-year whose value is imputed or censored (São Tomé and Príncipe among them; Liberia's rate is derived from UNAIDS counts and held fixed). Observed values never change. Records affected:", "",
+  sprintf("Varied components per imputation: the mice imputations of the regional covariates; the GAM draws of health expenditure (%s), GDP (%s) and political stability (%s); and one posterior draw of the child HIV incidence series for every country-year whose value is imputed or censored (Liberia's rate is derived from UNAIDS counts and held fixed). Observed values never change, nor do South Sudan's national values before independence, which are Sudan's observed values as in the primary analysis. Records affected:",
+    drawn[["log_health_expenditure_pc"]], drawn[["log_gdp_pc"]], drawn[["political_stability"]]), "",
   sprintf("- %s: %s records", varied$component, format(varied$records, big.mark = ",")), "",
   "![Pooled versus point curves](pooled_vs_point_curves.png)", "", rows,
   "The between-imputation share is (1 + 1/M) B / T. A small share means the covariate imputation adds little to the sampling uncertainty already in the point fit. Smoothing parameters are fixed, so smoothing uncertainty is not part of either interval. Survey design and exposure uncertainty remain unpropagated.", "",

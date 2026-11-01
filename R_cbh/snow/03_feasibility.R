@@ -6,7 +6,8 @@
 # (>= 90% of its population in one polygon), inside a malaria-free/island unit, split across polygons, or no
 # polygon (Comoros, Zanzibar, Sao Tome and Principe). Regions: every survey-region with eligible records in the
 # child-band shards of the variant's survey universe (all 166 MAP-eligible surveys; the reproduction uses the
-# model_ready rows, as the analysis project did with its v10 sample). in_v9 marks regions of the v9 primary.
+# model_ready rows, as the analysis project did with its v10 sample). The in_v9 column (regions of the v9 primary) was
+# dropped with v9 on 1 November 2026.
 # Output: <out>/feasibility/{region_snow_overlap,region_classification,survey_feasibility}.csv (aggregates)
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr) })
 sf_use_s2(FALSE)
@@ -22,9 +23,6 @@ reg <- rbindlist(lapply(snow_all_shards(), function(s) {
   d[, c("survey", "country", "region", "regkey") := lapply(.SD, as.character), .SDcols = c("survey", "country", "region", "regkey")]
   d[, .(records = .N, deaths = sum(death)), by = .(survey, country, region, regkey)]
 }))
-v9file <- "data/derived_cbh/models/primary_map_regional17_dhsmics_gamma2_v9_map202608/complete_case_dataset.rds"   # v9 on MAP 202608
-v9_regions <- unique(as.character(readRDS(v9file)$data$region))
-reg[, in_v9 := region %in% v9_regions]
 registry <- fread("data/derived_dhs/survey_registry.csv")
 reg[, programme := ifelse(startsWith(survey, "MC_"), "MICS", "DHS")]
 
@@ -67,7 +65,7 @@ reg[, class := fcase(!has_polygon | is.na(top_share), "no polygon",
                      top_share >= S$whole & !top_in520, "inside a malaria-free/island unit",
                      default = "split across Snow polygons")]
 fwrite(reg[order(survey, regkey)], file.path(out, "region_classification.csv"))
-by_survey <- reg[, .(programme = programme[1], country = country[1], in_v9 = any(in_v9), survey_regions = .N, records = sum(records),
+by_survey <- reg[, .(programme = programme[1], country = country[1], survey_regions = .N, records = sum(records),
                      pct_records_assignable = round(100 * sum(records[class %like% "^inside one of the 520"]) / sum(records), 1),
                      pct_records_split = round(100 * sum(records[class == "split across Snow polygons"]) / sum(records), 1),
                      pct_records_malaria_free = round(100 * sum(records[class == "inside a malaria-free/island unit"]) / sum(records), 1),

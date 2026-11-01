@@ -1,8 +1,10 @@
 #!/usr/bin/env Rscript
 # Compare this repository's pipeline outputs with the analysis project's (opened read-only).
 #   Rscript tools/compare_outputs.R --reference="<analysis project>" --checkpoint=NAME [--overleaf="<dir>"]
-# Checkpoints follow the pipeline: inputs, hiv, dhs_bands, covariates, mics, primary, sensitivities, paper; for the
-# Snow-unit primary also snow_units, snow_primary and snow_sensitivities (reference: a saved copy of this repository).
+# Checkpoints follow the pipeline: inputs, hiv, dhs_bands, covariates, mics, primary (national burden inputs), paper; for
+# the Snow-unit primary also snow_units, snow_primary and snow_sensitivities (reference: a saved copy of this repository).
+# The v9 checkpoints (the v9 fits, its sensitivities) were removed with v9 on 1 November 2026; their records stay in
+# verification/.
 # Each file is classed as
 #   identical   byte-for-byte
 #   equivalent  same after removing volatile columns (hashes, paths, timings) and normalising paths
@@ -16,7 +18,6 @@ ref <- opt("reference"); cp <- opt("checkpoint"); overleaf <- opt("overleaf")
 stopifnot(!is.null(ref), dir.exists(ref), !is.null(cp))
 ref <- normalizePath(ref); tgt <- normalizePath(getwd())
 suppressPackageStartupMessages(library(data.table))
-v9 <- "results/cbh/primary_map_regional17_dhsmics_gamma2_v9"
 v11 <- "results/cbh/primary_snow520_merge_dhsmics_gamma2_v11"
 # Paths that differ only because of this repository's layout.
 renames <- c("/Users/jameswatson/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/", "~/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/",
@@ -43,9 +44,7 @@ sets <- list(
   covariates = c("data/derived_cbh/regional_adjustment", "results/cbh/planned17_covariate_missingness",
                  "results/cbh/planned17_covariate_missingness_lbr", "results/cbh/regional_adjustment_reduced_v3"),
   mics = c("data/derived_mics", "results/mics_inventory"),
-  primary = c(v9, "results/cbh/national_burden_inputs", file.path("data/derived_cbh/models", basename(v9), "pfpr_components.rds")),
-  sensitivities = c("results/cbh/subgroups_dhsmics_map_gamma2_v4", "results/cbh/nutrition_adjustment_dhsmics_map_gamma2_v4",
-                    "results/cbh/primary_map_regional17_dhsmics_imputed_gamma2_v10", "results/cbh/covariate_imputation_dhsmics_v10"),
+  primary = "results/cbh/national_burden_inputs",
   # Snow-unit primary: checked against a saved copy of this repository's own earlier outputs (--reference=<copy>).
   snow_units = c("results/cbh/snow_units/merge", "data/derived_cbh/snow/merge"),
   snow_primary = c(v11, file.path("data/derived_cbh/models", basename(v11), "pfpr_components.rds")),

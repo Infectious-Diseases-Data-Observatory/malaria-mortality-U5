@@ -43,6 +43,6 @@ for (s in surveys$survey) {
   }
 }
 inv <- rbindlist(rows)
-inv <- merge(surveys[, .(survey, programme, country, in_v9, survey_regions, pct_records_split)], inv, by = "survey")
+inv <- merge(surveys[, .(survey, programme, country, survey_regions, pct_records_split)], inv, by = "survey")
 fwrite(inv[order(country, survey, -n_values)], file.path(out, "location_variables.csv"))
 cat(S$variant, ":", nrow(inv), "candidate variables in", uniqueN(inv$survey), "surveys\n")

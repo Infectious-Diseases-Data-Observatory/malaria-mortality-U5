@@ -42,7 +42,7 @@ The primary analysis now uses the Snow et al. (2017) polygons as its unit (`R_cb
 9. **Results.**
    - Attributable deaths in 2024 are 586,723 against v9's 629,136 (ratio 0.93), and 19.8 million for 2000–2024 (v9 21.2 million).
    - The AF at PfPR 20% is 24.6% at 6–11 months, against 31.6% in v9; the other bands are within 2.2 points (36–47 months: 43.0% against 45.2%).
-   - See `results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/COMPARISON.md`.
+   - See `results/cbh/primary_snow520_merge_dhsmics_gamma2_v11/comparison_v9/COMPARISON.md`; the comparison (`R_cbh/reporting/22_compare_v9_snow.R`) was removed with the v9 code on 1 November 2026.
 10. **South Sudan before independence** (author decision, 12 October 2026; `R_cbh/primary/national_substitutions.R`).
    - For band-entry years before 2011, South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability for the same year. This also replaces South Sudan's own 2008–2010 GDP (23,669 records).
    - Its child HIV incidence is its own UNAIDS series.
@@ -84,8 +84,8 @@ The primary analysis now uses the Snow et al. (2017) polygons as its unit (`R_cb
 
 | # | main.tex | Code / results |
 |---|---|---|
-| B1 | Table S1 (L347–370) shows the DHS-only v3 values (5,465,305 records, 75,726 deaths). | The v9 table is `paper/tables/age_band_results.latex.txt` (7,621,617 records, 104,143 deaths), matching L77. |
-| B2 | L269 says the model equations are in SText 1, but `SText1_model_specification.tex` describes the archived negative-binomial "Method 2" (600 survey-regions, 1% floor). It also needs `figures/sfig1_spec_comparison.png`, which does not exist. | The current formula is `results/cbh/primary_map_regional17_dhsmics_gamma2_v9/model_formula.txt`. |
+| B1 | Table S1 (L347–370) shows the DHS-only v3 values (5,465,305 records, 75,726 deaths). | The v9 table had 7,621,617 records and 104,143 deaths (matching L77); `paper/tables/age_band_results.latex.txt` is now the Snow-unit table. |
+| B2 | L269 says the model equations are in SText 1, but `SText1_model_specification.tex` describes the archived negative-binomial "Method 2" (600 survey-regions, 1% floor). It also needs `figures/sfig1_spec_comparison.png`, which does not exist. | The current formula is `results/cbh/primary_snow520_merge_dhsmics_gamma2_v14/model_formula.txt`. |
 | B3 | L188: "a larger 67% decrease between 2000 and 2015". | The 2000–2015 decline is 57%; 67% is 2000–2024 (Table 2). The 57% is smaller than UN IGME's 2000–2015 decline (60%), so "larger" holds only for 2000–2024 (67% against 53% and 62%). |
 | B4 | L273: estimates "annually for 2004–2024". | The series covers 2000–2024. |
 | B5 | Fig S1 caption (L307): "child HIV prevalence (UNAIDS 0–14 case counts divided by World Bank population)". | The model uses modelled child HIV *incidence* per 1,000 uninfected (`R_cbh/hiv/`). |
@@ -114,4 +114,4 @@ None of these is described in `main.tex`. All remain in the analysis project (`R
 - Death-count version of Figure 3 (still produced in `burden_comparison/`, not exported)
 - The malaria-share table for 42 countries (Overleaf `tables/` holds no copy)
 - IHME vs UN IGME comparisons conditional on survival to 6 or 12 months (`R_cbh/reporting/18`, `19`)
-- History versions v1–v8 of the primary, DHS-only analyses, and all `R_dhs/` model scripts
+- History versions v1–v8 of the primary, DHS-only analyses, and all `R_dhs/` model scripts (v9, the survey-region primary, was in this repository until 1 November 2026; see the git history)

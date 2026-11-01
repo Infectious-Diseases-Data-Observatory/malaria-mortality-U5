@@ -14,7 +14,7 @@
 suppressPackageStartupMessages({ library(data.table); library(sf); library(ggplot2); library(patchwork) })
 sf_use_s2(FALSE)
 source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_cbh/sensitivity/subgroups/settings.R")
-st <- cbh_subgroup_settings("dhsmics"); P <- cbh_primary_settings(st$primary_version)
+st <- cbh_subgroup_settings(); P <- cbh_primary_settings(st$primary_version)
 if (!identical(P$unit, "snow")) stop("The sub-region map needs the Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge).")
 panels <- c(sahel = "A", west_africa = "B", central_africa = "C", east_africa = "D")
 stopifnot(all(names(panels) %in% st$subgroups))

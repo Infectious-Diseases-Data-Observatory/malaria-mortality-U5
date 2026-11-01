@@ -12,7 +12,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(patchwork) })
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional_mics")); root <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge")); root <- st$out
 out <- file.path(root, "model_vs_cause_specific"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 fig_year <- 2024L
 paths <- c(rates = file.path(root, sprintf("tables/country_rates_%d.csv", fig_year)))

@@ -6,21 +6,19 @@
 # refits the seven primary age-band models on the SAME complete-case sample with
 # the remaining 15 covariates, using the primary reference knots, so the only
 # change is the adjustment set. No data rebuild, no HIV refit, no TeX writes.
-# Default: the DHS and MICS primary (v7, with Liberia; v2 was v5). --dhs-only: the DHS-only primary (v3).
+# The Snow-unit primary (v14); the v9 refit (nutrition_adjustment_dhsmics_map_gamma2_v4) and the DHS-only v1 were
+# removed with v9 (1 November 2026).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/sensitivity/model.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 library(mgcv); library(data.table)
-args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% c("--force", "--dhs-only")))
-dhs_only <- "--dhs-only" %in% args
-# The Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge) has its own refit (11 October 2026).
-snow <- !dhs_only && identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge")
-st <- list(id = if (dhs_only) "nutrition_adjustment_map_gamma2_v1" else if (snow) "nutrition_adjustment_snow520_merge_gamma2_v8" else "nutrition_adjustment_dhsmics_map_gamma2_v4",
+args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--force"))
+st <- list(id = "nutrition_adjustment_snow520_merge_gamma2_v8",
            dropped = c("wasting_pct", "stunting_pct"))
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
-primary <- cbh_primary_settings(if (dhs_only) "regional" else if (snow) "snow_merge" else "regional_mics"); stopifnot(isTRUE(primary$nutrition))
+primary <- cbh_primary_settings("snow_merge"); stopifnot(isTRUE(primary$nutrition))
 for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 

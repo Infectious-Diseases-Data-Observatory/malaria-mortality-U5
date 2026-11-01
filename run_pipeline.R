@@ -13,7 +13,8 @@
 #            --ignore-versions  run with package versions that differ from the recorded ones
 #
 # The primary analysis uses the Snow et al. (2017) polygons as its unit (stages snow_units, snow_covariates, primary;
-# R_cbh/snow/README.md); the survey-region primary of v9 is kept as stage primary_v9 for comparison.
+# R_cbh/snow/README.md). The v9 survey-region primary (stage primary_v9) and its comparison with the Snow units were
+# removed on 1 November 2026 (author decision).
 # The full run takes about 6 hours;
 # run it detached: ./run_detached.sh --all   (logs in logs/, completion markers in logs/state/).
 # No stage downloads anything: network access is blocked for every step (fetch scripts are in
@@ -35,8 +36,7 @@ hiv_refit <- identical(opt("hiv"), "refit")
 
 R <- function(script, ..., env = character()) list(cmd = file.path(R.home("bin"), "Rscript"), args = c(script, ...), script = script, env = env)
 PY <- function(script, ..., env = character()) list(cmd = "python3", args = c(script, ...), script = script, env = env)
-# Versions are passed to each step (child processes): v9 survey-region primary, Snow-unit primary, Snow reproduction.
-V9 <- c("CBH_PRIMARY_VERSION=regional_mics")
+# Versions are passed to each step (child processes): Snow-unit primary, Snow reproduction.
 SNOW <- c("CBH_PRIMARY_VERSION=snow_merge", "SNOW_VARIANT=merge")
 REPRO <- c("CBH_PRIMARY_VERSION=snow_split_repro", "SNOW_VARIANT=split_repro",
            paste0("SNOW_POLYGONS_GPKG=", shQuote(Sys.getenv("SNOW_POLYGONS_GPKG"))))
@@ -59,12 +59,10 @@ stages <- list(
   mics = lapply(c("00a_extract.R", "00_dump_metadata.R", "01_inventory.R", "04_boundaries_gnb_caf.R", "05_region_map.R",
                   "06_polygons_pfpr_registry.R", "07_make_recodes.R", "08_build_child_bands.R", "09_regional_covariates.R",
                   "10_exclusion_attribution_mics.R", "11_region_centroids.R"), function(f) R(file.path("R_mics", f))),
-  primary_v9 = list(R("R_cbh/primary/run_regional.R", env = V9)),
   snow_units = snow_unit_steps(SNOW)[1:9],
   snow_covariates = snow_unit_steps(SNOW)[10:11],
   primary = list(R("R_cbh/primary/run_regional.R", env = SNOW)),
-  snow_maps = list(R("R_cbh/snow/21_map_merge_units.R", env = SNOW), R("R_cbh/snow/22_map_boundary_agreement.R", env = SNOW),
-                   R("R_cbh/reporting/22_compare_v9_snow.R", env = SNOW)),
+  snow_maps = list(R("R_cbh/snow/21_map_merge_units.R", env = SNOW), R("R_cbh/snow/22_map_boundary_agreement.R", env = SNOW)),
   subgroups = list(R("R_cbh/sensitivity/subgroups/01_fit.R", env = SNOW), R("R_cbh/sensitivity/subgroups/02_report.R", env = SNOW),
                    R("R_cbh/sensitivity/subgroups/03_survival_by_subregion.R", env = SNOW),
                    R("R_cbh/sensitivity/subgroups/04_subregion_units_map.R", env = SNOW)),
@@ -76,7 +74,7 @@ stages <- list(
   export = list(PY("R_cbh/reporting/export_paper.py", "--destination", "paper", "--copy", env = SNOW)),
   snow_repro = c(snow_unit_steps(REPRO), list(R("R_cbh/primary/00_prepare_snow.R", env = REPRO))))
 optional <- "snow_repro"   # run only when named with --only
-minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 20, mics = 30, primary_v9 = 20,
+minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 20, mics = 30,
              snow_units = 20, snow_covariates = 12, primary = 25, snow_maps = 2, subgroups = 45, nutrition = 20, country_fe = 20, imputation = 90, validate = 1,
              export = 1, snow_repro = 30)
 # A stage's dependency set: its scripts, the other code and config in their folders, and the shared helpers. A completion
@@ -155,7 +153,7 @@ if (length(size_bad)) stop("Raw files differ in size from data/raw_manifest.csv:
 # Block network access for every step, so that a missing cache fails instead of downloading.
 Sys.setenv(http_proxy = "http://127.0.0.1:9", https_proxy = "http://127.0.0.1:9", HTTP_PROXY = "http://127.0.0.1:9",
            HTTPS_PROXY = "http://127.0.0.1:9", ALL_PROXY = "http://127.0.0.1:9", no_proxy = "", NO_PROXY = "",
-           CBH_PRIMARY_VERSION = "regional_mics")   # steps that need another version set it (V9, SNOW, REPRO)
+           CBH_PRIMARY_VERSION = "snow_merge")   # the reproduction's steps set their own (REPRO)
 commit <- tryCatch(system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE), error = function(e) NA_character_)
 dirty <- length(tryCatch(system2("git", c("status", "--porcelain", "--untracked-files=no"), stdout = TRUE, stderr = FALSE),
                          error = function(e) character())) > 0

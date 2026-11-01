@@ -24,3 +24,8 @@ outputs were compared with the analysis project's `results/cbh/snow_units/` and 
 | | Totals | 7,478,478.29 weighted records, 102,973.30 deaths, 2,290,868 children, 1,717 units, 456 polygons, 133 surveys, 36 countries. |
 
 The reproduction is not fitted; the primary uses the merge rule (`snow_merge`).
+
+Since 1 November 2026 (v9 removed), `03_feasibility.R`, `04_location_variables.R` and `05_finer_units.R` no longer write
+the `in_v9` and `records_v9` columns or `survey_feasibility_final_v9.csv` (they came from the v9 prepared dataset), so those
+files no longer match the analysis project's byte for byte. Classes, placements, units and the prepared dataset are
+unaffected.

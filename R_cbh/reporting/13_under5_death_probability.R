@@ -15,7 +15,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 library(data.table); library(ggplot2); library(patchwork)
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics")); root <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge")); root <- st$out
 out <- file.path(root,"under5_probability"); dir.create(out,recursive=TRUE,showWarnings=FALSE)
 ages <- cbh_config()$age_bands$age_band
 edges <- c(0,28/365.25*12,6,12,24,36,48,60)

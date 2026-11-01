@@ -1,11 +1,10 @@
 #!/usr/bin/env Rscript
-# Multiple imputation of the remaining survey-region covariate gaps on the combined
-# DHS and MICS overlay, with the specification of the DHS-only version
+# Multiple imputation of the remaining regional covariate gaps, one row per survey x unit of the Snow primary's
+# covariate table (DHS and MICS jointly), with the specification of the DHS-only version
 # (R_cbh/covariates/16_impute_regional.R): chained equations with predictive mean
-# matching over the 13 regional covariates and regional MAP PfPR at the survey year,
+# matching over the 13 regional covariates and the unit's MAP PfPR at the survey year,
 # with survey year, the national series at survey year and a country factor as
-# predictors. DHS and MICS survey-regions are imputed jointly; observed values are
-# never changed.
+# predictors. Observed values are never changed.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/specification.R")
 source("R_cbh/sensitivity/imputation_dhsmics/settings.R")
@@ -16,39 +15,26 @@ spec <- cbh_primary_regional_spec(st); regional <- spec$regional
 stopifnot(length(regional) == 13L)
 reg <- do.call(rbind, lapply(st$registries, function(x) cbh_read_csv(x)[c("svkey", "iso3", "year")]))
 cbh_unique(reg, "svkey", "Combined registry")
-if (identical(st$unit, "snow")) {
-  # Snow-unit primary: one row per survey x unit (the Snow primary's covariate table, after its WUENIC and
-  # within-survey fallbacks); the key column regkey holds the unit (Admin_IDs joined by "+"). PfPR of the unit at the
-  # survey year, population-weighted over its polygons as in R_cbh/primary/00_prepare_snow.R.
-  w0 <- cbh_read_csv(st$snow_overlay)
-  wide <- data.frame(survey = w0$survey, regkey = w0$unit, w0[regional], programme = ifelse(startsWith(w0$survey, "MC_"), "MICS", "DHS"))
-  cbh_unique(wide, c("survey", "regkey"), "Snow covariate table")
-  wide$country <- reg$iso3[match(wide$survey, reg$svkey)]
-  wide$survey_year <- reg$year[match(wide$survey, reg$svkey)]
-  stopifnot(!anyNA(wide$country), !anyNA(wide$survey_year))
-  pf <- cbh_read_csv(st$snow_pfpr)
-  parts <- do.call(rbind, lapply(seq_len(nrow(wide)), function(i) data.frame(row = i, Admin_ID = strsplit(wide$regkey[i], "+", fixed = TRUE)[[1]])))
-  parts$year <- wide$survey_year[parts$row]
-  j <- match(paste(parts$Admin_ID, parts$year), paste(pf$Admin_ID, pf$year)); stopifnot(!anyNA(j))
-  parts$w <- pf$population_weight[j]; parts$p <- pf$pfpr2_10[j]
-  wide$pfpr_survey_year <- NA_real_
-  agg <- aggregate(cbind(wp = w * p, w = w) ~ row, data = parts, FUN = sum)
-  wide$pfpr_survey_year[agg$row] <- agg$wp / agg$w
-} else {
-dhs <- cbh_read_csv(st$dhs_overlay)[c("survey", "regkey", regional)]; dhs$programme <- "DHS"
-mics <- cbh_read_csv(st$mics_overlay)[c("survey", "regkey", regional)]; mics$programme <- "MICS"
-wide <- rbind(dhs, mics); cbh_unique(wide, c("survey", "regkey"), "Combined regional overlay")
-stopifnot(all(startsWith(mics$survey, "MC_")), !any(startsWith(dhs$survey, "MC_")))
+# One row per survey x unit (the Snow primary's covariate table, after its WUENIC and within-survey fallbacks); the key
+# column regkey holds the unit (Admin_IDs joined by "+"). PfPR of the unit at the survey year, population-weighted over
+# its polygons as in R_cbh/primary/00_prepare_snow.R.
+w0 <- cbh_read_csv(st$snow_overlay)
+wide <- data.frame(survey = w0$survey, regkey = w0$unit, w0[regional], programme = ifelse(startsWith(w0$survey, "MC_"), "MICS", "DHS"))
+cbh_unique(wide, c("survey", "regkey"), "Snow covariate table")
 wide$country <- reg$iso3[match(wide$survey, reg$svkey)]
 wide$survey_year <- reg$year[match(wide$survey, reg$svkey)]
 stopifnot(!anyNA(wide$country), !anyNA(wide$survey_year))
-map <- do.call(rbind, lapply(st$annual_maps, function(x) cbh_read_csv(x)[c("svkey", "regkey", "year", "pfpr2_10")]))
-wide$pfpr_survey_year <- map$pfpr2_10[match(paste(wide$survey, wide$regkey, wide$survey_year), paste(map$svkey, map$regkey, map$year))]
-}
-# Survey-regions without MAP prevalence have no analysis records (checked when the
-# analysis dataset is prepared); they are dropped rather than imputed.
+pf <- cbh_read_csv(st$snow_pfpr)
+parts <- do.call(rbind, lapply(seq_len(nrow(wide)), function(i) data.frame(row = i, Admin_ID = strsplit(wide$regkey[i], "+", fixed = TRUE)[[1]])))
+parts$year <- wide$survey_year[parts$row]
+j <- match(paste(parts$Admin_ID, parts$year), paste(pf$Admin_ID, pf$year)); stopifnot(!anyNA(j))
+parts$w <- pf$population_weight[j]; parts$p <- pf$pfpr2_10[j]
+wide$pfpr_survey_year <- NA_real_
+agg <- aggregate(cbind(wp = w * p, w = w) ~ row, data = parts, FUN = sum)
+wide$pfpr_survey_year[agg$row] <- agg$wp / agg$w
+# Every unit has MAP prevalence at the survey year (checked); the dropped-unit table stays empty.
 no_map <- wide[!is.finite(wide$pfpr_survey_year), c("programme", "survey", "regkey")]
-stopifnot(all(no_map$programme == "MICS"), !identical(st$unit, "snow") || nrow(no_map) == 0L)
+stopifnot(nrow(no_map) == 0L)
 wide <- wide[is.finite(wide$pfpr_survey_year), ]
 nat <- cbh_read_csv(st$imputed_national)
 k <- match(paste(wide$country, wide$survey_year), paste(nat$iso3, nat$year)); stopifnot(!anyNA(k))
@@ -113,7 +99,7 @@ writeLines(c("# Regional covariate imputation (DHS and MICS, imputed_dhsmics_v6)
   "MICS gaps are whole-survey wasting and stunting gaps (Nigeria 2021, Madagascar 2012 South, Somalia 2011 North-East and Somaliland 2011). Somalia's only other survey with anthropometry (MICS 2006) reports one national wasting and stunting value, so the country factor carries little Somalia-specific information.", "",
   "[Convergence traces](mice_convergence.png) · [Observed versus imputed densities](mice_density.png) · [By variable](regional_imputation_by_variable.csv) · [By survey](regional_imputation_by_survey.csv)"),
   file.path(out, "REGIONAL_IMPUTATION.md"))
-paths <- c(if (identical(st$unit, "snow")) c(st$snow_overlay, st$snow_pfpr) else c(st$dhs_overlay, st$mics_overlay, st$annual_maps), st$registries, st$imputed_national,
+paths <- c(st$snow_overlay, st$snow_pfpr, st$registries, st$imputed_national,
   "R_cbh/sensitivity/imputation_dhsmics/02_impute_regional.R", "R_cbh/sensitivity/imputation_dhsmics/settings.R",
   "R_cbh/primary/specification.R")
 cbh_atomic_csv(data.frame(file = paths, md5 = vapply(paths, cbh_file_hash, "")), file.path(out, "regional_imputation_provenance.csv"))

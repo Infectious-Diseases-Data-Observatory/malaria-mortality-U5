@@ -2,7 +2,7 @@
 # Cross-artifact checks for the current plan-defined primary reporting bundle.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"));root <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"));root <- st$out
 read <- function(p)cbh_read_csv(file.path(root,p))
 manifest <- read("fit_manifest.csv");diag <- read("fit_diagnostics.csv")
 sample <- read("primary_sample.csv");figures <- read("paper_figures/manifest.csv")
@@ -27,33 +27,25 @@ stopifnot(counts[["primary"]]==sample$records,counts[["deaths"]]==sample$deaths,
   counts[["surveys"]]==sample$surveys,nrow(coverage)==sample$surveys,
   is.null(st$expected_regions) || sum(coverage$regions)==st$expected_regions,
   all(coverage$type %in% if(isTRUE(st$mics)) c("DHS","MICS") else "DHS"))
-snow <- identical(st$unit,"snow")   # Snow-unit primary: no fixed DHS part; counts checked against the key numbers
 subst_lines <- character()
-if(snow) {
-  # Declared national substitutions of the preparation: one row per country and covariate, within the country's sample
-  # records, and counted in the study flow.
-  ns <- read("national_substitutions.csv");nsc <- unique(ns[c("country","source_country","years","records_in_sample")])
-  selected <- read("prepared_selection_by_survey.csv")
-  stopifnot(!anyDuplicated(nsc$country),all(ns$variable %in% c("log_gdp_pc","log_health_expenditure_pc","political_stability")),
-    all(nsc$records_in_sample<=vapply(nsc$country,function(k)sum(selected$records[selected$country==k]),0)),
-    counts[["national_substituted"]]==sum(nsc$records_in_sample))
-  if(nrow(nsc)) subst_lines <- sprintf("PASS: declared national substitutions recorded and counted in the study flow (%s).",
-    paste(sprintf("%s from %s, band-entry years %s, %s records",nsc$country,nsc$source_country,nsc$years,format(nsc$records_in_sample,big.mark=",")),collapse="; "))
-}
+# Declared national substitutions of the preparation: one row per country and covariate, within the country's sample
+# records, and counted in the study flow.
+ns <- read("national_substitutions.csv");nsc <- unique(ns[c("country","source_country","years","records_in_sample")])
+selected <- read("prepared_selection_by_survey.csv")
+stopifnot(!anyDuplicated(nsc$country),all(ns$variable %in% c("log_gdp_pc","log_health_expenditure_pc","political_stability")),
+  all(nsc$records_in_sample<=vapply(nsc$country,function(k)sum(selected$records[selected$country==k]),0)),
+  counts[["national_substituted"]]==sum(nsc$records_in_sample))
+if(nrow(nsc)) subst_lines <- sprintf("PASS: declared national substitutions recorded and counted in the study flow (%s).",
+  paste(sprintf("%s from %s, band-entry years %s, %s records",nsc$country,nsc$source_country,nsc$years,format(nsc$records_in_sample,big.mark=",")),collapse="; "))
 mics_lines <- character()
 if(isTRUE(st$mics)) {
-  # The DHS part must equal its declared sample (settings$dhs_part_note), and the DHS+MICS
-  # sensitivity refits must have been fitted to this primary's prepared data (checked from CSVs only).
-  expected_mics_surveys <- if(snow) st$expected_mics_surveys else 37L
+  # The DHS+MICS sensitivity refits must have been fitted to this primary's prepared data (checked from CSVs only).
+  expected_mics_surveys <- st$expected_mics_surveys
   by_survey <- read("prepared_selection_by_survey.csv")
   by_survey <- merge(by_survey[setdiff(names(by_survey),"units")],coverage[c("survey","type","regions")],by="survey")
   dhs <- by_survey[by_survey$type=="DHS",];n_mics <- sum(by_survey$type=="MICS")
   stopifnot(nrow(by_survey)==nrow(coverage),abs(sum(by_survey$records)-sample$records)<1e-6,abs(sum(by_survey$deaths)-sample$deaths)<1e-6,
     is.null(expected_mics_surveys) || n_mics==expected_mics_surveys)
-  if(!snow) stopifnot(sum(dhs$records)==st$expected_dhs_records,sum(dhs$deaths)==st$expected_dhs_deaths,
-    sum(dhs$regions)==st$expected_dhs_regions)
-  if(file.exists(file.path(root,"dhs_part.csv"))) { dp <- read("dhs_part.csv")
-    stopifnot(dp$records==sum(dhs$records),dp$deaths==sum(dhs$deaths),dp$note==st$dhs_part_note) }
   prepared_md5 <- unique(manifest$prepared_data_md5)
   sensitivities <- st$sensitivity_dirs
   for(d in sensitivities) {
@@ -61,11 +53,8 @@ if(isTRUE(st$mics)) {
     if(length(prepared_md5)!=1L || fp$file[1]!=st$data || fp$md5[1]!=prepared_md5)
       stop("Sensitivity refit in ",d," was not fitted to the prepared data of ",st$id)
   }
-  mics_lines <- c(if(snow) sprintf("PASS: %d DHS surveys (%s records, %s deaths, %d survey x unit areas) and %d MICS surveys (%s records, %s deaths).",
+  mics_lines <- c(sprintf("PASS: %d DHS surveys (%s records, %s deaths, %d survey x unit areas) and %d MICS surveys (%s records, %s deaths).",
       nrow(dhs),format(sum(dhs$records),big.mark=","),format(sum(dhs$deaths),big.mark=","),sum(dhs$regions),n_mics,
-      format(sample$records-sum(dhs$records),big.mark=","),format(sample$deaths-sum(dhs$deaths),big.mark=","))
-    else sprintf("PASS: DHS part matches %s (%s records, %s deaths, %d survey-regions); %d MICS surveys add %s records and %s deaths.",
-      st$dhs_part_note,format(sum(dhs$records),big.mark=","),format(sum(dhs$deaths),big.mark=","),sum(dhs$regions),n_mics,
       format(sample$records-sum(dhs$records),big.mark=","),format(sample$deaths-sum(dhs$deaths),big.mark=",")),
     sprintf("PASS: subgroup and no-nutrition refits (%s) were fitted to this primary's prepared data (md5 %s).",
       paste(basename(sensitivities),collapse=", "),prepared_md5))
@@ -89,11 +78,9 @@ stopifnot(nrow(states)==37L,abs(sum(states$attributable_under5_deaths)-recon$sta
 # MAP's own national estimates, and draw-based intervals that reproduce and bracket the point estimates.
 cfg <- cbh_config()
 stopifnot(any(grepl(paste0('"map_annual_', cfg$map_release, '"'), readLines("R_inputs/00_config.R"), fixed = TRUE)))
-if(snow) {
-  rp <- cbh_read_csv("results/cbh/snow_units/merge/pfpr/pfpr_raster_provenance.csv")
-  stopifnot(nrow(rp)==25L,all(rp$map_release==cfg$map_release),all(dirname(normalizePath(rp$file))==normalizePath(cfg$map_raster_dir)),
-    identical(unname(vapply(rp$file,cbh_file_hash,"")),rp$md5))
-}
+rp <- cbh_read_csv("results/cbh/snow_units/merge/pfpr/pfpr_raster_provenance.csv")
+stopifnot(nrow(rp)==25L,all(rp$map_release==cfg$map_release),all(dirname(normalizePath(rp$file))==normalizePath(cfg$map_raster_dir)),
+  identical(unname(vapply(rp$file,cbh_file_hash,"")),rp$md5))
 nat <- read("annual_comparison/national_pfpr_2000_2024.csv")
 mn <- cbh_map_national(unique(nat$iso3),2000:2024,cfg)
 stopifnot(nrow(nat)==42L*25L,all(nat$map_release==cfg$map_release),
@@ -122,7 +109,7 @@ for(p in file.path(root,"tables",c("age_band_results.latex.txt","country_compari
 }
 writeLines(c(sprintf("PASS: %d main figures (Figure 3 combining country, state and annual comparisons; Figure 4 under-5 death probability) reference the revised primary version and match their hashes.",nrow(figures)),
   "PASS: seven fitted model hashes, convergence flags and gamma=2 verified.",
-  sprintf(paste0("PASS: flow, %s, %d ",if(snow) "survey x unit areas" else "survey-regions",", child-band/death/child totals reconcile."),
+  sprintf(paste0("PASS: flow, %s, %d ","survey x unit areas",", child-band/death/child totals reconcile."),
     if(isTRUE(st$mics)) sprintf("%d DHS and MICS surveys (%d DHS, %d MICS)",sample$surveys,sum(coverage$type=="DHS"),sum(coverage$type=="MICS"))
     else sprintf("%d DHS surveys",sample$surveys),sum(coverage$regions)),
   mics_lines,subst_lines,

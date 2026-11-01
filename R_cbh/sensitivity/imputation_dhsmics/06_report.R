@@ -1,38 +1,32 @@
 #!/usr/bin/env Rscript
-# Comparison of the DHS+MICS imputed-covariate sensitivity (v10; v8 on v7) with the complete-case
-# DHS+MICS primary (v9): overlaid PfPR splines (supplementary manuscript figure), hazard
-# ratio contrasts, sample sizes, caption and report. Reads saved aggregates only; no
-# refitting, no TeX writes. Under CBH_PRIMARY_VERSION=snow_merge: the Snow-unit version (v12) against the Snow primary
-# (v11), with the Snow wording, including the primary's declared national substitutions (national_substitutions.csv:
-# South Sudan's pre-independence values are Sudan's in both analyses, so they are not counted as imputed); the v10
-# outputs are unchanged.
+# Comparison of the imputed-covariate sensitivity (v15) with the complete-case Snow-unit primary (v14), including the
+# primary's declared national substitutions (national_substitutions.csv: South Sudan's pre-independence values are
+# Sudan's in both analyses, so they are not counted as imputed): overlaid PfPR splines (supplementary manuscript
+# figure), hazard ratio contrasts, sample sizes, caption and report. Reads saved aggregates only; no refitting, no TeX
+# writes.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/reporting/labels.R")
-source("R_cbh/primary/settings.R")
 source("R_cbh/sensitivity/imputation_dhsmics/settings.R")
 library(ggplot2)
 st <- cbh_imputed_dhsmics_settings(); out <- st$out; ref <- st$reference
-snow <- identical(st$unit, "snow")
-vr <- sub(".*_(v[0-9]+)$", "\\1", basename(ref)); vi <- sub(".*_(v[0-9]+)$", "\\1", st$id)   # version labels, e.g. v9 and v10
+vr <- sub(".*_(v[0-9]+)$", "\\1", basename(ref)); vi <- sub(".*_(v[0-9]+)$", "\\1", st$id)   # version labels, e.g. v14 and v15
 mi_dir <- file.path(out, "multiple_imputation")
-inputs <- c(file.path(ref, c("pfpr_curves.csv", "fit_diagnostics.csv", if (snow) "prepared_sample.csv" else "prepared_sample_dhs_mics.csv")),
+inputs <- c(file.path(ref, c("pfpr_curves.csv", "fit_diagnostics.csv", "prepared_sample.csv")),
   file.path(out, c("pfpr_curves.csv", "fit_diagnostics.csv", "prepared_sample.csv", "imputation_record_counts.csv",
                    "imputation_record_counts_by_survey.csv", "prepared_selection_by_survey.csv")),
   file.path(mi_dir, "pooled_contrasts.csv"), file.path(st$imputation_results, "national_imputation_summary.csv"),
-  if (snow) file.path(ref, "national_substitutions.csv"))
+  file.path(ref, "national_substitutions.csv"))
 stopifnot(file.exists(inputs))
 read <- function(i) cbh_read_csv(inputs[i])
 pc <- read(1); pc <- pc[pc$series == "map_full", ]; pd <- read(2); ps <- read(3)
 nc <- read(4); nd <- read(5); ns <- read(6); counts <- read(7); by_survey <- read(8); selection <- read(9)
 pooled <- read(10)
-# Snow-unit version: the primary's substitutions (one row per country), as text; every substituted record is retained.
-subst <- if (snow) unique(read(12)[c("country", "source_country", "before_year", "note", "records")]) else NULL
+# The primary's substitutions (one row per country), as text; every substituted record is retained.
+subst <- unique(read(12)[c("country", "source_country", "before_year", "note", "records")])
 stopifnot(nrow(pd) == 7L, nrow(nd) == 7L, all(nd$converged), all(nd$gamma == 2), all(nd$input_verified),
   all(nd$min_smoothing_hessian_eigenvalue > 0),
-  is.null(st$expected_records) || ns$records == st$expected_records,
-  snow || ps$records == cbh_primary_settings("regional_mics")$expected_records,
   counts$records[counts$programme == "All"] == ns$records,
-  !snow || (!anyDuplicated(subst$country) && counts$national_substituted[counts$programme == "All"] == sum(subst$records)))
+  !anyDuplicated(subst$country), counts$national_substituted[counts$programme == "All"] == sum(subst$records))
 ages <- cbh_config()$age_bands$age_band
 labels <- setNames(st$comparison_labels, c("reference", "imputed"))
 paper_labels <- c(reference = "Complete-case covariates (primary analysis)", imputed = "All covariate gaps imputed (sensitivity)")
@@ -71,7 +65,7 @@ contrasts <- do.call(rbind, lapply(c(40, 0), function(x) {
     hazard_ratio = exp(loghr), lower_95 = exp(loghr - 1.96 * z$standard_error), upper_95 = exp(loghr + 1.96 * z$standard_error))
 }))
 cbh_atomic_csv(contrasts, file.path(out, "comparison_contrasts.csv"))
-sample <- data.frame(measure = c("Child-band records", "Distinct children", "Deaths", if (snow) "Survey x unit areas" else "Survey-regions", "Surveys", "Countries"),
+sample <- data.frame(measure = c("Child-band records", "Distinct children", "Deaths", "Survey x unit areas", "Surveys", "Countries"),
   previous = c(ps$records, ps$children, ps$deaths, ps$regions, ps$surveys, ps$countries),
   revised = c(ns$records, ns$children, ns$deaths, ns$regions, ns$surveys, ns$countries))
 cbh_atomic_csv(sample, file.path(out, "comparison_sample.csv"))
@@ -89,7 +83,7 @@ fmt <- function(x) format(round(x), big.mark = ",")
 mics_surveys <- sum(selection$programme == "MICS")
 fmt_share <- sprintf("%.1f%%", 100 * max_share)
 cname <- function(x) countrycode::countrycode(x, "iso3c", "country.name", warn = FALSE)
-subst_text <- if (snow && nrow(subst)) paste(sprintf("%s (%s) takes %s's observed GDP per capita, health expenditure per capita and political stability for band-entry years before %d",
+subst_text <- if (nrow(subst)) paste(sprintf("%s (%s) takes %s's observed GDP per capita, health expenditure per capita and political stability for band-entry years before %d",
   cname(subst$country), subst$note, cname(subst$source_country), subst$before_year), collapse = "; ") else ""
 
 ## ---- caption ---------------------------------------------------------------------------------------
@@ -97,16 +91,14 @@ caption <- c("# Supplementary figure caption: imputed-covariate sensitivity (DHS
   paste0("Sensitivity of the fitted PfPR–mortality relationship to the treatment of missing covariates. ",
   "Log mortality hazard ratios relative to PfPR[2–10] = 20% by completed-month age band, with pointwise 95% conditional intervals shaded, from the ", cbh_paper_model_label(), " fitted to the complete-case primary sample (",
   fmt(row("Child-band records")$previous), " child–age-band records, ", fmt(row("Deaths")$previous), " deaths, ", row("Surveys")$previous, " surveys in ", row("Countries")$previous,
-  " countries) and to every ", if (snow) "record placed in a Snow et al. unit" else "MAP-eligible record", " after imputing all remaining covariate gaps (",
+  " countries) and to every record placed in a Snow et al. unit after imputing all remaining covariate gaps (",
   fmt(row("Child-band records")$revised), " records, ", fmt(row("Deaths")$revised), " deaths, ", row("Surveys")$revised, " surveys in ", row("Countries")$revised,
   " countries, including all five Malaria Indicator Surveys and all ", mics_surveys, " MICS surveys with complete birth histories outside Lesotho",
-  if (snow) ", the Comoros and São Tomé and Príncipe, which have no Snow et al. malaria-endemic polygon). " else "). ",
-  "Whole-survey gaps in the regional indicators (wasting, stunting, facility delivery, electricity and the wealth score) were imputed by chained equations at the ", if (snow) "survey × unit" else "survey-region", " level (predictive mean matching, ", M, " imputations, point value their mean); the missing 2001 World Governance Indicators round by linear interpolation; ",
-  if (snow) "health expenditure for Zimbabwe 2000–2009, Somalia 2000–2012 and all countries in 2024 from a generalised additive model on the observed national panel; "
-  else "health expenditure for Zimbabwe 2000–2009, Somalia 2000–2012, South Sudan before 2017 and all countries in 2024, and South Sudan's GDP before 2008 and political stability before independence, from generalised additive models on the observed national panel; ",
-  if (snow) "Liberia's child HIV incidence from UNAIDS counts of new infections among children (São Tomé and Príncipe, the only country without an incidence series, has no Snow et al. unit). "
-  else "child HIV incidence for São Tomé and Príncipe from the incidence model with a latent adolescent series, and Liberia's from UNAIDS counts of new infections among children. ",
-  if (snow) paste0(if (nzchar(subst_text)) paste0("In both analyses, ", subst_text, ". "), "Values used by the complete-case analysis were never replaced. ") else "Observed values were never replaced. ",
+  ", the Comoros and São Tomé and Príncipe, which have no Snow et al. malaria-endemic polygon). ",
+  "Whole-survey gaps in the regional indicators (wasting, stunting, facility delivery, electricity and the wealth score) were imputed by chained equations at the survey × unit level (predictive mean matching, ", M, " imputations, point value their mean); the missing 2001 World Governance Indicators round by linear interpolation; ",
+  "health expenditure for Zimbabwe 2000–2009, Somalia 2000–2012 and all countries in 2024 from a generalised additive model on the observed national panel; ",
+  "Liberia's child HIV incidence from UNAIDS counts of new infections among children (São Tomé and Príncipe, the only country without an incidence series, has no Snow et al. unit). ",
+  paste0(if (nzchar(subst_text)) paste0("In both analyses, ", subst_text, ". "), "Values used by the complete-case analysis were never replaced. "),
   "The specification, reference knots, basis dimensions and gamma = 2 are those of the primary analysis; covariates were re-standardised on the enlarged sample. ",
   "Each curve is drawn over the central 95% of its own exposure distribution. ",
   "Hazard ratios for PfPR 40% to 20% are ", paste(hr(labels[["reference"]], "40% to 20%"), collapse = ", "), " (complete case) and ",
@@ -122,15 +114,12 @@ tab <- function(w, title) c(paste0("### PfPR ", title), "", paste0("| Age (month
   sprintf("| %s | %s | %s |", ages, fmt_ci(w$r), fmt_ci(w$i)), "")
 tot <- counts[counts$programme == "All", ]
 lines <- c(sprintf("# Imputed-covariate sensitivity on the DHS and MICS sample (%s)", vi), "",
-  if (snow) sprintf("The 17-covariate primary specification refitted after imputing every remaining covariate gap, so that every DHS and MICS record placed in a Snow et al. unit is retained. Reference: the complete-case Snow-unit primary `%s`. This version: `%s`.", basename(ref), st$id)
-  else sprintf("The 17-covariate primary specification refitted after imputing every remaining covariate gap, so that all MAP-eligible DHS and MICS records are retained. Reference: the complete-case DHS+MICS primary `%s`. This version: `%s`. The DHS-only counterpart is `primary_map_regional17_imputed_gamma2_v4`.", basename(ref), st$id), "",
+  sprintf("The 17-covariate primary specification refitted after imputing every remaining covariate gap, so that every DHS and MICS record placed in a Snow et al. unit is retained. Reference: the complete-case Snow-unit primary `%s`. This version: `%s`.", basename(ref), st$id), "",
   "## Sample", "", sprintf("| Measure | Complete case (%s) | Imputed (%s) |", vr, vi), "|---|---:|---:|",
   sprintf("| %s | %s | %s |", sample$measure, fmt(sample$previous), fmt(sample$revised)), "",
-  if (snow) sprintf("Records whose values were imputed (point version): regional covariates %s; political stability %s (2001 interpolation); GDP %s; health expenditure %s; child HIV incidence without an adolescent series %s.%s The extended HIV panel also changes censored and imputed incidence values in other countries, so the comparison mixes the covariate imputation with that panel change, as for v4 against v3.",
+  sprintf("Records whose values were imputed (point version): regional covariates %s; political stability %s (2001 interpolation); GDP %s; health expenditure %s; child HIV incidence without an adolescent series %s.%s The extended HIV panel also changes censored and imputed incidence values in other countries, so the comparison mixes the covariate imputation with that panel change, as for v4 against v3.",
     fmt(tot$regional_any_model_imputed), fmt(tot$political_stability_imputed), fmt(tot$gdp_imputed), fmt(tot$health_expenditure_imputed), fmt(tot$hiv_no_adolescent_series),
-    if (nzchar(subst_text)) sprintf(" As in the primary analysis, %s (%s records); these values are not counted as imputed.", subst_text, fmt(tot$national_substituted)) else "")
-  else sprintf("Records whose values were imputed (point version): regional covariates %s; political stability %s (2001 interpolation and South Sudan before independence); GDP %s (South Sudan 2005–2007); health expenditure %s; child HIV incidence without an adolescent series %s. The extended HIV panel also changes censored and imputed incidence values in other countries, so the comparison mixes the covariate imputation with that panel change, as for v4 against v3.",
-    fmt(tot$regional_any_model_imputed), fmt(tot$political_stability_imputed), fmt(tot$gdp_imputed), fmt(tot$health_expenditure_imputed), fmt(tot$hiv_no_adolescent_series)), "",
+    if (nzchar(subst_text)) sprintf(" As in the primary analysis, %s (%s records); these values are not counted as imputed.", subst_text, fmt(tot$national_substituted)) else ""), "",
   "## Figure", "", "![Complete-case versus imputed PfPR curves](sfig_pfpr_splines_imputed_covariates.png)", "", caption[3], "",
   "## Hazard ratios", "", "Pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   tab(w40, "40% to 20%"), tab(w0, "20% to 0%"),
@@ -139,7 +128,7 @@ lines <- c(sprintf("# Imputed-covariate sensitivity on the DHS and MICS sample (
   sprintf("All seven fits converged with full rank, finite coefficients and covariances and positive smoothing-Hessian eigenvalues; %d used the tighter-tolerance restart. Fitted model columns were checked against the input rows. Total fitting time %.0f minutes.",
     sum(grepl("strict", cbh_read_csv(file.path(out, "fit_manifest.csv"))$selected_version)), sum(nd$elapsed_seconds) / 60), "",
   sprintf("Imputation audits: [regional](../%s/REGIONAL_IMPUTATION.md) and [national](../%s/NATIONAL_IMPUTATION.md). Per-survey imputed-record counts: [imputation_record_counts_by_survey.csv](imputation_record_counts_by_survey.csv).",
-    a <- if (snow) basename(st$imputation_results) else "covariate_imputation_dhsmics_v6", a), "",
+    a <- basename(st$imputation_results), a), "",
   "Reproduce, from the project root: `Rscript R_cbh/sensitivity/imputation_dhsmics/0N_*.R` for N = 1 to 6 in order (fits and the multiple-imputation refits are long; run them detached). Only aggregate tables and figures are published; prepared data and fitted objects stay under the ignored data directory. The primary analysis and manuscript files are unchanged.")
 writeLines(lines, file.path(out, "REPORT.md"))
 prov <- c(inputs, figure)

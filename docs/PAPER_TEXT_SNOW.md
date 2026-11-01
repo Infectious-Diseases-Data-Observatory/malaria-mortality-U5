@@ -93,7 +93,7 @@ Source: `paper/figures/fig1_analysis_units_map_caption.md` (= `P/analysis_units_
 
 (Attributable fraction at 10%: <1 month 1.9%, 1–5 months 7.4%, 6–11 months 14.0%, then 30.8, 37.2, 27.8 and 29.0% for the yearly bands. At 40%: 10.3, 20.3, 36.3, 53.1, 59.3, 49.5 and 47.3%. In v9, the 6–11 month attributable fraction at 20% was 31.6%; in the Snow primary it is 24.6%. The other bands differ by at most 2.2 points.)
 
-Sources: `P/attributable_fraction_by_age.csv`; `P/comparison_v9/COMPARISON.md`.
+Sources: `P/attributable_fraction_by_age.csv`; `P/comparison_v9/COMPARISON.md` (the v9 values; the comparison was removed with v9 on 1 November 2026).
 
 **L98: replace the paragraph [numbers 13 Oct].**
 

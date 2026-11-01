@@ -3,7 +3,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
-root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"))$out
 out <- file.path(root,"paper_figures")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 # Figure 3 combines the former Figures 4 (2024 panel), 6 and 5 as panels A, B and C.
@@ -18,9 +18,7 @@ dir.create(out,recursive=TRUE,showWarnings=FALSE)
 # (R_cbh/reporting/26_hazard_ratio_by_age.R), Figure 3 the attributable fraction by age, Figure 4 the malaria-
 # attributable mortality rates with UN IGME all-cause mortality; the burden comparison and the probability of dying
 # before age 5 move to the supplement, and the log-HR curves relative to 20% leave the paper.
-snow <- identical(cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","regional_mics"))$unit,"snow")
-fig1 <- if(snow) c(file="fig1_analysis_units_map.png",source="analysis_units_map/analysis_units_map.png") else
-  c(file="fig1_survey_map_and_timing.png",source="survey_map/survey_map_and_timing.png")
+fig1 <- c(file="fig1_analysis_units_map.png",source="analysis_units_map/analysis_units_map.png")
 figures <- data.frame(figure=1:5,
   filename=c(fig1[["file"]],"fig2_hazard_ratio_by_age.png",
     "fig3_malaria_attributable_fraction_by_age.png","fig4_malaria_mortality_rates_unigme.png",
@@ -33,12 +31,9 @@ figures$md5 <- vapply(figures$source,cbh_file_hash,"")
 cbh_atomic_csv(figures,file.path(out,"manifest.csv"))
 writeLines(c("# Main-paper figures and draft captions","",
   "Figures contain no title, subtitle or embedded caption. Axis labels, age/year facet labels and legends remain. File numbering here does not alter the order of figures in TeX.","",
-  if(snow) c("## Figure 1 — complete birth histories used, by analysis unit","",
+  c("## Figure 1 — complete birth histories used, by analysis unit","",
     "File: `fig1_analysis_units_map.png` (source `analysis_units_map/analysis_units_map.png`; values in `analysis_units_map/analysis_units_by_polygon.csv`).","",
-    readLines(file.path(root,"analysis_units_map/CAPTION.md"))[-c(1,2)],"") else
-  c("## Figure 1 — survey map and timing","",
-    "File: `fig1_survey_map_and_timing.png` (source `survey_map/survey_map_and_timing.png`).","",
-    readLines(file.path(root,"survey_map/CAPTION.md"))[-c(1,2)],""),
+    readLines(file.path(root,"analysis_units_map/CAPTION.md"))[-c(1,2)],""),
   "## Figure 2 — hazard ratio of death by age band, relative to zero prevalence","",
   "File: `fig2_hazard_ratio_by_age.png` (source `hazard_ratio_by_age/fig2_hazard_ratio_by_age.png`; values in `hazard_ratio_by_age/hazard_ratio_curves.csv`).","",
   readLines(file.path(root,"hazard_ratio_by_age/CAPTION.md"))[-c(1,2)],"",
@@ -57,9 +52,9 @@ writeLines(c("# Main-paper figures and draft captions","",
   "## Supplementary figure — national PfPR and probability of dying before age 5, all causes and caused by malaria (formerly Figure 4)","",
   "File: `sfig_under5_death_probability.png` (exported to the manuscript's `Supplementary Figures/` folder; source `under5_probability/under5_death_probability_2024.png`; values in `under5_probability/under5_death_probability.csv`).","",
   readLines(file.path(root,"under5_probability/CAPTION.md"))[-c(1,2)],"",
-  if(snow) c("## Supplementary figure — survey map and timing (formerly Figure 1)","",
+  c("## Supplementary figure — survey map and timing (formerly Figure 1)","",
     "File: `sfig_survey_map_and_timing.png` (exported to the manuscript's `Supplementary Figures/` folder; source `survey_map/survey_map_and_timing.png`).","",
-    readLines(file.path(root,"survey_map/CAPTION.md"))[-c(1,2)],"") else character(),
+    readLines(file.path(root,"survey_map/CAPTION.md"))[-c(1,2)],""),
   "## Supplementary figure — count version of the burden comparison","",
   "File: `sfig_burden_comparison_counts.png` (exported to the manuscript's `Supplementary Figures/` folder).","",
   readLines(file.path(root,"burden_comparison/CAPTION_counts.md"))[-c(1,2)],"",

@@ -17,7 +17,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 suppressPackageStartupMessages({library(data.table); library(ggplot2); library(patchwork)})
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "regional_mics"))
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge"))
 fig_year <- 2024L
 out <- file.path(st$out, "malaria_share"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 paths <- c(totals = file.path(st$out, "burden/country_totals.csv"),

@@ -350,6 +350,12 @@ islands <- pol[Type == "Island"]
 assert(any(grepl("Bioko", islands$AFR_Admin)) && any(grepl("Annobon", islands$AFR_Admin)), "the island polygons are Bioko and Annobon")
 assert(all(pol[Country_ID == "LSO", Type] == "Malaria free"), "Lesotho is wholly malaria free")
 snow <- merge(snow[, c("Admin_ID", "geometry")], as.data.frame(pol[, .(Admin_ID, key)]), by = "Admin_ID")
+# The prepared layers, for maps drawn in the same style (the sub-region map of the subgroup analysis,
+# R_cbh/sensitivity/subgroups/04_subregion_units_map.R, 1 November 2026); polygons and slivers carry Admin_ID.
+cbh_atomic_rds(list(crs = crs, xr = xr, yr = yr, under_fill = under_fill, fringe = fringe[, c("Admin_ID", "geometry")],
+  snow = snow[, c("Admin_ID", "geometry")], polygons = as.data.frame(pol[, .(Admin_ID, Country_ID, Type)]), poly_lines = poly_lines,
+  outside_coast = outside_coast, isles = isles, land_lines = land_lines, water = water, grey_line = grey_line),
+  file.path(out, "map_layers.rds"))
 tick("geometry prepared")
 
 ## 4. Palette and its colour-vision check (Machado et al. 2009, severity 1; CIE76 dE in CIELAB) ---------------------------

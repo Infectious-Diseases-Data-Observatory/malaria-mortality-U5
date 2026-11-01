@@ -29,7 +29,8 @@ primary <- cbh_primary_settings(st$primary_version)
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 ages <- cbh_config()$age_bands$age_band
 age_labels <- setNames(ifelse(ages == "<1", "<1 month", paste(ages, "months")), ages)
-regions <- c(west_africa = "Western Africa", central_africa = "Central Africa", east_africa = "Eastern Africa", southern_africa = "Southern Africa")
+# Sub-region names as in Figure 4 and the sub-region figures (1 November 2026).
+regions <- c(west_africa = "West Africa", central_africa = "Central Africa", east_africa = "East Africa", southern_africa = "Southern Africa")
 colours <- setNames(c(st$colours[["west_africa"]], st$colours[["central_africa"]], st$colours[["east_africa"]], "#E69F00"), regions)
 
 x <- readRDS(primary$data)
@@ -84,7 +85,7 @@ pts[, below := survival < lo][, y := pmax(survival, lo)]
 below <- pts[, .(points = .N, points_below = sum(below), children_below = sum(children[below])), by = age_band]
 pts[, age_label := factor(age_labels[age_band], unname(age_labels))]; fits[, age_label := factor(age_labels[age_band], unname(age_labels))]
 pts[, region := factor(region, unname(regions))]; fits[, region := factor(region, unname(regions))]
-setorder(pts, region)   # draw order: Western, Central, Eastern, Southern
+setorder(pts, region)   # draw order: West, Central, East, Southern
 
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in: saved 6.5 in wide, so printed = 0.95 x size
 # (axis and legend titles 11.9 -> 11.3 pt; ticks and legend text 9.9 -> 9.4 pt; strips 10.8 -> 10.3 pt). Points, lines,
@@ -111,7 +112,7 @@ p <- ggplot() +
   scale_x_continuous(limits = c(0, ceiling(max(pts$pfpr) / 5) * 5), breaks = seq(0, 80, 20)) +
   scale_y_continuous(labels = function(v) sprintf("%.0f", 100 * v), breaks = seq(0, 1, .02)) +
   coord_cartesian(ylim = c(lo, 1)) +
-  labs(x = "PfPR[2–10] (%)", y = "Survival through the age band (%)") + paper +
+  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Survival through the age band (%)") + paper +
   theme(legend.position.inside = c(.998, .03), legend.justification.inside = c(1, 0),
         legend.box.just = "top", legend.box.spacing = grid::unit(4, "pt"), legend.spacing.x = grid::unit(14, "pt"),
         legend.key.spacing.x = grid::unit(4, "pt"), legend.key.spacing.y = grid::unit(1, "pt"), legend.margin = margin(0, 0, 0, 0),

@@ -57,7 +57,7 @@ p <- ggplot(shown, aes(pfpr_pct, log_hazard_ratio, colour = series)) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
   scale_colour_manual(values = colours) +
   guides(colour = guide_legend(ncol = 2, override.aes = list(linewidth = .56))) +
-  labs(x = "PfPR[2–10] (%)", y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
+  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle))
 # Height grows with the legend rows (two columns), so the panels are the same size in every figure.
 ggsave(file.path(st$out, paste0(fig_name, ".png")), p, width = 6.5, height = 3.55 + .2 * ceiling(nlevels(shown$series) / 2),

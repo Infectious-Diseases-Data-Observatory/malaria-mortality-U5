@@ -99,7 +99,7 @@ bottom <- ggplot(d, aes(age_months, attributable_fraction, colour = prevalence, 
                      expand = expansion(mult = 0)) +
   coord_cartesian(ylim = c(y_floor, 1)) +
   labs(x = "Age (months)", y = "Malaria-attributable share\nof all-cause deaths",
-       colour = "PfPR[2–10]") +
+       colour = expression(italic(Pf)*PR[2-10])) +
   base + theme(legend.position = "bottom", legend.text = element_text(size = 9.9),
     legend.title = element_text(size = 11.46), plot.margin = margin(2,11,7,7))
 for (panel in list(top, bottom))

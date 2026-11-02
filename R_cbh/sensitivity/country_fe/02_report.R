@@ -58,7 +58,7 @@ p <- ggplot(central, aes(pfpr_pct, log_hazard_ratio, colour = series_label, fill
   geom_line(linewidth = .46) + facet_wrap(~age_label, ncol = 4) +
   scale_colour_manual(values = colours) + scale_fill_manual(values = colours) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
-  labs(x = "PfPR[2-10] (%)", y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
+  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))
 figure <- file.path(st$out, "sfig_pfpr_splines_country_fixed_effects.png")
 ggsave(figure, p, width = 6.5, height = 3.95, dpi = 320, device = ragg::agg_png, bg = "white")

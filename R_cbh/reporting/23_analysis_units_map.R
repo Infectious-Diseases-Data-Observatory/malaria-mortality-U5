@@ -477,8 +477,7 @@ caption <- c("# Figure 1 caption", "",
     "Light blue: the %d lakes and reservoirs of at least %d km² within the map in Natural Earth (%s), drawn over the polygons and national borders. ",
     "Slivers between the polygons and the national boundaries take the class of the adjacent polygon. ",
     "White lines: polygon boundaries; black lines: national land borders of the sub-Saharan countries. Africa Albers equal-area projection (%s); the scale bar is approximate."),
-    n_cls[["nodata"]], nodata_txt, sum(pol$Type == "Malaria free"), sum(pol$Type == "Island"), nrow(lakes), lake_min_km2, src_scale, crs), "",
-  "Survey years, inclusion and exclusions by country are shown in the supplementary survey map and timing figure.")
+    n_cls[["nodata"]], nodata_txt, sum(pol$Type == "Malaria free"), sum(pol$Type == "Island"), nrow(lakes), lake_min_km2, src_scale, crs))
 con <- file(file.path(out, "CAPTION.md"), open = "w", encoding = "UTF-8"); writeLines(caption, con); close(con)
 
 ## 7. Polygon table and provenance -------------------------------------------------------------------------------------

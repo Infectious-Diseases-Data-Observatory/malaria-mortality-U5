@@ -4,7 +4,7 @@
 # 2024, from IHME all-cause deaths against UN IGME all-cause deaths, for the 42 burden countries. Reads the crisis-free
 # rates of R_cbh/burden/04_annual_comparison.R. It supplies the UN IGME / IHME ratio range quoted in the Results.
 #   Point: one country, coloured by UN M49 sub-region as in the mortality-rate figures; dashed line: equality.
-#   Labels: countries at 1.5 or more per 1,000 in either source.
+#   Labels: countries at 1.5 or more per 1,000 in either source, nudged away from the equality line.
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in. The in-panel correlation and ratio summary is
 # kept as in the Overleaf version (moving it to CAPTION.md is for the author to decide); no title or caption.
 # Outputs (<out>/ihme_vs_unigme/): sfig_malaria_rates_ihme_vs_unigme_2024.png, malaria_rates_ihme_vs_unigme_2024.csv,
@@ -40,13 +40,17 @@ crisis <- w[ihme_crisis | unigme_crisis, label]
 # Countries with low malaria mortality (below 1.5 per 1,000 in both sources) are drawn but not labelled (user request).
 label_min <- 1.5
 w[, labelled := pmax(ihme, unigme) >= label_min]
+# Labels move up-left from points above the equality line and down-right from points below it, which keeps them off the
+# crowded diagonal (with MAP 202608 the default layout put Côte d'Ivoire on Mali's point); the countries near the
+# right edge, where there is no room, are not nudged.
+w[, side := fifelse(ihme > 0.85 * max(ihme, unigme), 0, fifelse(unigme >= ihme, 1, -1))]
 lim <- c(0, max(w$ihme, w$unigme) * 1.05)
 note <- sprintf("Spearman ρ = %.2f\nUN IGME / IHME: median %.2f\n(range %.2f–%.2f)", rho, median(w$ratio), min(w$ratio), max(w$ratio))
 p <- ggplot(w, aes(ihme, unigme)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey55", linewidth = .4) +
   geom_point(aes(colour = region), size = 2.2) +
   ggrepel::geom_text_repel(aes(label = ifelse(labelled, label, "")), size = 9 / .pt, colour = "grey20", seed = 20261027L, max.overlaps = Inf,
-    min.segment.length = 0, segment.colour = "grey60", segment.size = .3, box.padding = .3, point.padding = .2) +
+    nudge_x = -.2 * w$side, nudge_y = .2 * w$side, point.size = 2.2, max.time = 5, max.iter = 1e6, min.segment.length = 0, segment.colour = "grey60", segment.size = .3, box.padding = .3, point.padding = .2) +
   annotate("text", x = 0, y = lim[2], label = note, hjust = 0, vjust = 1, size = 9 / .pt, lineheight = .95, colour = "grey25") +
   scale_colour_manual(values = colours, name = NULL) +
   scale_x_continuous(limits = lim, expand = expansion(mult = c(0, .02))) +

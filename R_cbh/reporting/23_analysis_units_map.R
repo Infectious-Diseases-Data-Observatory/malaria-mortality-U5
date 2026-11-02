@@ -226,7 +226,8 @@ lyr <- tools::file_path_sans_ext(basename(S$shapefile))
 esh <- prep(st_read(S$shapefile, query = sprintf("SELECT Country_ID FROM \"%s\" WHERE Country_ID = 'ESH'", lyr), quiet = TRUE))
 assert(nrow(esh) >= 1L && !"ESH" %in% adm0$iso, "Western Sahara from the Snow shapefile, absent from admin0")
 assert(!any(c("COM", "STP") %in% snow$Country_ID) && "COM" %in% adm0$iso && !"STP" %in% adm0$iso, "Comoros in admin0 only; Sao Tome and Principe in neither")
-fig_w <- 156                                                  # mm; the printed width is 0.95\linewidth = 157 mm
+fig_w <- 156                                                  # mm, the canvas
+print_w <- 132                                                # mm; printed at .8\linewidth in main.tex (2 November 2026)
 pad <- 60e3; bb <- st_bbox(snow)
 xr <- unname(c(bb["xmin"] - pad, bb["xmax"] + pad)); yr <- unname(c(bb["ymin"] - pad, bb["ymax"] + pad))
 W <- diff(xr); fig_h <- round(fig_w * diff(yr) / W, 1)         # the map fills the canvas; height rounded to 0.1 mm
@@ -383,9 +384,10 @@ L_normal <- lab_sim(unname(fills[data_keys]), cvd$normal)[, 1]
 assert(all(diff(L_normal) < 0), "data classes darken monotonically")
 
 ## 5. Map -------------------------------------------------------------------------------------------------------------
-# Sizes meet the paper's printed text-size rule (CLAUDE.md) at the printed width; line widths and the scale bar ticks are
-# those of the former 180 mm canvas scaled to 156 mm. The longer legend entries wrap so the legend stays clear of land.
-fs <- list(title = 11, legend = 9)                          # pt at final size
+# Sizes meet the paper's printed text-size rule (CLAUDE.md) at the printed width, so text on the canvas is scaled by
+# fig_w / print_w; line widths and the scale bar ticks are those of the former 180 mm canvas scaled to 156 mm. The longer
+# legend entries wrap so the legend stays clear of land.
+fs <- lapply(list(title = 11, legend = 9), `*`, fig_w / print_w)   # pt on the canvas; 11 and 9 pt when printed
 leg_xy <- c(0.02, 0.555)                                      # legend top-left (npc)
 bar_len <- 1e6; bar_x0 <- xr[1] + 0.76 * W; bar_y <- yr[1] + 0.03 * H
 labels <- c(lab_fig, spacer = " ", nodata = "Malaria endemic,\nno data in the analysis", excluded = "Malaria free or island,\nnot analysed",
@@ -405,7 +407,7 @@ mapp <- ggplot() +
   annotate("segment", x = bar_x0 + c(0, bar_len), xend = bar_x0 + c(0, bar_len), y = bar_y - mm(0.5), yend = bar_y + mm(0.5), linewidth = 0.35, lineend = "butt") +
   annotate("text", x = bar_x0 + bar_len / 2, y = bar_y + mm(1.5), label = paste(f0(bar_len / 1e3), "km"), size = fs$legend / .pt, vjust = 0) +
   scale_fill_manual(values = fills, breaks = keys, limits = keys, labels = labels, drop = FALSE, na.value = NA, na.translate = FALSE,
-                    name = "Complete birth\nhistories per\npolygon (mothers)",
+                    name = "Complete birth\nhistories",
                     guide = guide_legend(override.aes = list(colour = key_col, linewidth = 0.22))) +
   coord_sf(xlim = xr, ylim = yr, expand = FALSE, datum = NA) +
   theme_void(base_size = fs$legend) +

@@ -44,7 +44,8 @@ w[, labelled := pmax(ihme, unigme) >= label_min]
 # beside other countries' points in the crowded middle (with MAP 202608, Côte d'Ivoire on Mali's point), so the
 # positions were chosen by a placement search on these data (2 November 2026): each label is nearer its own point than
 # any other point and each labelled point nearer its own label than any other, and no label touches a point, another
-# label, the equality line, the note or the panel edge. The script stops if the labelled set changes.
+# label, the equality line (Liberia and Guinea were then moved to at least 0.6 mm from it), the note or the panel edge.
+# Leaders shorter than 1.5 mm are not drawn. The script stops if the labelled set changes.
 offsets <- fread(text = "iso3,dx,dy
 AGO,0.303,-0.110
 BDI,0.329,0.110
@@ -56,9 +57,9 @@ CMR,0.428,0.110
 COD,-0.226,0.110
 COG,0.168,0.110
 GHA,0.294,0.110
-GIN,0.312,0.110
+GIN,0.300,0.135
 GNQ,-0.455,0.110
-LBR,-0.324,0.140
+LBR,-0.345,0.160
 MDG,-0.495,0.110
 MLI,0.199,-0.110
 MOZ,0.534,0.000
@@ -79,7 +80,7 @@ p <- ggplot(w, aes(ihme, unigme)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey55", linewidth = .4) +
   geom_point(aes(colour = region), size = 2.2) +
   ggrepel::geom_text_repel(aes(label = ifelse(labelled, label, "")), size = 9 / .pt, colour = "grey20", seed = 20261027L, max.overlaps = Inf,
-    nudge_x = w$dx, nudge_y = w$dy, max.iter = 0, point.size = 2.2, min.segment.length = 0, segment.colour = "grey60", segment.size = .3, box.padding = .3, point.padding = .2) +
+    nudge_x = w$dx, nudge_y = w$dy, max.iter = 0, point.size = 2.2, min.segment.length = grid::unit(1.5, "mm"), segment.colour = "grey60", segment.size = .3, box.padding = .3, point.padding = .2) +
   annotate("text", x = 0, y = lim[2], label = note, hjust = 0, vjust = 1, size = 9 / .pt, lineheight = .95, colour = "grey25") +
   scale_colour_manual(values = colours, name = NULL) +
   scale_x_continuous(limits = lim, expand = expansion(mult = c(0, .02))) +
@@ -91,11 +92,16 @@ p <- ggplot(w, aes(ihme, unigme)) +
   theme(axis.title = element_text(size = 11), axis.text = element_text(size = 9), legend.text = element_text(size = 9),
     legend.position = "bottom", panel.grid.minor = element_blank(), plot.margin = margin(6, 10, 6, 6))
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))
+# Abbreviated labels, spelled out in the caption.
+abbrev <- c(CAR = "Central African Republic", DRC = "Democratic Republic of the Congo", `Eq. Guinea` = "Equatorial Guinea",
+  RC = "Republic of the Congo")
+abbrev <- abbrev[names(abbrev) %in% w[labelled == TRUE, label]]
 ggsave(file.path(out, sprintf("sfig_malaria_rates_ihme_vs_unigme_%d.png", year_shown)), p, device = ragg::agg_png,
   width = 6.5, height = 6.7, dpi = 300, bg = "white")
 writeLines(c("# Supplementary figure caption — malaria-attributable mortality, IHME against UN IGME all-cause", "",
   paste0(sprintf("Country PfPR-ACM malaria-attributable under-five deaths per 1,000 child-years in %d, using IHME (x) and UN IGME (y) all-cause deaths, for the %d burden countries; dashed line: equality. ", year_shown, nrow(w)),
     sprintf("Countries below %g per 1,000 in both sources (%d) are not labelled. ", label_min, sum(!w$labelled)),
+    if (length(abbrev)) paste0(paste(sprintf("%s, %s", names(abbrev), abbrev), collapse = "; "), ". ") else "",
     if (length(crisis)) paste0("Crisis-free values are used for ", paste(crisis, collapse = ", "), " (a crisis year in one source). ") else "",
     sprintf("Spearman ρ = %.2f; the UN IGME / IHME ratio has median %.2f (range %.2f–%.2f).", rho, median(w$ratio), min(w$ratio), max(w$ratio)))),
   file.path(out, "CAPTION.md"))

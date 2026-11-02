@@ -38,4 +38,4 @@ writeLines(c("# Main-paper figures and draft captions","",
   "## Figure 5 — PfPR-ACM against cause-specific malaria mortality by country, 2024 (UN IGME, A; IHME, B)","",
   "File: `fig5_model_vs_cause_specific_2024.png` (source `model_vs_cause_specific/fig5_model_vs_cause_specific_2024.png`; values in `model_vs_cause_specific/figure_data.csv`).","",
   readLines(file.path(root,"model_vs_cause_specific/CAPTION.md"))[-c(1,2)],"",
-  "[Source paths and hashes](manifest.csv). Copy the five main images into the manuscript's `figures/` folder. No TeX edits are needed to prepare or copy the images; TeX references/captions are managed separately."),file.path(out,"CAPTIONS.md"))
+  "[Source paths and hashes](manifest.csv). Copy the five main images into the manuscript's `figures/` folder and the supplementary images into `Supplementary Figures/`. No TeX edits are needed to prepare or copy the images; TeX references/captions are managed separately."),file.path(out,"CAPTIONS.md"))

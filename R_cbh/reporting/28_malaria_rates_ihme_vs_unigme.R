@@ -41,9 +41,9 @@ crisis <- w[ihme_crisis | unigme_crisis, label]
 label_min <- 1.5
 w[, labelled := pmax(ihme, unigme) >= label_min]
 # Labels move up-left from points above the equality line and down-right from points below it, which keeps them off the
-# crowded diagonal (with MAP 202608 the default layout put Côte d'Ivoire on Mali's point); the countries near the
-# right edge, where there is no room, are not nudged.
-w[, side := fifelse(ihme > 0.85 * max(ihme, unigme), 0, fifelse(unigme >= ihme, 1, -1))]
+# crowded diagonal (with MAP 202608 the default layout put Côte d'Ivoire on Mali's point); unlabelled countries (whose
+# nudged empty labels would fall outside the axes) and those near the right edge, where there is no room, are not nudged.
+w[, side := fifelse(!labelled | ihme > 0.85 * max(ihme, unigme), 0, fifelse(unigme >= ihme, 1, -1))]
 lim <- c(0, max(w$ihme, w$unigme) * 1.05)
 note <- sprintf("Spearman ρ = %.2f\nUN IGME / IHME: median %.2f\n(range %.2f–%.2f)", rho, median(w$ratio), min(w$ratio), max(w$ratio))
 p <- ggplot(w, aes(ihme, unigme)) +

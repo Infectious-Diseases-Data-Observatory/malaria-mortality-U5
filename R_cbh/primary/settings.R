@@ -28,9 +28,24 @@
 # raster means (and admin-1 for the Nigerian state burden, removed on 1 November 2026); burden uncertainty from 500
 # joint draws (R_cbh/burden/06_uncertainty_draws.R); sensitivities v8, country fixed effects v2, imputation v15. v13
 # (v7) is history; v9 was refitted on 202608 (..._v9_map202608) and then removed (1 November 2026).
+# gadm_merge (branch gadm-admin1, author request 3 November 2026): the v14 primary with the GADM 4.1 admin-1 units in
+# place of the Snow et al. polygons (Snow-module variant gadm; R_cbh/snow/00_gadm_layer.R): the same surveys,
+# specification, knots, seed, MAP release and burden inputs. Only the primary is fitted: no sensitivity analysis has
+# a GADM version.
 cbh_primary_settings <- function(version = Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge")) {
-  if (!identical(version, "snow_merge")) stop("Unknown primary version: ", version, " (snow_merge)")
-  cbh_snow_primary_settings(version)
+  if (!version %in% c("snow_merge", "gadm_merge")) stop("Unknown primary version: ", version, " (snow_merge, gadm_merge)")
+  st <- cbh_snow_primary_settings(version)
+  if (identical(version, "gadm_merge")) st <- cbh_gadm_primary_settings(st)
+  st
+}
+cbh_gadm_primary_settings <- function(st) {
+  id <- "primary_gadm_merge_dhsmics_gamma2_v14"
+  private <- file.path("data/derived_cbh/models", id)
+  st[c("id", "out", "private", "data", "snow_variant")] <- list(id, file.path("results/cbh", id), private,
+    file.path(private, "complete_case_dataset.rds"), "gadm")
+  st["sensitivity_dirs"] <- list(NULL)
+  st$survey_reference <- file.path("results/cbh/primary_snow520_merge_dhsmics_gamma2_v14", "prepared_selection_by_survey.csv")
+  st
 }
 cbh_snow_primary_settings <- function(version) {
   id <- "primary_snow520_merge_dhsmics_gamma2_v14"

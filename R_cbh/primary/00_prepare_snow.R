@@ -27,6 +27,9 @@ suppressPackageStartupMessages(library(data.table))
 settings <- cbh_primary_settings()
 S <- snow_settings(settings$snow_variant)
 stopifnot(identical(settings$unit, "snow"))
+# The unit scripts take their variant from SNOW_VARIANT; a different one set here would mix unit sets.
+if (nzchar(Sys.getenv("SNOW_VARIANT")) && !identical(Sys.getenv("SNOW_VARIANT"), S$variant))
+  stop("SNOW_VARIANT=", Sys.getenv("SNOW_VARIANT"), " but primary version ", settings$version, " uses Snow variant ", S$variant)
 spec <- cbh_primary_regional_spec(settings); regional <- spec$regional; national <- spec$annual; covs <- spec$covariates
 stopifnot(length(covs) == 17L)
 for (p in c(settings$out, settings$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
@@ -78,6 +81,7 @@ pf <- fread(src[["pfpr"]])[, .(Admin_ID, year, pfpr2_10, population_weight)]
 um <- unique(rec[, .(unit)])[, .(Admin_ID = strsplit(unit, "+", fixed = TRUE)[[1]]), by = unit]
 stopifnot(all(um$Admin_ID %in% pf$Admin_ID))
 up <- merge(um, pf, by = "Admin_ID", allow.cartesian = TRUE)[, .(pfpr_pct = sum(population_weight * pfpr2_10) / sum(population_weight)), by = .(unit, entry_year = year)]
+stopifnot(all(is.finite(up$pfpr_pct)), all(up$pfpr_pct >= 0 & up$pfpr_pct <= 100))   # every unit has a MAP estimate
 
 d <- merge(rec, W[, c("survey", "unit", regional), with = FALSE], by = c("survey", "unit"))
 d <- merge(d, up, by = c("unit", "entry_year"), all.x = TRUE)
@@ -122,6 +126,14 @@ nint <- fills_rows[, .(variable, rule, country = as.character(d$country[row]), y
   records_in_sample = sum(w[kept]), deaths_in_sample = sum((w * death)[kept])), by = .(variable, rule, country, year)][order(variable, country, year)]
 cbh_atomic_csv(nint, file.path(settings$out, "national_interpolations.csv"))
 d <- d[ok]
+# Surveys of a reference version (gadm_merge: those of the Snow v14 primary): no other survey may enter; any lost is listed.
+if (!is.null(settings$survey_reference)) {
+  ref <- fread(settings$survey_reference)
+  added <- setdiff(unique(as.character(d$survey)), ref$survey)
+  if (length(added)) stop("Surveys outside the reference sample (", settings$survey_reference, "): ", paste(added, collapse = ", "))
+  cbh_atomic_csv(data.table(survey = ref$survey, country = ref$country, in_sample = ref$survey %in% d$survey),
+                 file.path(settings$out, "surveys_vs_reference.csv"))
+}
 ages <- cbh_config()$age_bands$age_band
 d[, age_band := factor(age_band, levels = ages)]
 for (v in c("survey", "country", "region")) d[, (v) := factor(get(v))]

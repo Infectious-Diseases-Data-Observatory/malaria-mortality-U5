@@ -73,3 +73,8 @@ data/map_annual_202608_extra/
 # Per-survey MAP extraction caches of stage inputs (R_inputs/02_extract_map_pfpr.R, 41_extract_map_window_years.R).
 data/map_region_cache_*/
 data/map_window_cache_*/
+# GADM 4.1 admin layers (KEMRI-Wellcome merge, 4 February 2026) and the GADM units derived from them (branch
+# gadm-admin1): not committed (GADM's licence does not allow redistribution; the admin-2 shapefile is over GitHub's
+# 100 MB file limit). R_cbh/snow/00_gadm_layer.R reads the first and writes the second.
+data/Africa GADM 0-2 (040226)/
+data/external/gadm_admin1/

@@ -1,0 +1,569 @@
+OBJECTID_1,GID_0,NAME_1,Admin_ID,id_source
+1,AGO,Bengo,AGO.1_1,GADM GID_1
+2,AGO,Benguela,AGO.2_1,GADM GID_1
+3,AGO,Bie,AGO.3_1,GADM GID_1
+4,AGO,Cabinda,AGO.4_1,GADM GID_1
+5,AGO,Cuando Cubango,AGO.5_1,GADM GID_1
+6,AGO,Cuanza Norte,AGO.6_1,GADM GID_1
+7,AGO,Cuanza Sul,AGO.7_1,GADM GID_1
+8,AGO,Cunene,AGO.8_1,GADM GID_1
+9,AGO,Huambo,AGO.9_1,GADM GID_1
+10,AGO,Huila,AGO.10_1,GADM GID_1
+11,AGO,Luanda,AGO.11_1,GADM GID_1
+12,AGO,Lunda Norte,AGO.12_1,GADM GID_1
+13,AGO,Lunda Sul,AGO.13_1,GADM GID_1
+14,AGO,Malanje,AGO.14_1,GADM GID_1
+15,AGO,Moxico,AGO.15_1,GADM GID_1
+16,AGO,Namibe,AGO.16_1,GADM GID_1
+17,AGO,Uige,AGO.17_1,GADM GID_1
+18,AGO,Zaire,AGO.18_1,GADM GID_1
+19,BDI,Bubanza,BDI.1_1,GADM GID_1
+20,BDI,Bujumbura Mairie,BDI.2_1,GADM GID_1
+21,BDI,Bujumbura Rural,BDI.3_1,GADM GID_1
+22,BDI,Bururi,BDI.4_1,GADM GID_1
+23,BDI,Cankuzo,BDI.5_1,GADM GID_1
+24,BDI,Cibitoke,BDI.6_1,GADM GID_1
+25,BDI,Gitega,BDI.7_1,GADM GID_1
+26,BDI,Karuzi,BDI.8_1,GADM GID_1
+27,BDI,Kayanza,BDI.9_1,GADM GID_1
+28,BDI,Kirundo,BDI.10_1,GADM GID_1
+29,BDI,Makamba,BDI.11_1,GADM GID_1
+30,BDI,Muramvya,BDI.12_1,GADM GID_1
+31,BDI,Muyinga,BDI.13_1,GADM GID_1
+32,BDI,Mwaro,BDI.14_1,GADM GID_1
+33,BDI,Ngozi,BDI.15_1,GADM GID_1
+34,BDI,Rutana,BDI.16_1,GADM GID_1
+35,BDI,Ruyigi,BDI.17_1,GADM GID_1
+36,BEN,Alibori,BEN.1_1,GADM GID_1
+37,BEN,Atakora,BEN.2_1,GADM GID_1
+38,BEN,Atlantique,BEN.3_1,GADM GID_1
+39,BEN,Borgou,BEN.4_1,GADM GID_1
+40,BEN,Collines,BEN.5_1,GADM GID_1
+41,BEN,Donga,BEN.6_1,GADM GID_1
+42,BEN,Kouffo,BEN.7_1,GADM GID_1
+43,BEN,Littoral,BEN.8_1,GADM GID_1
+44,BEN,Mono,BEN.9_1,GADM GID_1
+45,BEN,Oueme,BEN.10_1,GADM GID_1
+46,BEN,Plateau,BEN.11_1,GADM GID_1
+47,BEN,Zou,BEN.12_1,GADM GID_1
+48,BFA,Boucle du Mouhoun,BFA.1_1,GADM GID_1
+49,BFA,Cascades,BFA.2_1,GADM GID_1
+50,BFA,Centre,BFA.7_1,GADM GID_1
+51,BFA,Centre-Est,BFA.3_1,GADM GID_1
+52,BFA,Centre-Nord,BFA.4_1,GADM GID_1
+53,BFA,Centre-Ouest,BFA.5_1,GADM GID_1
+54,BFA,Centre-Sud,BFA.6_1,GADM GID_1
+55,BFA,Est,BFA.8_1,GADM GID_1
+56,BFA,Haut-Bassins,BFA.9_1,GADM GID_1
+57,BFA,Nord,BFA.10_1,GADM GID_1
+58,BFA,Plateau-Central,BFA.11_1,GADM GID_1
+59,BFA,Sahel,BFA.12_1,GADM GID_1
+60,BFA,Sud-Ouest,BFA.13_1,GADM GID_1
+61,CAF,Bamingui-Bangoran,CAF.1_1,GADM GID_1
+62,CAF,Bangui,CAF.2_1,GADM GID_1
+63,CAF,Basse-Kotto,CAF.3_1,GADM GID_1
+64,CAF,Haut-Mbomou,CAF.4_1,GADM GID_1
+65,CAF,Haute-Kotto,CAF.5_1,GADM GID_1
+66,CAF,Kémo,CAF.6_1,GADM GID_1
+67,CAF,Lobaye,CAF.7_1,GADM GID_1
+68,CAF,Mambéré-Kadéï,CAF.8_1,GADM GID_1
+69,CAF,Mbomou,CAF.9_1,GADM GID_1
+70,CAF,Nana-Grébizi,CAF.10_1,GADM GID_1
+71,CAF,Nana-Mambéré,CAF.11_1,GADM GID_1
+72,CAF,Ombella-M'Poko,CAF.12_1,GADM GID_1
+73,CAF,Ouaka,CAF.13_1,GADM GID_1
+74,CAF,Ouham,CAF.15_1,GADM GID_1
+75,CAF,Ouham-Pendé,CAF.14_1,GADM GID_1
+76,CAF,Sangha-Mbaéré,CAF.16_1,GADM GID_1
+77,CAF,Vakaga,CAF.17_1,GADM GID_1
+78,CIV,Abidjan,CIV.1_1,GADM GID_1
+79,CIV,Bas-Sassandra,CIV.2_1,GADM GID_1
+80,CIV,Comoé,CIV.3_1,GADM GID_1
+81,CIV,Denguélé,CIV.4_1,GADM GID_1
+82,CIV,Gôh-Djiboua,CIV.5_1,GADM GID_1
+83,CIV,Lacs,CIV.6_1,GADM GID_1
+84,CIV,Lagunes,CIV.7_1,GADM GID_1
+85,CIV,Montagnes,CIV.8_1,GADM GID_1
+86,CIV,Sassandra-Marahoué,CIV.9_1,GADM GID_1
+87,CIV,Savanes,CIV.10_1,GADM GID_1
+88,CIV,Vallée du Bandama,CIV.11_1,GADM GID_1
+89,CIV,Woroba,CIV.12_1,GADM GID_1
+90,CIV,Yamoussoukro,CIV.13_1,GADM GID_1
+91,CIV,Zanzan,CIV.14_1,GADM GID_1
+92,CMR,Adamaoua,CMR.1_1,GADM GID_1
+93,CMR,Centre,CMR.2_1,GADM GID_1
+94,CMR,Est,CMR.3_1,GADM GID_1
+95,CMR,Extrême-Nord,CMR.4_1,GADM GID_1
+96,CMR,Littoral,CMR.5_1,GADM GID_1
+97,CMR,Nord,CMR.7_1,GADM GID_1
+98,CMR,Nord-Ouest,CMR.6_1,GADM GID_1
+99,CMR,Ouest,CMR.8_1,GADM GID_1
+100,CMR,Sud,CMR.10_1,GADM GID_1
+101,CMR,Sud-Ouest,CMR.9_1,GADM GID_1
+102,COD,Bas-Uele,COD.1_1,GADM GID_1
+103,COD,Équateur,COD.2_1,GADM GID_1
+104,COD,Haut-Katanga,COD.3_1,GADM GID_1
+105,COD,Haut-Lomami,COD.4_1,GADM GID_1
+106,COD,Haut-Uele,COD.5_1,GADM GID_1
+107,COD,Ituri,COD.6_1,GADM GID_1
+108,COD,Kasaï,COD.9_1,GADM GID_1
+109,COD,Kasaï-Central,COD.7_1,GADM GID_1
+110,COD,Kasaï-Oriental,COD.8_1,GADM GID_1
+111,COD,Kinshasa,COD.10_1,GADM GID_1
+112,COD,Kongo-Central,COD.11_1,GADM GID_1
+113,COD,Kwango,COD.12_1,GADM GID_1
+114,COD,Kwilu,COD.13_1,GADM GID_1
+115,COD,Lomami,COD.14_1,GADM GID_1
+116,COD,Lualaba,COD.15_1,GADM GID_1
+117,COD,Mai-Ndombe,COD.16_1,GADM GID_1
+118,COD,Maniema,COD.17_1,GADM GID_1
+119,COD,Mongala,COD.18_1,GADM GID_1
+120,COD,Nord-Kivu,COD.19_1,GADM GID_1
+121,COD,Nord-Ubangi,COD.20_1,GADM GID_1
+122,COD,Sankuru,COD.21_1,GADM GID_1
+123,COD,Sud-Kivu,COD.22_1,GADM GID_1
+124,COD,Sud-Ubangi,COD.23_1,GADM GID_1
+125,COD,Tanganyika,COD.24_1,GADM GID_1
+126,COD,Tshopo,COD.25_1,GADM GID_1
+127,COD,Tshuapa,COD.26_1,GADM GID_1
+128,COG,Bouenza,COG.1_1,GADM GID_1
+129,COG,Brazzaville,COG.2_1,GADM GID_1
+130,COG,Cuvette,COG.4_1,GADM GID_1
+131,COG,Cuvette-Ouest,COG.3_1,GADM GID_1
+132,COG,Kouilou,COG.5_1,GADM GID_1
+133,COG,Lékoumou,COG.6_1,GADM GID_1
+134,COG,Likouala,COG.7_1,GADM GID_1
+135,COG,Niari,COG.8_1,GADM GID_1
+136,COG,Plateaux,COG.9_1,GADM GID_1
+137,COG,Pointe Noire,COG.10_1,GADM GID_1
+138,COG,Pool,COG.11_1,GADM GID_1
+139,COG,Sangha,COG.12_1,GADM GID_1
+140,DJI,Ali Sabieh,DJI.1_2,GADM GID_1
+141,DJI,Arta,DJI.6_1,GADM GID_1
+142,DJI,Dikhil,DJI.2_1,GADM GID_1
+143,DJI,Djiboutii,DJI.3_1,GADM GID_1
+144,DJI,Obock,DJI.4_1,GADM GID_1
+145,DJI,Tadjoura,DJI.5_1,GADM GID_1
+146,ERI,Anseba,ERI.6_1,GADM GID_1
+147,ERI,Debub,ERI.5_1,GADM GID_1
+148,ERI,Debubawi Keyih Bahri,ERI.3_1,GADM GID_1
+149,ERI,Gash Barka,ERI.4_1,GADM GID_1
+150,ERI,Maekel,ERI.1_1,GADM GID_1
+151,ERI,Semenawi Keyih Bahri,ERI.2_1,GADM GID_1
+152,ETH,Addis Abeba,ETH.1_1,GADM GID_1
+153,ETH,Afar,ETH.2_1,GADM GID_1
+154,ETH,Amhara,ETH.3_1,GADM GID_1
+155,ETH,Benshangul-Gumaz,ETH.4_1,GADM GID_1
+156,ETH,Dire Dawa,ETH.5_1,GADM GID_1
+157,ETH,Gambela Peoples,ETH.6_1,GADM GID_1
+158,ETH,Harari People,ETH.7_1,GADM GID_1
+159,ETH,Oromia,ETH.8_1,GADM GID_1
+160,ETH,Somali,ETH.9_1,GADM GID_1
+161,ETH,"Southern Nations, Nationalities",ETH.10_1,GADM GID_1
+162,ETH,Tigray,ETH.11_1,GADM GID_1
+163,GAB,Estuaire,GAB.1_1,GADM GID_1
+164,GAB,Haut-Ogooué,GAB.2_1,GADM GID_1
+165,GAB,Moyen-Ogooué,GAB.3_1,GADM GID_1
+166,GAB,Ngounié,GAB.4_1,GADM GID_1
+167,GAB,Nyanga,GAB.5_1,GADM GID_1
+168,GAB,Ogooué-Ivindo,GAB.6_1,GADM GID_1
+169,GAB,Ogooué-Lolo,GAB.7_1,GADM GID_1
+170,GAB,Ogooué-Maritime,GAB.8_1,GADM GID_1
+171,GAB,Wouleu-Ntem,GAB.9_1,GADM GID_1
+172,GIN,Boké,GIN.1_1,GADM GID_1
+173,GIN,Conakry,GIN.2_1,GADM GID_1
+174,GIN,Faranah,GIN.3_1,GADM GID_1
+175,GIN,Kankan,GIN.4_1,GADM GID_1
+176,GIN,Kindia,GIN.5_1,GADM GID_1
+177,GIN,Labé,GIN.6_1,GADM GID_1
+178,GIN,Mamou,GIN.7_1,GADM GID_1
+179,GIN,Nzérékoré,GIN.8_1,GADM GID_1
+180,GMB,Banjul,GMB.1_1,GADM GID_1
+181,GMB,Lower River,GMB.2_1,GADM GID_1
+182,GMB,Central River,GMB.3_1,GADM GID_1
+183,GMB,North Bank,GMB.4_1,GADM GID_1
+184,GMB,Upper River,GMB.5_1,GADM GID_1
+185,GMB,Western,GMB.6_1,GADM GID_1
+186,GNB,Bafatá,GNB.1_1,GADM GID_1
+187,GNB,Biombo,GNB.2_1,GADM GID_1
+188,GNB,Bissau,GNB.3_1,GADM GID_1
+189,GNB,Bolama,GNB.4_1,GADM GID_1
+190,GNB,Cacheu,GNB.5_1,GADM GID_1
+191,GNB,Gabú,GNB.6_1,GADM GID_1
+192,GNB,Oio,GNB.7_1,GADM GID_1
+193,GNB,Quinara,GNB.8_1,GADM GID_1
+194,GNB,Tombali,GNB.9_1,GADM GID_1
+195,GNQ,Centro Sur,GNQ.4_1,GADM GID_1
+196,GNQ,Kié-Ntem,GNQ.5_1,GADM GID_1
+197,GNQ,Litoral,GNQ.6_1,GADM GID_1
+198,GNQ,Wele-Nzas,GNQ.7_1,GADM GID_1
+199,LBR,Bomi,LBR.1_1,GADM GID_1
+200,LBR,Bong,LBR.2_1,GADM GID_1
+201,LBR,Gbapolu,LBR.3_1,GADM GID_1
+202,LBR,Grand Bassa,LBR.5_1,GADM GID_1
+203,LBR,Grand Cape Mount,LBR.4_1,GADM GID_1
+204,LBR,Grand Gedeh,LBR.6_1,GADM GID_1
+205,LBR,Grand Kru,LBR.7_1,GADM GID_1
+206,LBR,Lofa,LBR.8_1,GADM GID_1
+207,LBR,Margibi,LBR.9_1,GADM GID_1
+208,LBR,Maryland,LBR.10_1,GADM GID_1
+209,LBR,Montserrado,LBR.11_1,GADM GID_1
+210,LBR,Nimba,LBR.12_1,GADM GID_1
+211,LBR,River Gee,LBR.14_1,GADM GID_1
+212,LBR,Rivercess,LBR.13_1,GADM GID_1
+213,LBR,Sinoe,LBR.15_1,GADM GID_1
+214,MLI,Bamako,MLI.1_1,GADM GID_1
+215,MLI,Gao,MLI.2_1,GADM GID_1
+216,MLI,Kayes,MLI.3_1,GADM GID_1
+217,MLI,Kidal,MLI.4_1,GADM GID_1
+218,MLI,Koulikoro,MLI.5_1,GADM GID_1
+219,MLI,Mopti,MLI.6_1,GADM GID_1
+220,MLI,Ségou,MLI.7_1,GADM GID_1
+221,MLI,Sikasso,MLI.8_1,GADM GID_1
+222,MLI,Timbuktu,MLI.9_1,GADM GID_1
+223,MOZ,Cabo Delgado,MOZ.1_1,GADM GID_1
+224,MOZ,Gaza,MOZ.2_1,GADM GID_1
+225,MOZ,Inhambane,MOZ.3_1,GADM GID_1
+226,MOZ,Manica,MOZ.4_1,GADM GID_1
+227,MOZ,Maputo,MOZ.6_1,GADM GID_1
+228,MOZ,Maputo City,MOZ.5_1,GADM GID_1
+229,MOZ,Nampula,MOZ.7_1,GADM GID_1
+230,MOZ,Niassa,MOZ.8_1,GADM GID_1
+231,MOZ,Sofala,MOZ.9_1,GADM GID_1
+232,MOZ,Tete,MOZ.10_1,GADM GID_1
+233,MOZ,Zambezia,MOZ.11_1,GADM GID_1
+234,MRT,Adrar,MRT.1_1,GADM GID_1
+235,MRT,Assaba,MRT.2_1,GADM GID_1
+236,MRT,Brakna,MRT.3_1,GADM GID_1
+237,MRT,Dakhlet Nouadhibou,MRT.4_1,GADM GID_1
+238,MRT,Gorgol,MRT.5_1,GADM GID_1
+239,MRT,Guidimaka,MRT.6_1,GADM GID_1
+240,MRT,Hodh ech Chargui,MRT.7_1,GADM GID_1
+241,MRT,Hodh el Gharbi,MRT.8_1,GADM GID_1
+242,MRT,Inchiri,MRT.9_1,GADM GID_1
+243,MRT,Nouakchott,MRT.10_1,GADM GID_1
+244,MRT,Tagant,MRT.11_1,GADM GID_1
+245,MRT,Tiris Zemmour,MRT.12_1,GADM GID_1
+246,MRT,Trarza,MRT.13_1,GADM GID_1
+247,NAM,Karas,NAM.1_1,GADM GID_1
+248,NAM,Erongo,NAM.2_1,GADM GID_1
+249,NAM,Hardap,NAM.3_1,GADM GID_1
+250,NAM,Kavango,NAM.4_1,GADM GID_1
+251,NAM,Khomas,NAM.5_1,GADM GID_1
+252,NAM,Kunene,NAM.6_1,GADM GID_1
+253,NAM,Ohangwena,NAM.7_1,GADM GID_1
+254,NAM,Omaheke,NAM.8_1,GADM GID_1
+255,NAM,Omusati,NAM.9_1,GADM GID_1
+256,NAM,Oshana,NAM.10_1,GADM GID_1
+257,NAM,Oshikoto,NAM.11_1,GADM GID_1
+258,NAM,Otjozondjupa,NAM.12_1,GADM GID_1
+259,NAM,Zambezi,NAM.13_1,GADM GID_1
+260,NER,Agadez,NER.1_1,GADM GID_1
+261,NER,Diffa,NER.2_1,GADM GID_1
+262,NER,Dosso,NER.3_1,GADM GID_1
+263,NER,Maradi,NER.4_1,GADM GID_1
+264,NER,Niamey,NER.5_1,GADM GID_1
+265,NER,Tahoua,NER.6_1,GADM GID_1
+266,NER,Tillabéry,NER.7_1,GADM GID_1
+267,NER,Zinder,NER.8_1,GADM GID_1
+268,NGA,Abia,NGA.1_1,GADM GID_1
+269,NGA,Adamawa,NGA.2_1,GADM GID_1
+270,NGA,Akwa Ibom,NGA.3_1,GADM GID_1
+271,NGA,Anambra,NGA.4_1,GADM GID_1
+272,NGA,Bauchi,NGA.5_1,GADM GID_1
+273,NGA,Bayelsa,NGA.6_1,GADM GID_1
+274,NGA,Benue,NGA.7_1,GADM GID_1
+275,NGA,Borno,NGA.8_1,GADM GID_1
+276,NGA,Cross River,NGA.9_1,GADM GID_1
+277,NGA,Delta,NGA.10_1,GADM GID_1
+278,NGA,Ebonyi,NGA.11_1,GADM GID_1
+279,NGA,Edo,NGA.12_1,GADM GID_1
+280,NGA,Ekiti,NGA.13_1,GADM GID_1
+281,NGA,Enugu,NGA.14_1,GADM GID_1
+282,NGA,Abuja FCT,NGA.15_1,GADM GID_1
+283,NGA,Gombe,NGA.16_1,GADM GID_1
+284,NGA,Imo,NGA.17_1,GADM GID_1
+285,NGA,Jigawa,NGA.18_1,GADM GID_1
+286,NGA,Kaduna,NGA.19_1,GADM GID_1
+287,NGA,Kano,NGA.20_1,GADM GID_1
+288,NGA,Katsina,NGA.21_1,GADM GID_1
+289,NGA,Kebbi,NGA.22_1,GADM GID_1
+290,NGA,Kogi,NGA.23_1,GADM GID_1
+291,NGA,Kwara,NGA.24_1,GADM GID_1
+292,NGA,Lagos,NGA.25_1,GADM GID_1
+293,NGA,Nasarawa,NGA.26_1,GADM GID_1
+294,NGA,Niger,NGA.27_1,GADM GID_1
+295,NGA,Ogun,NGA.28_1,GADM GID_1
+296,NGA,Ondo,NGA.29_1,GADM GID_1
+297,NGA,Osun,NGA.30_1,GADM GID_1
+298,NGA,Oyo,NGA.31_1,GADM GID_1
+299,NGA,Plateau,NGA.32_1,GADM GID_1
+300,NGA,Rivers,NGA.33_1,GADM GID_1
+301,NGA,Sokoto,NGA.34_1,GADM GID_1
+302,NGA,Taraba,NGA.35_1,GADM GID_1
+303,NGA,Yobe,NGA.36_1,GADM GID_1
+304,NGA,Zamfara,NGA.37_1,GADM GID_1
+305,RWA,Amajyaruguru,RWA.1_1,GADM GID_1
+306,RWA,Amajyepfo,RWA.2_1,GADM GID_1
+307,RWA,Iburasirazuba,RWA.3_1,GADM GID_1
+308,RWA,Iburengerazuba,RWA.4_1,GADM GID_1
+309,RWA,Umujyi wa Kigali,RWA.5_1,GADM GID_1
+310,SDN,Al Jazirah,SDN.1_1,GADM GID_1
+311,SDN,Al Qadarif,SDN.2_1,GADM GID_1
+312,SDN,Blue Nile,SDN.3_1,GADM GID_1
+313,SDN,Central Darfur,SDN.4_1,GADM GID_1
+314,SDN,East Darfur,SDN.5_1,GADM GID_1
+315,SDN,Kassala,SDN.6_1,GADM GID_1
+316,SDN,Khartoum,SDN.7_1,GADM GID_1
+317,SDN,North Darfur,SDN.8_1,GADM GID_1
+318,SDN,North Kurdufan,SDN.9_1,GADM GID_1
+319,SDN,Northern,SDN.10_1,GADM GID_1
+320,SDN,Red Sea,SDN.11_1,GADM GID_1
+321,SDN,Nile,SDN.12_1,GADM GID_1
+322,SDN,Sennar,SDN.13_1,GADM GID_1
+323,SDN,South Darfur,SDN.14_1,GADM GID_1
+324,SDN,South Kurdufan,SDN.15_1,GADM GID_1
+325,SDN,West Darfur,SDN.16_1,GADM GID_1
+326,SDN,West Kurdufan,SDN.17_1,GADM GID_1
+327,SDN,White Nile,SDN.18_1,GADM GID_1
+328,SEN,Dakar,SEN.1_1,GADM GID_1
+329,SEN,Diourbel,SEN.2_1,GADM GID_1
+330,SEN,Fatick,SEN.3_1,GADM GID_1
+331,SEN,Kaffrine,SEN.4_1,GADM GID_1
+332,SEN,Kaolack,SEN.5_1,GADM GID_1
+333,SEN,Kédougou,SEN.6_1,GADM GID_1
+334,SEN,Kolda,SEN.7_1,GADM GID_1
+335,SEN,Louga,SEN.8_1,GADM GID_1
+336,SEN,Matam,SEN.9_1,GADM GID_1
+337,SEN,Saint-Louis,SEN.10_1,GADM GID_1
+338,SEN,Sédhiou,SEN.11_1,GADM GID_1
+339,SEN,Tambacounda,SEN.12_1,GADM GID_1
+340,SEN,Thiès,SEN.13_1,GADM GID_1
+341,SEN,Ziguinchor,SEN.14_1,GADM GID_1
+342,SLE,Eastern,SLE.1_1,GADM GID_1
+343,SLE,Northern,SLE.2_1,GADM GID_1
+344,SLE,Southern,SLE.3_1,GADM GID_1
+345,SLE,Western,SLE.4_1,GADM GID_1
+346,SOM,Awdal,SOM.1_1,GADM GID_1
+347,SOM,Bakool,SOM.2_1,GADM GID_1
+348,SOM,Banaadir,SOM.3_1,GADM GID_1
+349,SOM,Bari,SOM.4_1,GADM GID_1
+350,SOM,Bay,SOM.5_1,GADM GID_1
+351,SOM,Galguduud,SOM.6_1,GADM GID_1
+352,SOM,Gedo,SOM.7_1,GADM GID_1
+353,SOM,Hiiraan,SOM.8_1,GADM GID_1
+354,SOM,Jubbada Dhexe,SOM.9_1,GADM GID_1
+355,SOM,Jubbada Hoose,SOM.10_1,GADM GID_1
+356,SOM,Mudug,SOM.11_1,GADM GID_1
+357,SOM,Nugaal,SOM.12_1,GADM GID_1
+358,SOM,Sanaag,SOM.13_1,GADM GID_1
+359,SOM,Shabeellaha Dhexe,SOM.14_1,GADM GID_1
+360,SOM,Shabeellaha Hoose,SOM.15_1,GADM GID_1
+361,SOM,Sool,SOM.16_1,GADM GID_1
+362,SOM,Togdheer,SOM.17_1,GADM GID_1
+363,SOM,Woqooyi Galbeed,SOM.18_1,GADM GID_1
+364,SSD,Central Equatoria,SSD.1_1,GADM GID_1
+365,SSD,Eastern Equatoria,SSD.2_1,GADM GID_1
+366,SSD,Jungoli,SSD.3_1,GADM GID_1
+367,SSD,Lakes,SSD.4_1,GADM GID_1
+368,SSD,North Bahr-al-Ghazal,SSD.5_1,GADM GID_1
+369,SSD,Unity,SSD.6_1,GADM GID_1
+370,SSD,Upper Nile,SSD.7_1,GADM GID_1
+371,SSD,Warap,SSD.8_1,GADM GID_1
+372,SSD,West Bahr-al-Ghazal,SSD.9_1,GADM GID_1
+373,SSD,West Equatoria,SSD.10_1,GADM GID_1
+374,SWZ,Hhohho,SWZ.1_1,GADM GID_1
+375,SWZ,Lubombo,SWZ.2_1,GADM GID_1
+376,SWZ,Manzini,SWZ.3_1,GADM GID_1
+377,SWZ,Shiselweni,SWZ.4_1,GADM GID_1
+378,TCD,Barh el Ghazel,TCD.1_1,GADM GID_1
+379,TCD,Batha,TCD.2_1,GADM GID_1
+380,TCD,Borkou,TCD.3_1,GADM GID_1
+381,TCD,Chari-Baguirmi,TCD.4_1,GADM GID_1
+382,TCD,Ennedi Est,TCD.5_1,GADM GID_1
+383,TCD,Ennedi Ouest,TCD.6_1,GADM GID_1
+384,TCD,Guéra,TCD.7_1,GADM GID_1
+385,TCD,Hadjer-Lamis,TCD.8_1,GADM GID_1
+386,TCD,Kanem,TCD.9_1,GADM GID_1
+387,TCD,Lac,TCD.10_1,GADM GID_1
+388,TCD,Logone Occidental,TCD.11_1,GADM GID_1
+389,TCD,Logone Oriental,TCD.12_1,GADM GID_1
+390,TCD,Mandoul,TCD.13_1,GADM GID_1
+391,TCD,Mayo-Kebbi Est,TCD.14_1,GADM GID_1
+392,TCD,Mayo-Kebbi Ouest,TCD.15_1,GADM GID_1
+393,TCD,Moyen-Chari,TCD.16_1,GADM GID_1
+394,TCD,Ouaddaï,TCD.17_1,GADM GID_1
+395,TCD,Salamat,TCD.18_1,GADM GID_1
+396,TCD,Sila,TCD.19_1,GADM GID_1
+397,TCD,Tandjilé,TCD.20_1,GADM GID_1
+398,TCD,Tibesti,TCD.21_1,GADM GID_1
+399,TCD,Ville de N'Djamena,TCD.22_1,GADM GID_1
+400,TCD,Wadi Fira,TCD.23_1,GADM GID_1
+401,TGO,Centre,TGO.1_1,GADM GID_1
+402,TGO,Kara,TGO.2_1,GADM GID_1
+403,TGO,Maritime,TGO.3_1,GADM GID_1
+404,TGO,Plateaux,TGO.4_1,GADM GID_1
+405,TGO,Savanes,TGO.5_1,GADM GID_1
+406,ZAF,Eastern Cape,ZAF.1_1,GADM GID_1
+407,ZAF,Free State,ZAF.2_1,GADM GID_1
+408,ZAF,Gauteng,ZAF.3_1,GADM GID_1
+409,ZAF,KwaZulu-Natal,ZAF.4_1,GADM GID_1
+410,ZAF,Limpopo,ZAF.5_1,GADM GID_1
+411,ZAF,Mpumalanga,ZAF.6_1,GADM GID_1
+412,ZAF,North West,ZAF.7_1,GADM GID_1
+413,ZAF,Northern Cape,ZAF.8_1,GADM GID_1
+414,ZAF,Western Cape,ZAF.9_1,GADM GID_1
+415,ZMB,Central,ZMB.1_1,GADM GID_1
+416,ZMB,Copperbelt,ZMB.2_1,GADM GID_1
+417,ZMB,Eastern,ZMB.3_1,GADM GID_1
+418,ZMB,Luapula,ZMB.4_1,GADM GID_1
+419,ZMB,Muchinga,ZMB.6_1,GADM GID_1
+420,ZMB,North-Western,ZMB.7_1,GADM GID_1
+421,ZMB,Northern,ZMB.8_1,GADM GID_1
+422,ZMB,Western,ZMB.10_1,GADM GID_1
+423,ZWE,Bulawayo,ZWE.1_1,GADM GID_1
+424,ZWE,Harare,ZWE.2_1,GADM GID_1
+425,ZWE,Manicaland,ZWE.3_1,GADM GID_1
+426,ZWE,Mashonaland Central,ZWE.4_1,GADM GID_1
+427,ZWE,Mashonaland East,ZWE.5_1,GADM GID_1
+428,ZWE,Mashonaland West,ZWE.6_1,GADM GID_1
+429,ZWE,Masvingo,ZWE.7_1,GADM GID_1
+430,ZWE,Matabeleland North,ZWE.8_1,GADM GID_1
+431,ZWE,Matabeleland South,ZWE.9_1,GADM GID_1
+432,ZWE,Midlands,ZWE.10_1,GADM GID_1
+433,KEN,Baringo,KEN.baringo,country + name
+434,KEN,Bomet,KEN.bomet,country + name
+435,KEN,Bungoma,KEN.bungoma,country + name
+436,KEN,Busia,KEN.busia,country + name
+437,KEN,Elgeyo-Marakwet,KEN.elgeyomarakwet,country + name
+438,KEN,Embu,KEN.embu,country + name
+439,KEN,Garissa,KEN.garissa,country + name
+440,KEN,Homa Bay,KEN.homabay,country + name
+441,KEN,Isiolo,KEN.isiolo,country + name
+442,KEN,Kajiado,KEN.kajiado,country + name
+443,KEN,Kakamega,KEN.kakamega,country + name
+444,KEN,Kericho,KEN.kericho,country + name
+445,KEN,Kiambu,KEN.kiambu,country + name
+446,KEN,Kilifi,KEN.kilifi,country + name
+447,KEN,Kirinyaga,KEN.kirinyaga,country + name
+448,KEN,Kisii,KEN.kisii,country + name
+449,KEN,Kisumu,KEN.kisumu,country + name
+450,KEN,Kitui,KEN.kitui,country + name
+451,KEN,Kwale,KEN.kwale,country + name
+452,KEN,Laikipia,KEN.laikipia,country + name
+453,KEN,Lamu,KEN.lamu,country + name
+454,KEN,Machakos,KEN.machakos,country + name
+455,KEN,Makueni,KEN.makueni,country + name
+456,KEN,Mandera,KEN.mandera,country + name
+457,KEN,Marsabit,KEN.marsabit,country + name
+458,KEN,Meru,KEN.meru,country + name
+459,KEN,Migori,KEN.migori,country + name
+460,KEN,Mombasa,KEN.mombasa,country + name
+461,KEN,Murang'a,KEN.muranga,country + name
+462,KEN,Nairobi,KEN.nairobi,country + name
+463,KEN,Nakuru,KEN.nakuru,country + name
+464,KEN,Nandi,KEN.nandi,country + name
+465,KEN,Narok,KEN.narok,country + name
+466,KEN,Nyamira,KEN.nyamira,country + name
+467,KEN,Nyandarua,KEN.nyandarua,country + name
+468,KEN,Nyeri,KEN.nyeri,country + name
+469,KEN,Samburu,KEN.samburu,country + name
+470,KEN,Siaya,KEN.siaya,country + name
+471,KEN,Taita Taveta,KEN.taitataveta,country + name
+472,KEN,Tana River,KEN.tanariver,country + name
+473,KEN,Tharaka-Nithi,KEN.tharakanithi,country + name
+474,KEN,Trans Nzoia,KEN.transnzoia,country + name
+475,KEN,Turkana,KEN.turkana,country + name
+476,KEN,Uasin Gishu,KEN.uasingishu,country + name
+477,KEN,Vihiga,KEN.vihiga,country + name
+478,KEN,Wajir,KEN.wajir,country + name
+479,KEN,West Pokot,KEN.westpokot,country + name
+480,UGA,Central,UGA.1_1,GADM GID_1
+481,UGA,Eastern,UGA.1_2,GADM GID_1
+482,UGA,Northern,UGA.1_3,GADM GID_1
+483,UGA,Western,UCA.1_4,GADM GID_1
+484,TZA,Arusha,TZA.arusha,country + name
+485,TZA,Dar es Salaam,TZA.daressalaam,country + name
+486,TZA,Dodoma,TZA.dodoma,country + name
+487,TZA,Geita,TZA.geita,country + name
+488,TZA,Iringa,TZA.iringa,country + name
+489,TZA,Kagera,TZA.kagera,country + name
+490,TZA,Katavi,TZA.katavi,country + name
+491,TZA,Kigoma,TZA.kigoma,country + name
+492,TZA,Kilimanjaro,TZA.kilimanjaro,country + name
+493,TZA,Lindi,TZA.lindi,country + name
+494,TZA,Manyara,TZA.manyara,country + name
+495,TZA,Mara,TZA.mara,country + name
+496,TZA,Mbeya,TZA.mbeya,country + name
+497,TZA,Morogoro,TZA.morogoro,country + name
+498,TZA,Mtwara,TZA.mtwara,country + name
+499,TZA,Mwanza,TZA.mwanza,country + name
+500,TZA,Njombe,TZA.njombe,country + name
+501,TZA,Pwani,TZA.pwani,country + name
+502,TZA,Rukwa,TZA.rukwa,country + name
+503,TZA,Ruvuma,TZA.ruvuma,country + name
+504,TZA,Shinyanga,TZA.shinyanga,country + name
+505,TZA,Simiyu,TZA.simiyu,country + name
+506,TZA,Singida,TZA.singida,country + name
+507,TZA,Songwe,TZA.songwe,country + name
+508,TZA,Tabora,TZA.tabora,country + name
+509,TZA,Tanga,TZA.tanga,country + name
+511,MWI,Central Region,MWI.1_2,GADM GID_1
+512,MWI,Northern Region,MWI.1_3,GADM GID_1
+513,MWI,Southern Region,MWI.1_1,GADM GID_1
+515,BWA,Central,BWA.1_1,GADM GID_1
+516,BWA,Chobe,BWA.1_2,GADM GID_1
+517,BWA,Ghanzi,BWA.1_4,GADM GID_1
+518,BWA,Kgalagadi,BWA.1_5,GADM GID_1
+519,BWA,Kgatieng,BWA.1_7,GADM GID_1
+520,BWA,Kweneng,BWA.1_8,GADM GID_1
+521,BWA,Ngamiland,BWA.1_3,GADM GID_1
+522,BWA,North East,BWA.1_10,GADM GID_1
+523,BWA,South-East,BWA.1_9,GADM GID_1
+524,BWA,Southern,BWA.1_6,GADM GID_1
+525,MDG,Alaotra Mangoro,MDG.1_1,GADM GID_1
+526,MDG,Amoron I Mania,MDG.1_2,GADM GID_1
+527,MDG,Analamanga,MDG.1_3,GADM GID_1
+528,MDG,Analanjirofo,MDG.1_4,GADM GID_1
+529,MDG,Androy,MDG.1_5,GADM GID_1
+530,MDG,Anosy,MDG.1_6,GADM GID_1
+531,MDG,Atsimo Andrefana,MDG.1_7,GADM GID_1
+532,MDG,Atsimo Atsinanana,MDG.1_8,GADM GID_1
+533,MDG,Atsinanana,MDG.1_9,GADM GID_1
+534,MDG,Betsiboka,MDG.1_10,GADM GID_1
+535,MDG,Boeny,MDG.1_11,GADM GID_1
+536,MDG,Bongolava,MDG.1_12,GADM GID_1
+537,MDG,Diana,MDG.1_13,GADM GID_1
+538,MDG,Haute Matsiatra,MDG.1_14,GADM GID_1
+539,MDG,Ihorombe,MDG.1_15,GADM GID_1
+540,MDG,Itasy,MDG.1_16,GADM GID_1
+541,MDG,Melaky,MDG.1_17,GADM GID_1
+542,MDG,Menabe,MDG.1_18,GADM GID_1
+543,MDG,Sava,MDG.1_19,GADM GID_1
+544,MDG,Sofia,MDG.1_20,GADM GID_1
+545,MDG,Vakinankaratra,MDG.1_21,GADM GID_1
+546,MDG,Vatovavy Fitovinany,MDG.1_22,GADM GID_1
+547,GNQ,Annobón,GNQ.1_1,GADM GID_1
+548,GNQ,Bioko,GNQ.2_1,GADM GID_1
+599,GHA,Ashanti,GHA.ashanti,country + name
+600,GHA,Brong Ahafo,GHA.brongahafo,country + name
+601,GHA,Central,GHA.central,country + name
+602,GHA,Eastern,GHA.eastern,country + name
+603,GHA,Greater Accra,GHA.greateraccra,country + name
+604,GHA,Northern,GHA.northern,country + name
+605,GHA,Upper East,GHA.uppereast,country + name
+606,GHA,Upper West,GHA.upperwest,country + name
+607,GHA,Volta,GHA.volta,country + name
+608,GHA,Western,GHA.western,country + name
+609,ZMB,Lusaka,ZMB.5_1,GADM numbering (gap filled)
+610,ZMB,Southern,ZMB.9_1,GADM numbering (gap filled)
+762,LSO,Berea,LSO.1_1,GADM GID_1
+763,LSO,Butha-Buthe,LSO.2_1,GADM GID_1
+764,LSO,Leribe,LSO.3_1,GADM GID_1
+765,LSO,Mafeteng,LSO.4_1,GADM GID_1
+766,LSO,Maseru,LSO.5_1,GADM GID_1
+767,LSO,Mohale's Hoek,LSO.6_1,GADM GID_1
+768,LSO,Mokhotlong,LSO.7_1,GADM GID_1
+769,LSO,Qacha's Nek,LSO.8_1,GADM GID_1
+770,LSO,Quthing,LSO.9_1,GADM GID_1
+771,LSO,Thaba-Tseka,LSO.10_1,GADM GID_1

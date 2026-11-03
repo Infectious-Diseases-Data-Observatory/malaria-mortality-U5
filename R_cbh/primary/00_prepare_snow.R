@@ -42,7 +42,8 @@ src <- c(records = file.path(S$private, "records_units.rds"), dhs = file.path(S$
          unicef = "data/derived_cbh/regional_adjustment/unicef/country_year_estimates.csv",
          setNames(rel(vapply(sv$panel, function(k) cfg$annual_panels[[k]]$path, "")), sv$panel),   # the substitutions' source panels
          code = "R_cbh/primary/00_prepare_snow.R", spec = "R_cbh/primary/specification.R", snow = "R_cbh/snow/R/settings.R",
-         substitutions = "R_cbh/primary/national_substitutions.R", interpolations = "R_cbh/primary/national_interpolations.R")
+         substitutions = "R_cbh/primary/national_substitutions.R", interpolations = "R_cbh/primary/national_interpolations.R",
+         if (!is.null(settings$survey_reference)) c(reference = settings$survey_reference))
 stopifnot(all(file.exists(src)))
 signature <- cbh_hash(list(files = unname(src), hashes = vapply(src, cbh_file_hash, ""), spec = spec, variant = S$variant))
 signature_path <- file.path(settings$private, "preparation_signature.rds")
@@ -126,13 +127,19 @@ nint <- fills_rows[, .(variable, rule, country = as.character(d$country[row]), y
   records_in_sample = sum(w[kept]), deaths_in_sample = sum((w * death)[kept])), by = .(variable, rule, country, year)][order(variable, country, year)]
 cbh_atomic_csv(nint, file.path(settings$out, "national_interpolations.csv"))
 d <- d[ok]
-# Surveys of a reference version (gadm_merge: those of the Snow v14 primary): no other survey may enter; any lost is listed.
+# Surveys of a reference version (gadm_merge: those of the Snow v14 primary): exactly the same surveys; the records and
+# deaths of each survey are compared and every difference printed.
 if (!is.null(settings$survey_reference)) {
   ref <- fread(settings$survey_reference)
-  added <- setdiff(unique(as.character(d$survey)), ref$survey)
-  if (length(added)) stop("Surveys outside the reference sample (", settings$survey_reference, "): ", paste(added, collapse = ", "))
-  cbh_atomic_csv(data.table(survey = ref$survey, country = ref$country, in_sample = ref$survey %in% d$survey),
-                 file.path(settings$out, "surveys_vs_reference.csv"))
+  cmp <- merge(ref[, .(survey, country, records_reference = records, deaths_reference = deaths)],
+               d[, .(records = sum(w), deaths = sum(w * death)), by = .(survey = as.character(survey))], by = "survey", all = TRUE)
+  if (!setequal(ref$survey, unique(as.character(d$survey))))
+    stop("Surveys differ from the reference sample (", settings$survey_reference, "): ",
+         paste(cmp[is.na(records) | is.na(records_reference), survey], collapse = ", "))
+  cbh_atomic_csv(cmp, file.path(settings$out, "surveys_vs_reference.csv"))
+  for (i in which(cmp$records != cmp$records_reference))
+    message(sprintf("Records differ from the reference: %s %s records (%+d), %s deaths (%+d)", cmp$survey[i], format(cmp$records[i], big.mark = ","),
+                    as.integer(cmp$records[i] - cmp$records_reference[i]), cmp$deaths[i], as.integer(cmp$deaths[i] - cmp$deaths_reference[i])))
 }
 ages <- cbh_config()$age_bands$age_band
 d[, age_band := factor(age_band, levels = ages)]

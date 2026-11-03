@@ -18,6 +18,9 @@ source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_c
 library(ggplot2)
 settings <- cbh_primary_settings(); stopifnot(identical(settings$unit, "snow"))
 S <- snow_settings(settings$snow_variant)
+# Unit wording: the Snow et al. polygons, or the GADM admin-1 units of the gadm_merge version (branch gadm-admin1).
+units_txt <- if (identical(S$variant, "gadm")) c(set = "GADM admin-1 units", set_ref = "GADM admin-1 units (KEMRI-Wellcome merge)", one = "GADM admin-1 unit") else
+  c(set = "Snow et al. polygons", set_ref = "Snow et al. (2017) polygons", one = "Snow et al. polygon")
 root <- settings$out; out <- file.path(root, "study_flow"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 md <- settings$mics_output_dir
 input_paths <- c(survey_manifest = "data/derived_cbh/survey_manifest.csv", child_checks = "data/derived_cbh/child_checks.csv",
@@ -167,8 +170,8 @@ nodes <- data.frame(
     sprintf("%s child age-band records\n%s children · %s deaths\n%s complete birth histories\n%s survey-by-area units",
       fmt(n$primary), fmt(n$primary_distinct_children), fmt(n$deaths), fmt(n$primary_mothers), fmt(n$primary_units)),
     "No complete birth history",
-    sprintf("%s %s: malaria free\n%s %s:\noutside the Snow et al. polygons\n%s (%s):\na confounder unavailable in every area",
-      fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, fmt(n$excluded_no_covariate), by_type(no_covariate_surveys)),
+    sprintf("%s %s: malaria free\n%s %s:\noutside the %s\n%s (%s):\na confounder unavailable in every area",
+      fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, units_txt[["set"]], fmt(n$excluded_no_covariate), by_type(no_covariate_surveys)),
     sprintf("%s: band not completed by\ninterview or begun outside 2000–2024\n%s: area not placed in a polygon\nor mainly malaria free\n%s: a confounder unavailable",
       fmt(n$included_excluded_eligibility), fmt(n$included_not_placed), fmt(n$included_missing_covariates))))
 cbh_atomic_csv(nodes, file.path(out, "figure_labels.csv"))
@@ -201,13 +204,13 @@ and_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], col
 subst_text <- paste0(vapply(seq_len(nrow(nsc)), function(i) sprintf(" For %s (%s), %s for band-entry years before %d are %s's values for the same year (%s: %s records, %s deaths); its child HIV incidence is its own series.",
   cname(nsc$country[i]), nsc$note[i], and_list(unname(var_label[ns$variable[ns$country == nsc$country[i]]])), nsc$before_year[i], cname(nsc$source_country[i]),
   sub("-", "–", nsc$years[i], fixed = TRUE), fmt(nsc$records_in_sample[i]), fmt(nsc$deaths_in_sample[i])), ""), collapse = "")
-caption <- c("# Figure caption — primary sample inclusion (Snow et al. polygons)", "",
-  sprintf("**Figure. Sample inclusion for the primary analysis.** Of %s DHS, MIS and MICS surveys conducted in sub-Saharan Africa since 2000 (%s; %s countries), %s recorded complete birth histories (%s; %s countries); the other %s MICS surveys recorded only summary birth histories. %s surveys were excluded: %s from %s, which is malaria free and has no Malaria Atlas Project prevalence surface; %s from %s, which lie outside the Snow et al. (2017) polygons; and %s (%s) in which at least one required covariate was unavailable in every survey × unit area. %s surveys (%s) from %s countries were included.",
+caption <- c(paste0("# Figure caption — primary sample inclusion (", units_txt[["set"]], ")"), "",
+  sprintf("**Figure. Sample inclusion for the primary analysis.** Of %s DHS, MIS and MICS surveys conducted in sub-Saharan Africa since 2000 (%s; %s countries), %s recorded complete birth histories (%s; %s countries); the other %s MICS surveys recorded only summary birth histories. %s surveys were excluded: %s from %s, which is malaria free and has no Malaria Atlas Project prevalence surface; %s from %s, which lie outside the %s; and %s (%s) in which at least one required covariate was unavailable in every survey × unit area. %s surveys (%s) from %s countries were included.",
     fmt(n$registry_all), all_types, fmt(n$registry_countries_all), fmt(n$cbh_surveys), by_type(cbh$survey), fmt(n$cbh_countries), fmt(n$mics_no_cbh),
-    fmt(n$excluded_surveys), fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, fmt(n$excluded_no_covariate),
+    fmt(n$excluded_surveys), fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, units_txt[["set_ref"]], fmt(n$excluded_no_covariate),
     by_type(no_covariate_surveys), fmt(n$surveys), by_type(inc$survey), fmt(n$countries)), "",
-  sprintf("In the included surveys, %s child age-band records were entered within the 60 months before interview; counts from here are records, not unique children. %s were excluded because the band could not be completed by the interview (%s) or began outside 2000–2024 (%s); %s because the record's area could not be placed in a Snow et al. polygon (%s in survey-regions not matched to a boundary; %s in Zanzibar, which has no polygon) or lay in malaria-free or island units or in units more than half malaria free (%s); and %s because at least one required covariate was unavailable (first missing: %s). Each record is placed in the polygons through its smallest reported administrative unit: the polygon holding at least 90%% of that unit's population, or else the union of the polygons each holding at least 5%%. The primary sample has %s records and %s deaths from %s children of %s mothers (complete birth histories), in %s survey × unit areas.",
-    fmt(n$included_entered), fmt(n$included_excluded_eligibility), fmt(n$included_incomplete), fmt(n$included_outside_year), fmt(n$included_not_placed),
+  sprintf("In the included surveys, %s child age-band records were entered within the 60 months before interview; counts from here are records, not unique children. %s were excluded because the band could not be completed by the interview (%s) or began outside 2000–2024 (%s); %s because the record's area could not be placed in a %s (%s in survey-regions not matched to a boundary; %s in Zanzibar, which has no polygon) or lay in malaria-free or island units or in units more than half malaria free (%s); and %s because at least one required covariate was unavailable (first missing: %s). Each record is placed in the polygons through its smallest reported administrative unit: the polygon holding at least 90%% of that unit's population, or else the union of the polygons each holding at least 5%%. The primary sample has %s records and %s deaths from %s children of %s mothers (complete birth histories), in %s survey × unit areas.",
+    fmt(n$included_entered), fmt(n$included_excluded_eligibility), fmt(n$included_incomplete), fmt(n$included_outside_year), fmt(n$included_not_placed), units_txt[["one"]],
     fmt(n$included_unmatched), fmt(n$included_no_polygon), fmt(n$included_malaria_free), fmt(n$included_missing_covariates), first_missing,
     fmt(n$primary), fmt(n$deaths), fmt(n$primary_distinct_children), fmt(n$primary_mothers), fmt(n$primary_units)), "",
   sprintf("Record counts over all %s processed surveys, including the excluded ones, are in the full ledger: %s band entries, %s eligible records, %s placed in %s survey × unit areas.",

@@ -325,7 +325,7 @@ lake_u <- st_union(st_geometry(lakes))
 # touches (or, for numerically detached slivers, comes within 100 m of); it takes the class of an attached polygon of its
 # own country where there is one. Pieces touching no polygon are islands without a polygon and keep the pale underlay,
 # as do attached pieces larger than fringe_max_km2, which are not digitising slivers (none for the Snow polygons, whose
-# largest is 355 km2; for the GADM units, the Hala'ib triangle, which GADM places in Egypt, and others).
+# largest is 355 km2; for the GADM units, the Hala'ib triangle, which GADM places in Egypt, and Lake Rukwa's extent).
 gap <- st_difference(st_union(st_geometry(ssa)), st_union(st_geometry(snow)))
 pieces <- st_sf(geometry = suppressWarnings(st_cast(st_collection_extract(gap, "POLYGON"), "POLYGON")))
 pieces$area_km2 <- as.numeric(st_area(pieces)) / 1e6
@@ -338,7 +338,7 @@ pieces$iso <- ssa$iso[vapply(pi_iso, function(j) if (length(j)) j[1] else NA_int
 pieces$lake_cover <- 0
 hit <- which(pieces$area_km2 >= 1 & lengths(st_intersects(pieces, lake_u)) > 0)
 pieces$lake_cover[hit] <- vapply(hit, function(i) sum(as.numeric(st_area(st_intersection(st_geometry(pieces)[i], lake_u)))) / 1e6 / pieces$area_km2[i], 0)
-fringe_max_km2 <- 400
+fringe_max_km2 <- 1000   # GADM: coastal and delta slivers of 400-800 km2 still take the adjacent class
 pieces$role <- fifelse(pieces$lake_cover >= 0.5, "water", fifelse(pieces$attached & pieces$area_km2 <= fringe_max_km2, "fringe", "no_polygon"))
 big <- pieces[pieces$attached & pieces$role == "no_polygon", ]
 big_xy <- st_coordinates(st_transform(st_point_on_surface(st_geometry(big)), 4326))
@@ -471,7 +471,8 @@ pct_m <- 100 * mothers_merged / n_mothers
 frac_txt <- function(p) if (isTRUE(all.equal(p, 0.5))) "half" else sprintf("%s%%", 100 * p)
 src_scale <- sub("^ne_([0-9]+m)_.*$", "1:\\1", basename(paths[["lakes"]]))
 gadm <- identical(S$variant, "gadm")
-unit_txt <- if (gadm) "first-level administrative unit of GADM 4.1 (polygons below)" else "sub-national polygon of Snow et al. (2017)"
+unit_txt <- if (gadm) paste("first-level administrative unit (polygons below): GADM 4.1 as merged by KEMRI-Wellcome, with national boundaries for",
+  "Botswana, Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda") else "sub-national polygon of Snow et al. (2017)"
 excl_txt <- if (gadm) "the %d malaria-free polygons (malaria free in Snow et al. (2017), or without a MAP PfPR estimate) and the %d island polygons (Bioko, Annobón)" else
   "the %d malaria-free and %d island polygons (Bioko, Annobón)"
 # Lines 1-2 are the heading (04_paper_figures.R drops them and adds its own figure label).

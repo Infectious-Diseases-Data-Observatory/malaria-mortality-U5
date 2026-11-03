@@ -14,8 +14,10 @@ estimates malaria-attributable mortality.
    (<1 month, 1–5 months, 6–11 months, then yearly to 5 years). A band is included if the child entered it alive in
    the 60 months before the interview, in 2000–2024, and the band ended before the interview.
 2. **Units and exposure.** Each record is matched, through its lowest reported administrative unit, to one or a union
-   of the 520 malaria-endemic sub-national polygons of Snow et al. (2017) (survey-units). Each band takes the MAP
-   *Pf*PR₂₋₁₀ (release 202608) of its survey-unit in its calendar year of entry.
+   of the 535 malaria-endemic GADM 4.1 admin-1 units (survey-units; KEMRI-Wellcome merge, with national boundaries
+   for Botswana, Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda). Units mostly in the malaria-free and
+   island areas of Snow et al. (2017), or without a MAP estimate, are excluded. Each band takes the MAP *Pf*PR₂₋₁₀
+   (release 202608) of its survey-unit in its calendar year of entry.
 3. **Model.** Seven binomial generalised additive models with a complementary log-log link (one per age band; a
    proportional-hazards model for grouped survival times), each with a penalised spline of *Pf*PR₂₋₁₀, a spline of
    calendar time, 17 confounders (13 survey-unit summaries from the survey recodes and 4 national measures) and random
@@ -32,9 +34,9 @@ estimates malaria-attributable mortality.
 Malaria prevalence (*Pf*PR₂₋₁₀, MAP's national estimates) and under-five mortality in 2024 by country: all-cause deaths,
 *Pf*PR-ACM malaria-attributable deaths and cause-specific malaria deaths per 1,000 child-years, with the share of all
 under-five deaths (%) in square brackets and, for *Pf*PR-ACM, the 95% uncertainty interval in parentheses. Rows run
-from the highest to the lowest prevalence; the last row is the 42-country population-weighted average. Snow primary
-v14 (MAP release 202608), run of 1 November 2026; the source is `paper/tables/country_rates_2024.csv`, and this copy
-must be refreshed after a rerun.
+from the highest to the lowest prevalence; the last row is the 42-country population-weighted average. These values
+are still those of the Snow-unit primary v14 (MAP release 202608, run of 1 November 2026): replace them with those of
+the GADM primary v15 from `paper/tables/country_rates_2024.csv` after its run, and refresh this copy after every rerun.
 
 | Country | *Pf*PR₂₋₁₀ (%) | All-cause, UN IGME | All-cause, IHME | *Pf*PR-ACM, UN IGME-based | *Pf*PR-ACM, IHME-based | Malaria deaths, UN IGME (CA-CODE) | Malaria deaths, IHME |
 |---|--:|--:|--:|--:|--:|--:|--:|
@@ -85,7 +87,8 @@ must be refreshed after a rerun.
 ## Running it
 
 - R 4.6.0 with the package versions that `run_pipeline.R` checks, Python 3, and about 16 GB of memory.
-- Put the DHS, MIS and MICS microdata in `data/raw/` ([data/README.md](data/README.md)) and download the MAP rasters:
+- Put the DHS, MIS and MICS microdata in `data/raw/` and the GADM 4.1 admin layers (KEMRI-Wellcome merge) in
+  `data/Africa GADM 0-2 (040226)/` ([data/README.md](data/README.md)), and download the MAP rasters:
   `Rscript R_inputs/fetch/fetch_map_release_rasters.R 202608 2000 2024`. Every other input is committed.
 - Run everything (about 5 hours; network access is blocked during the run):
 
@@ -95,7 +98,7 @@ must be refreshed after a rerun.
 
   `Rscript run_pipeline.R --list` shows the stages and which are complete; `--from=STAGE` and `--only=STAGE` re-run
   part of it. Logs are in `logs/`.
-- Results are written to `results/cbh/` (the primary analysis is `primary_snow520_merge_dhsmics_gamma2_v14`), and the
+- Results are written to `results/cbh/` (the primary analysis is `primary_gadm_merge_dhsmics_gamma2_v15`), and the
   figures, tables and captions used in the paper are exported to `paper/`.
 
 ## Layout
@@ -104,7 +107,7 @@ must be refreshed after a rerun.
 run_pipeline.R   runs every stage in order          run_detached.sh   the same, detached from the terminal
 R_inputs/        survey-region MAP PfPR, region centroids and the UNICEF extracts; fetch/ = download scripts
 R_mics/          MICS conversion to the DHS layout, regions, PfPR, child bands
-R_cbh/           child bands, covariates, HIV model, Snow units (snow/), primary model (primary/), burden and
+R_cbh/           child bands, covariates, HIV model, GADM units (units/), primary model (primary/), burden and
                  uncertainty (burden/), figures and tables (reporting/), sensitivity analyses (sensitivity/)
 tools/           restore of the frozen inputs and HIV panels, DHS PR/HW recode import, output comparison, the
                  microdata commit guard

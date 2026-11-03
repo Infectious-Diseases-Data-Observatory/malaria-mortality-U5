@@ -1,23 +1,22 @@
 #!/usr/bin/env Rscript
-# Snow-unit version of the v9 survey-region MICS covariates (R_mics/09_regional_covariates.R, removed on 1 November 2026;
-# ported from the analysis project's 08_covariates_mics.R in its Snow-unit folder, which copied R_mics/09 on 6 October
-# 2026): the 13 regional covariates of each (MICS survey, Snow unit), with every indicator definition, survey-specific
-# rule and check of the original unchanged. Only the grouping differs: region_of() returns a placement key (analysis
-# region + finer location), and add() gives each row its analysis unit (R_cbh/snow/R/placement.R, snow_assign, merge
-# rule). National values, and the regression lock on them, are computed as in R_mics/09. The fallbacks (WUENIC,
-# within-survey mean) are applied with the DHS values in R_cbh/primary/00_prepare_snow.R.
+# Sub-national-unit version of the v9 survey-region MICS covariates (R_mics/09_regional_covariates.R, copied on
+# 6 October 2026 and removed on 1 November 2026): the 13 regional covariates of each (MICS survey, analysis unit), with
+# every indicator definition, survey-specific rule and check of the original unchanged. Only the grouping differs:
+# region_of() returns a placement key (analysis region + finer location), and add() gives each row its analysis unit
+# (R_cbh/units/R/placement.R, units_assign, merge rule). National values, and the regression lock on them, are computed
+# as in R_mics/09. The fallbacks (WUENIC, within-survey mean) are applied with the DHS values in R_cbh/primary/00_prepare.R.
 # Output: <private>/covariates_mics_long.csv (private), <out>/covariates/mics_*.csv
 suppressPackageStartupMessages({ library(haven); library(data.table) })
 source("R_cbh/R/geography.R")
-source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/placement.R")
-S <- snow_dirs(snow_settings(), "covariates"); R <- snow_rules(S)
+source("R_cbh/units/R/settings.R"); source("R_cbh/units/R/placement.R")
+S <- units_dirs(units_settings(), "covariates"); R <- units_rules(S)
 root <- "data/raw/MICS_extracted"; D <- "data/derived_mics"
 aud <- file.path(S$out, "covariates"); priv <- S$private
 setup <- fread(file.path(D, "survey_setup.csv")); reg <- fread(file.path(D, "survey_registry_mics.csv"))
 rmap <- fread(file.path(D, "region_map.csv")); inv <- fread("results/mics_inventory/survey_inventory.csv")
 built <- fread(file.path(D, "cbh_build/survey_manifest.csv"))[status %in% c("built", "cached")]$survey   # cached = reused shard
 setup <- setup[svkey %in% built]
-mics <- intersect(snow_all_shards(), fread(file.path(S$out, "feasibility", "region_classification.csv"))[programme == "MICS", unique(survey)])
+mics <- intersect(units_all_shards(), fread(file.path(S$out, "feasibility", "region_classification.csv"))[programme == "MICS", unique(survey)])
 setup <- setup[svkey %in% mics]; stopifnot(nrow(setup) == length(mics))
 setup[, year := reg$year[match(svkey, reg$svkey)]]; setup[, iso3 := substr(folder, 1, 3)]
 card_only <- c("MC_GIN2016", "MC_COM2022", "MC_TCD2019")   # recall doses unusable: WUENIC fallback (user decision)
@@ -49,27 +48,27 @@ getv <- function(d, ...) { low <- tolower(names(d)); for (a in tolower(c(...))) 
 labs_of <- function(x) { l <- attr(x, "labels"); if (is.null(l)) return(setNames(character(), character())); setNames(tolower(names(l)), l) }
 wmean <- function(x, w) { ok <- is.finite(x) & is.finite(w) & w > 0; if (!any(ok)) return(c(NA, 0, 0)); c(sum(x[ok] * w[ok]) / sum(w[ok]), sum(ok), sum(w[ok])) }
 region_of <- function(d, s) {
-  # A one-region survey takes its finer location too where it has one: its region is split across the GADM units
-  # (MC_SEN2015DKR, Dakar & Thies), though under the Snow polygons no one-region survey is.
+  # A one-region survey takes its finer location too where it has one (MC_SEN2015DKR: its region is split across the
+  # units of Dakar and Thies).
   if (startsWith(s$region_var, "CONST:")) ar <- rep(sub("CONST:", "", s$region_var), nrow(d)) else {
     v <- sub("^WM:", "", s$region_var); x <- getv(d, v, "HH7", "hh7", "HHB", "HHREG", "WMREG", "region", "zone")
     if (is.null(x)) return(rep(NA_character_, nrow(d)))
     # Labels can differ in case or accents between files of the same survey, so match on normalised keys.
     m <- rmap[svkey == s$svkey]; ar <- m$analysis_region[match(cbh_rkey(as.character(as_factor(x))), cbh_rkey(m$mics_label))]
   }
-  # Snow placement key: analysis region + the survey's finer location variable (03_finer_units.R), if any.
+  # Placement key: analysis region + the survey's finer location variable (05_finer_units.R), if any.
   fv <- R$choice[survey == s$svkey, variable]; fx <- if (length(fv)) getv(d, fv) else NULL
   if (length(fv) && is.null(fx)) message(s$svkey, ": finer variable ", fv, " not in this file; its rows use survey-region shares")
-  fk <- if (is.null(fx)) rep(NA_character_, nrow(d)) else snow_clean_key(if (is.labelled(fx)) as.character(as_factor(fx)) else as.character(fx))
+  fk <- if (is.null(fx)) rep(NA_character_, nrow(d)) else units_clean_key(if (is.labelled(fx)) as.character(as_factor(fx)) else as.character(fx))
   ifelse(is.na(ar), NA_character_, paste(cbh_rkey(ar), fk, sep = "\t"))
 }
-snow_keys <- function(keys, sv) {   # analysis unit of distinct keys -> key, unit, share (share = 1 under the merge rule)
+unit_keys <- function(keys, sv) {   # analysis unit of distinct keys -> key, unit, share (share = 1 under the merge rule)
   k <- unique(keys[!is.na(keys)]); p <- tstrsplit(k, "\t", fixed = TRUE)
   fk <- if (length(p) > 1) p[[2]] else rep(NA_character_, length(k)); fk[fk %in% "NA"] <- NA_character_
   d <- data.table(id = k, survey = sv, regkey = p[[1]], finer_key = fk)
   # Regions with no eligible child-band records have no feasibility class: their rows are not placed (as in 07).
   d <- d[paste(survey, regkey) %in% paste(R$region$survey, R$region$regkey)]
-  snow_assign(snow_place(d, R), S)[, .(key = id, unit, share = w)]
+  units_assign(units_place(d, R), S)[, .(key = id, unit, share = w)]
 }
 # Education (generic fallback for surveys not in education_level_map.csv): classify the level label, then years = offset + grade (capped).
 edu_years <- function(level, grade, iso) {
@@ -183,7 +182,7 @@ for (i in seq_len(nrow(setup))) {
   bh <- read_sav(f("bh.sav")); wm <- read_sav(f("wm.sav")); hh <- read_sav(f("hh.sav")); ch <- read_sav(f("ch.sav"))
   add <- function(var, reg, x, w, pop) {
     d <- data.table(reg, x, w)[!is.na(reg)]
-    e <- merge(d, snow_keys(d$reg, s$svkey), by.x = "reg", by.y = "key", allow.cartesian = TRUE)
+    e <- merge(d, unit_keys(d$reg, s$svkey), by.x = "reg", by.y = "key", allow.cartesian = TRUE)
     r <- e[, { m <- wmean(x, w * share); .(value = m[1], observed_n = m[2], weighted_n = m[3], eligible_n = .N) }, by = unit]
     long[[length(long) + 1]] <<- data.table(survey = s$svkey, country = iso, unit = r$unit,
       variable = var, value = r$value, observed_n = r$observed_n, weighted_n = r$weighted_n, eligible_n = r$eligible_n,

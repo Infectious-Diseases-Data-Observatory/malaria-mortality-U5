@@ -13,10 +13,10 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument("--destination", type=Path, required=True)
 parser.add_argument("--copy", action="store_true", help="Copy after validating; default is a local export manifest only")
-# The Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge, set by run_pipeline.R; since 11 October 2026). The v9
-# survey-region primary was removed on 1 November 2026.
-assert os.environ.get("CBH_PRIMARY_VERSION", "snow_merge") == "snow_merge", "export_paper.py exports the Snow-unit primary (snow_merge)"
-default_root = "results/cbh/primary_snow520_merge_dhsmics_gamma2_v14"
+# The GADM-unit primary (CBH_PRIMARY_VERSION=gadm, set by run_pipeline.R). The Snow-unit primary (v11-v14) was replaced
+# by GADM units in v15 (author decision, 3 November 2026; code in git history up to f2db98e).
+assert os.environ.get("CBH_PRIMARY_VERSION", "gadm") == "gadm", "export_paper.py exports the GADM-unit primary (gadm)"
+default_root = "results/cbh/primary_gadm_merge_dhsmics_gamma2_v15"
 parser.add_argument("--root", type=Path, default=Path(default_root))
 args = parser.parse_args()
 root = args.root
@@ -24,12 +24,12 @@ out = root / "paper_refresh"
 out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
 assert destination.is_dir()
-# Sensitivities refitted on the Snow-unit sample.
-subgroups = Path("results/cbh/subgroups_snow520_merge_gamma2_v8")
-nutrition = Path("results/cbh/nutrition_adjustment_snow520_merge_gamma2_v8")
-imputed = Path("results/cbh/primary_snow520_merge_imputed_gamma2_v15")
+# Sensitivities refitted on the GADM-unit sample.
+subgroups = Path("results/cbh/subgroups_gadm_merge_gamma2_v9")
+nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9")
+imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v16")
 # Country fixed effects (31 October 2026).
-country_fe = Path("results/cbh/country_fixed_effects_snow520_merge_gamma2_v2")
+country_fe = Path("results/cbh/country_fixed_effects_gadm_merge_gamma2_v3")
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -61,11 +61,11 @@ assets.extend([
     (root / "malaria_share/sfig_malaria_share_vs_pfpr.png", Path("Supplementary Figures/sfig_malaria_share_vs_pfpr.png")),
     (root / "malaria_share/CAPTION.md", Path("Supplementary Figures/sfig_malaria_share_vs_pfpr_caption.md")),
 ])
-# Snow-unit primary: the extended subgroup suite (12 October 2026).
+# The extended subgroup suite (12 October 2026).
 assets.extend([
     (subgroups / "sfig_pfpr_splines_by_subregion.png", Path("Supplementary Figures/sfig_pfpr_splines_by_subregion.png")),
     (subgroups / "CAPTION_sfig_pfpr_splines_by_subregion.md", Path("Supplementary Figures/sfig_pfpr_splines_by_subregion_caption.md")),
-    # Polygons of the regional sub-analyses (author request, 1 November 2026).
+    # Units of the regional sub-analyses (author request, 1 November 2026).
     (subgroups / "sfig_subregion_units_map.png", Path("Supplementary Figures/sfig_subregion_units_map.png")),
     (subgroups / "CAPTION_sfig_subregion_units_map.md", Path("Supplementary Figures/sfig_subregion_units_map_caption.md")),
     (subgroups / "sfig_pfpr_splines_by_period.png", Path("Supplementary Figures/sfig_pfpr_splines_by_period.png")),

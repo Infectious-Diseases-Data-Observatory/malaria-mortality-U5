@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
-# Figure 1 (main text): complete birth histories used in the primary analysis, by sub-national polygon of Snow et al.
-# (2017) (user request, 12 October 2026); for the gadm_merge version (branch gadm-admin1), by GADM 4.1 admin-1 unit,
-# with the same rules (the units of the variant's layer stand for the Snow polygons throughout). Each sub-Saharan polygon is coloured by the number of complete birth histories
-# (interviewed mothers) with at least one child-band record in the final sample, summed over the included surveys. The
-# previous Figure 1 (survey map and timing) is no longer drawn (1 November 2026); 03_survey_map.R writes its tables only.
+# Figure 1 (main text; user request, 12 October 2026): complete birth histories used in the primary analysis, by GADM 4.1
+# admin-1 unit (the polygons of the layer, R_cbh/units/). Each sub-Saharan polygon is coloured by the number of complete
+# birth histories (interviewed mothers) with at least one child-band record in the final sample, summed over the
+# included surveys. The previous Figure 1 (survey map and timing) is no longer drawn (1 November 2026); 03_survey_map.R
+# writes its tables only.
 # Rules:
 #   Mothers: the analysed child_ids of the prepared dataset (P$data) are mapped to their mother through the child-band
 #     shards, as in 03_survey_map.R. A mother whose unit is one polygon counts 1 there. A mother whose unit is a union of
@@ -12,18 +12,18 @@
 #     one unit would be apportioned by her records). Child-band records and deaths are apportioned the same way, and a
 #     polygon's surveys are those with a positive share in it. Polygon totals are checked against the per-survey mothers
 #     of 03_survey_map.R (survey_map/mothers_by_survey.csv) and prepared_sample.csv.
-#   Units: every analysed record's unit is re-derived from its placement shares with the merge rule of snow_assign()
+#   Units: every analysed record's unit is re-derived from its placement shares with the merge rule of units_assign()
 #     (polygon >= S$whole of the location's population, else the endemic polygons each >= S$link; locations more than
 #     S$malaria_free_drop malaria free dropped), so the caption's statement of the rule is checked. The single-polygon
 #     units whose polygon holds less than S$whole (the rest being malaria free) are counted and printed.
 #   Classes: round-number log-spaced (1-2-5) bins chosen from the distribution of the polygons with data; every class
 #     must be used. Endemic polygons with no data: light grey; malaria-free and island polygons: warm grey (not analysed).
-#   Underlay: North Africa (admin0) and Western Sahara (the Snow et al. shapefile), outside the study area, in a pale
-#     tone, as are islands of the national boundaries without a Snow polygon (the Comoros, Zanzibar and others). Gaps
-#     between the Snow polygons and the national boundaries take the class of an adjacent polygon (of the same country
-#     where there is one), except gaps mostly covered by the mapped lakes (Snow holes for Lakes Malawi, Tana and Edward),
-#     which are drawn as water.
-#   Lines: white boundaries between Snow polygons and black national borders, both along shared land boundaries only
+#   Underlay: North Africa (admin0) and Western Sahara (the Snow et al. (2017) shapefile, S$snow_shapefile), outside the
+#     study area, in a pale tone, as are islands of the national boundaries without a polygon (the Comoros, Zanzibar and
+#     others). Gaps between the polygons and the national boundaries take the class of an adjacent polygon (of the same
+#     country where there is one), except gaps mostly covered by the mapped lakes, which are drawn as water, and gaps
+#     larger than fringe_max_km2, which are pale.
+#   Lines: white boundaries between polygons and black national borders, both along shared land boundaries only
 #     (no coastlines, no halo), so that small coastal polygons (The Gambia, the Freetown peninsula, Dar es Salaam, the
 #     Bijagos) keep their fill; thin grey coasts of the pale areas only, and no lines inside them (the borders within
 #     North Africa are not drawn).
@@ -32,40 +32,41 @@
 #     so lake water is never coloured as data.
 #   Caption: interview years are those of the analysed records (interview_cmc of the child-band shards, Gregorian).
 #   Every number in CAPTION.md is computed here and checked against the primary's own outputs (prepared_sample.csv and the
-#   survey map's mothers_by_survey.csv and survey_coverage.csv); only the fixed counts of the Snow et al. shapefile are
+#   survey map's mothers_by_survey.csv and survey_coverage.csv); only the fixed counts of the unit layer (S$counts) are
 #   asserted as constants. The palette is checked for colour-vision deficiency (Machado et al. 2009 simulation,
 #   CIE76 dE in CIELAB) and the legend and scale bar for clearance from land. Planar geometry (sf_use_s2(FALSE)) in the
 #   Africa Albers equal-area projection (ESRI:102022). Deterministic; no caches.
 # Inputs: P$data; the child-band shard manifests and shards of the included surveys (cbh_config()$output_dir,
-#   P$mics_output_dir); <S$private>/records_placed.rds and polygons_<count>.rds; the Snow shapefile (Western Sahara only);
-#   data/africa_admin0.rds; data/external/natural_earth/ne_10m_lakes.geojson; <P$out>/prepared_sample.csv,
-#   survey_map/mothers_by_survey.csv and survey_map/survey_coverage.csv (03_survey_map.R); this script, the settings and
-#   the R_cbh helper files it sources.
+#   P$mics_output_dir); <S$private>/records_placed.rds and polygons.rds (01_polygons.R, from the GADM layer S$shapefile,
+#   recorded in the provenance); the Snow et al. shapefile S$snow_shapefile (Western Sahara only); data/africa_admin0.rds;
+#   data/external/natural_earth/ne_10m_lakes.geojson; <P$out>/prepared_sample.csv, survey_map/mothers_by_survey.csv and
+#   survey_map/survey_coverage.csv (03_survey_map.R); this script, the settings and the R_cbh helper files it sources.
 # Outputs (<P$out>/analysis_units_map/): analysis_units_map.png (156 mm wide, 400 dpi); CAPTION.md;
-#   analysis_units_by_polygon.csv (the 551 polygons: surveys, mothers, child-band records and deaths, apportioned as
-#   above, and class); provenance.csv (md5 of every input read). Aggregates only.
-# Run from the repository root: CBH_PRIMARY_VERSION=snow_merge Rscript R_cbh/reporting/23_analysis_units_map.R
+#   analysis_units_by_polygon.csv (every polygon of the layer: surveys, mothers, child-band records and deaths,
+#   apportioned as above, and class); map_layers.rds (the prepared layers, for maps in the same style);
+#   provenance.csv (md5 of every input read). Aggregates only.
+# Run from the repository root: Rscript R_cbh/reporting/23_analysis_units_map.R
 suppressPackageStartupMessages({ library(data.table); library(sf); library(ggplot2) })
 sf_use_s2(FALSE)
-source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_cbh/snow/R/settings.R")
-P <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge"))
-if (!identical(P$unit, "snow")) stop("The analysis-units map needs a Snow-unit primary version; '", P$id, "' has unit '", P$unit, "'.")
-S <- snow_settings(P$snow_variant)
-if (!identical(S$rule, "merge")) stop("The analysis-units map describes the merge rule; Snow variant '", S$variant, "' uses '", S$rule, "'.")
+source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_cbh/units/R/settings.R")
+P <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "gadm"))
+if (!identical(P$unit, "gadm")) stop("The analysis-units map needs the GADM-unit primary; '", P$id, "' has unit '", P$unit, "'.")
+S <- units_settings()
+if (!identical(S$rule, "merge")) stop("The analysis-units map describes the merge rule; the units use '", S$rule, "'.")
 out <- file.path(P$out, "analysis_units_map"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 cfg <- cbh_config()
 rel <- function(p) ifelse(startsWith(p, paste0(cfg$root, "/")), substring(p, nchar(cfg$root) + 2L), p)   # repository-relative
 self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
 if (length(self) != 1L || !file.exists(self)) self <- "R_cbh/reporting/23_analysis_units_map.R"
-# Western Sahara is drawn from the Snow shapefile for every variant (the GADM layer has no North Africa).
-esh_shp <- snow_settings("merge")$shapefile
-shp_parts <- sub("[.]shp$", "", esh_shp); shp_parts <- paste0(shp_parts, c(".shp", ".shx", ".dbf", ".prj", ".cpg"))
-if (!identical(S$shapefile, esh_shp)) shp_parts <- c(shp_parts, S$shapefile)   # the layer of 01_polygons.R
-paths <- c(dataset = P$data, records_placed = file.path(S$private, "records_placed.rds"), polygons = snow_polygons_path(S),
+# Western Sahara is drawn from the Snow et al. shapefile (the GADM layer has no North Africa); the GADM layer read by
+# 01_polygons.R is recorded with it in the provenance.
+esh_shp <- S$snow_shapefile
+shp_parts <- c(paste0(sub("[.]shp$", "", esh_shp), c(".shp", ".shx", ".dbf", ".prj", ".cpg")), S$shapefile)
+paths <- c(dataset = P$data, records_placed = file.path(S$private, "records_placed.rds"), polygons = units_polygons_path(S),
            admin0 = "data/africa_admin0.rds", lakes = "data/external/natural_earth/ne_10m_lakes.geojson",
            sample = file.path(P$out, "prepared_sample.csv"), mothers = file.path(P$out, "survey_map", "mothers_by_survey.csv"),
            coverage = file.path(P$out, "survey_map", "survey_coverage.csv"),
-           script = self, primary_settings = "R_cbh/primary/settings.R", snow_settings = "R_cbh/snow/R/settings.R",
+           script = self, primary_settings = "R_cbh/primary/settings.R", units_settings = "R_cbh/units/R/settings.R",
            load_pipeline = "R_cbh/load_pipeline.R",                     # and the files it sources (cbh_source())
            # This list must track the paths of cbh_source() in R_cbh/load_pipeline.R (every R_cbh/R/*.R file is asserted below).
            setNames(file.path("R_cbh", c("00_config.R", file.path("R", c("utils.R", "geography.R", "child_bands.R", "external_data.R", "build.R")))),
@@ -77,7 +78,7 @@ shp_parts <- shp_parts[file.exists(shp_parts)]
 if (any(!file.exists(paths)) || !length(shp_parts)) stop("Missing input: ", paste(c(paths[!file.exists(paths)], if (!length(shp_parts)) esh_shp), collapse = ", "))
 t0 <- Sys.time(); tick <- function(msg) cat(sprintf("[%6.1f s] %s\n", as.numeric(difftime(Sys.time(), t0, units = "secs")), msg))
 
-# Fixed counts of the variant's layer (snow_settings()$counts, 01_polygons.R). Sample counts are checked against the
+# Fixed counts of the unit layer (S$counts; 00_gadm_layer.R, 01_polygons.R). Sample counts are checked against the
 # primary's outputs instead.
 expected <- as.list(S$counts)
 check <- function(name, got) {
@@ -143,7 +144,7 @@ cat(sprintf("Mothers: %d, %d with records in more than one unit (apportioned by 
 
 # Placement shares of the analysed records (records_placed.rds: endemic polygons only, so 1 - sum(w) is the share of the
 # record's location that is malaria free or island).
-snow0 <- readRDS(paths[["polygons"]]); ptype <- setNames(as.character(snow0$Type), snow0$Admin_ID)
+layer0 <- readRDS(paths[["polygons"]]); ptype <- setNames(as.character(layer0$Type), layer0$Admin_ID)
 up <- unique(A[n_polygons > 1, .(unit)])[, .(Admin_ID = strsplit(unit, "+", fixed = TRUE)[[1]]), by = unit]
 U <- up[d[n_polygons > 1, .(child_id, age_band, unit)], on = "unit", allow.cartesian = TRUE]
 rp <- readRDS(paths[["records_placed"]]); setDT(rp)
@@ -153,7 +154,7 @@ rp <- rp[d[, .(child_id, age_band)], on = .(child_id, age_band), nomatch = NULL]
 tick("records_placed read")
 assert(!anyDuplicated(rp, by = c("child_id", "age_band", "Admin_ID")), "one placement row per record x polygon")
 assert(all(rp$w > 0) && all(ptype[rp$Admin_ID] %in% "Endemic"), "placement rows: positive shares in malaria-endemic polygons")
-# The merge rule re-derived for every analysed record (snow_assign(), R_cbh/snow/R/placement.R), so that the caption's
+# The merge rule re-derived for every analysed record (units_assign(), R_cbh/units/R/placement.R), so that the caption's
 # statement of it is checked: the polygon holding >= S$whole of the location's population, otherwise the endemic polygons
 # each holding >= S$link; locations more than S$malaria_free_drop malaria free are dropped. Where the rest of a location is
 # malaria free, "otherwise" can leave a single polygon holding less than S$whole (counted and printed).
@@ -162,7 +163,7 @@ assert(nrow(rt) == nrow(d), "every analysed record has placement rows")
 rp[rt, on = .(child_id, age_band), top := i.top]
 kept <- rp[(top >= S$whole & w == top) | (top < S$whole & w >= S$link), .(child_id, age_band, Admin_ID)]
 E <- rbind(d[n_polygons == 1, .(child_id, age_band, Admin_ID = unit)], U[, .(child_id, age_band, Admin_ID)])
-assert(fsetequal(kept, E), "each record's unit = its polygon >= S$whole, else its endemic polygons >= S$link (snow_assign)")
+assert(fsetequal(kept, E), "each record's unit = its polygon >= S$whole, else its endemic polygons >= S$link (units_assign)")
 assert(max(rt$mf) <= S$malaria_free_drop, "no analysed record is more than S$malaria_free_drop malaria free")
 rm(kept, E); invisible(gc())
 low <- d[n_polygons == 1][rt[top < S$whole], on = .(child_id, age_band), nomatch = NULL][
@@ -199,10 +200,10 @@ rm(d); invisible(gc()); tick("mothers apportioned to polygons")
 ## 2. Polygons and classes -------------------------------------------------------------------------------------------
 crs <- "ESRI:102022"
 prep <- function(x) st_make_valid(st_transform(st_make_valid(x), crs))
-snow <- prep(snow0); rm(snow0)
-pol <-as.data.table(st_drop_geometry(snow))[, .(Admin_ID, Country_ID, AFR_Admin, Type)]
+layer <- prep(layer0); rm(layer0)
+pol <-as.data.table(st_drop_geometry(layer))[, .(Admin_ID, Country_ID, AFR_Admin, Type)]
 check("polygons", nrow(pol)); assert(!anyDuplicated(pol$Admin_ID), "unique Admin_ID")
-assert(all(pol$Type %in% c("Endemic", "Malaria free", "Island")), "Snow polygon types")
+assert(all(pol$Type %in% c("Endemic", "Malaria free", "Island")), "polygon types")
 check("endemic", sum(pol$Type == "Endemic")); check("malaria_free", sum(pol$Type == "Malaria free")); check("island", sum(pol$Type == "Island"))
 assert(!any(pol$Country_ID %in% S$north_africa), "no North African polygon")
 pol <- merge(pol, agg, by = "Admin_ID", all.x = TRUE)
@@ -225,15 +226,15 @@ pol[, class := fcase(key %in% data_keys, lab_csv[key], Type == "Malaria free", "
                      default = "no data (endemic)")]
 setorder(pol, Admin_ID)
 
-## 3. Geometry: frame, underlay, gaps between the Snow polygons and the national boundaries, lakes -----------------------
+## 3. Geometry: frame, underlay, gaps between the polygons and the national boundaries, lakes ----------------------------
 adm0 <- prep(readRDS(paths[["admin0"]]))
 lyr <- tools::file_path_sans_ext(basename(esh_shp))
 esh <- prep(st_read(esh_shp, query = sprintf("SELECT Country_ID FROM \"%s\" WHERE Country_ID = 'ESH'", lyr), quiet = TRUE))
 assert(nrow(esh) >= 1L && !"ESH" %in% adm0$iso, "Western Sahara from the Snow shapefile, absent from admin0")
-assert(!any(c("COM", "STP") %in% snow$Country_ID) && "COM" %in% adm0$iso && !"STP" %in% adm0$iso, "Comoros in admin0 only; Sao Tome and Principe in neither")
+assert(!any(c("COM", "STP") %in% layer$Country_ID) && "COM" %in% adm0$iso && !"STP" %in% adm0$iso, "Comoros in admin0 only; Sao Tome and Principe in neither")
 fig_w <- 156                                                  # mm, the canvas
 print_w <- 132                                                # mm; printed at .8\linewidth in main.tex (2 November 2026)
-pad <- 60e3; bb <- st_bbox(snow)
+pad <- 60e3; bb <- st_bbox(layer)
 xr <- unname(c(bb["xmin"] - pad, bb["xmax"] + pad)); yr <- unname(c(bb["ymin"] - pad, bb["ymax"] + pad))
 W <- diff(xr); fig_h <- round(fig_w * diff(yr) / W, 1)         # the map fills the canvas; height rounded to 0.1 mm
 yr <- mean(yr) + c(-0.5, 0.5) * W * fig_h / fig_w; H <- diff(yr)
@@ -245,7 +246,7 @@ north <- adm0[adm0$iso %in% S$north_africa, ]; ssa <- adm0[!adm0$iso %in% S$nort
 assert(nrow(north) >= 1L && nrow(ssa) >= 40L, "admin0 split into North Africa and sub-Saharan Africa")
 under <- rbind(st_sf(iso = adm0$iso, geometry = st_geometry(adm0)), st_sf(iso = "ESH", geometry = st_union(st_geometry(esh))))
 # Lines are drawn only along shared land boundaries, never along coasts, so that small coastal polygons (The Gambia,
-# the Freetown peninsula, Dar es Salaam, the Bijagos) keep their fill: white between Snow polygons, black between
+# the Freetown peninsula, Dar es Salaam, the Bijagos) keep their fill: white between polygons, black between
 # countries, no halo. shared_lines() keeps the part of each drawn geometry's boundary within tol of a neighbour, each pair
 # once (the admin0 boundaries come from several sources and do not always coincide exactly).
 shared_lines <- function(g, draw, tol) {
@@ -257,7 +258,7 @@ shared_lines <- function(g, draw, tol) {
     if (length(y)) suppressWarnings(st_cast(st_collection_extract(y, "LINESTRING"), "LINESTRING")) }))
   st_sf(geometry = st_line_merge(st_union(x)))
 }
-# National borders are those of the land parts of at least border_min_km2 that a Snow polygon touches (smaller islands
+# National borders are those of the land parts of at least border_min_km2 that a polygon touches (smaller islands
 # and enclaves, such as Likoma and Chizumulu in Lake Malawi, would print as black specks), against the neighbouring
 # sub-Saharan countries, North Africa and Western Sahara. Islands without a polygon of at least isle_min_km2 (the
 # Comoros, Zanzibar, Pemba, the Dahlak islands) get a thin grey outline, as does the coast of North Africa and Western
@@ -266,8 +267,8 @@ shared_lines <- function(g, draw, tol) {
 border_min_km2 <- 500; isle_min_km2 <- 100; border_tol <- 2000; poly_tol <- 300      # m (2 km = 0.04 mm at the map scale)
 bparts <- suppressWarnings(st_cast(st_cast(ssa[, "iso"], "MULTIPOLYGON"), "POLYGON"))
 bparts$km2 <- as.numeric(st_area(bparts)) / 1e6
-bparts$in_snow <- lengths(st_intersects(bparts, snow)) > 0
-borders <- bparts[bparts$in_snow & bparts$km2 >= border_min_km2, ]; isles <- bparts[!bparts$in_snow & bparts$km2 >= isle_min_km2, ]
+bparts$in_layer <- lengths(st_intersects(bparts, layer)) > 0
+borders <- bparts[bparts$in_layer & bparts$km2 >= border_min_km2, ]; isles <- bparts[!bparts$in_layer & bparts$km2 >= isle_min_km2, ]
 ring_km2 <- function(r) as.numeric(st_area(st_sfc(st_polygon(list(r)), crs = st_crs(crs)))) / 1e6
 drop_holes <- function(g, min_km2) {                               # interior rings smaller than min_km2 removed
   one <- function(r) { if (length(r) > 1L) r <- r[c(TRUE, vapply(r[-1], ring_km2, 0) >= min_km2)]; r }
@@ -277,22 +278,22 @@ n_holes <- sum(lengths(st_geometry(borders)) - 1L)
 st_geometry(borders) <- st_sfc(lapply(st_geometry(borders), drop_holes, border_min_km2), crs = st_crs(crs))
 cat(sprintf("Borders: %d land parts (>= %d km2), %d of %d holes kept; %d pale islands (>= %d km2)\n", nrow(borders), border_min_km2,
             sum(lengths(st_geometry(borders)) - 1L), n_holes, nrow(isles), isle_min_km2))
-assert(all(intersect(ssa$iso, snow$Country_ID) %in% borders$iso) && "COM" %in% isles$iso && !"COM" %in% borders$iso && "TZA" %in% isles$iso,
+assert(all(intersect(ssa$iso, layer$Country_ID) %in% borders$iso) && "COM" %in% isles$iso && !"COM" %in% borders$iso && "TZA" %in% isles$iso,
        "a border for every country with a polygon; the Comoros and Zanzibar are pale islands")
 b_iso <- sort(unique(borders$iso)); o_iso <- under$iso %in% c(S$north_africa, "ESH")
 cg <- c(do.call(c, lapply(b_iso, function(i) st_union(st_geometry(borders)[borders$iso == i]))), st_geometry(under)[o_iso])
 land_lines <- shared_lines(cg, draw = seq_along(cg) <= length(b_iso), tol = border_tol)
-poly_lines <- shared_lines(st_geometry(snow), draw = rep(TRUE, nrow(snow)), tol = poly_tol)
+poly_lines <- shared_lines(st_geometry(layer), draw = rep(TRUE, nrow(layer)), tol = poly_tol)
 len_km <- function(x) sum(as.numeric(st_length(x))) / 1e3
-cat(sprintf("Lines drawn: national land borders %.0f km (tolerance %d m) of %.0f km of land-part boundary; Snow polygon boundaries %.0f km (tolerance %d m) of %.0f km\n",
-            len_km(land_lines), border_tol, len_km(st_boundary(st_geometry(borders))), len_km(poly_lines), poly_tol, len_km(st_boundary(st_geometry(snow)))))
+cat(sprintf("Lines drawn: national land borders %.0f km (tolerance %d m) of %.0f km of land-part boundary; polygon boundaries %.0f km (tolerance %d m) of %.0f km\n",
+            len_km(land_lines), border_tol, len_km(st_boundary(st_geometry(borders))), len_km(poly_lines), poly_tol, len_km(st_boundary(st_geometry(layer)))))
 assert(len_km(land_lines) > 2e4 && len_km(land_lines) < len_km(st_boundary(st_geometry(borders))) && len_km(poly_lines) > 5e4, "shared boundaries extracted")
 oc <- suppressWarnings(st_cast(st_union(c(st_geometry(north), st_geometry(esh))), "POLYGON"))
 outside_coast <- st_sfc(lapply(oc, function(g) st_polygon(list(g[[1]]))), crs = st_crs(crs))
 outside_coast <- outside_coast[as.numeric(st_area(outside_coast)) / 1e6 >= isle_min_km2]
 grey_line <- "#9A9A9A"
 # Pale fill: North Africa and Western Sahara dissolved into one shape (no lines or anti-aliasing seams inside it), and the
-# sub-Saharan countries, whose fill shows only on islands without a Snow polygon.
+# sub-Saharan countries, whose fill shows only on islands without a polygon.
 under_fill <- rbind(st_sf(iso = ssa$iso, geometry = st_geometry(ssa)),
                     st_sf(iso = "outside", geometry = st_union(c(st_geometry(north), st_geometry(esh)))))
 
@@ -321,32 +322,32 @@ st_geometry(lakes) <- st_sfc(lapply(st_geometry(lakes), drop_holes, lake_hole_km
 cat(sprintf("Lake islands: %d of %d kept (>= %d km2)\n", sum(vapply(st_geometry(lakes), lake_holes, 0)), n_lake_holes, lake_hole_km2))
 lake_u <- st_union(st_geometry(lakes))
 
-# Gaps: national land (sub-Saharan admin0) not covered by any Snow polygon. A piece is attached to the polygons it
-# touches (or, for numerically detached slivers, comes within 100 m of); it takes the class of an attached polygon of its
-# own country where there is one. Pieces touching no polygon are islands without a polygon and keep the pale underlay,
-# as do attached pieces larger than fringe_max_km2, which are not digitising slivers (none for the Snow polygons, whose
-# largest is 355 km2; for the GADM units, the Hala'ib triangle, which GADM places in Egypt, and Lake Rukwa's extent).
-gap <- st_difference(st_union(st_geometry(ssa)), st_union(st_geometry(snow)))
+# Gaps: national land (sub-Saharan admin0) not covered by any polygon. A piece is attached to the polygons it touches
+# (or, for numerically detached slivers, comes within 100 m of); it takes the class of an attached polygon of its own
+# country where there is one. Pieces touching no polygon are islands without a polygon and keep the pale underlay, as do
+# attached pieces larger than fringe_max_km2, which are not digitising slivers (the Hala'ib triangle, which GADM places
+# in Egypt, and Lake Rukwa's extent).
+gap <- st_difference(st_union(st_geometry(ssa)), st_union(st_geometry(layer)))
 pieces <- st_sf(geometry = suppressWarnings(st_cast(st_collection_extract(gap, "POLYGON"), "POLYGON")))
 pieces$area_km2 <- as.numeric(st_area(pieces)) / 1e6
-hits <- st_intersects(pieces, snow)
+hits <- st_intersects(pieces, layer)
 ni <- which(lengths(hits) == 0)
-if (length(ni)) hits[ni] <- st_intersects(st_buffer(st_geometry(pieces)[ni], 100), snow)
+if (length(ni)) hits[ni] <- st_intersects(st_buffer(st_geometry(pieces)[ni], 100), layer)
 pieces$attached <- lengths(hits) > 0
 pi_iso <- st_intersects(st_point_on_surface(st_geometry(pieces)), ssa)
 pieces$iso <- ssa$iso[vapply(pi_iso, function(j) if (length(j)) j[1] else NA_integer_, 1L)]
 pieces$lake_cover <- 0
 hit <- which(pieces$area_km2 >= 1 & lengths(st_intersects(pieces, lake_u)) > 0)
 pieces$lake_cover[hit] <- vapply(hit, function(i) sum(as.numeric(st_area(st_intersection(st_geometry(pieces)[i], lake_u)))) / 1e6 / pieces$area_km2[i], 0)
-fringe_max_km2 <- 1000   # GADM: coastal and delta slivers of 400-800 km2 still take the adjacent class
+fringe_max_km2 <- 1000   # coastal and delta slivers of 400-800 km2 still take the adjacent class
 pieces$role <- fifelse(pieces$lake_cover >= 0.5, "water", fifelse(pieces$attached & pieces$area_km2 <= fringe_max_km2, "fringe", "no_polygon"))
 big <- pieces[pieces$attached & pieces$role == "no_polygon", ]
 big_xy <- st_coordinates(st_transform(st_point_on_surface(st_geometry(big)), 4326))
 cat(sprintf("Gaps over %d km2 drawn pale: %s\n", fringe_max_km2, if (nrow(big)) paste(sprintf("%s (%.1f, %.1f) %.0f km2", big$iso, big_xy[, 1], big_xy[, 2], big$area_km2), collapse = "; ") else "none"))
 fi <- which(pieces$role == "fringe")
 fr <- pieces[fi, ]
-fr$Admin_ID <- vapply(seq_along(fi), function(k) { j <- hits[[fi[k]]]; own <- j[snow$Country_ID[j] %in% fr$iso[k]]
-  snow$Admin_ID[if (length(own)) own[1] else j[1]] }, "")
+fr$Admin_ID <- vapply(seq_along(fi), function(k) { j <- hits[[fi[k]]]; own <- j[layer$Country_ID[j] %in% fr$iso[k]]
+  layer$Admin_ID[if (length(own)) own[1] else j[1]] }, "")
 fringe <- do.call(rbind, lapply(split(seq_len(nrow(fr)), fr$Admin_ID), function(i) st_sf(Admin_ID = fr$Admin_ID[i[1]], geometry = st_union(st_geometry(fr)[i]))))
 fringe$key <- pol$key[match(fringe$Admin_ID, pol$Admin_ID)]
 water <- st_sf(geometry = st_union(c(lake_u, st_geometry(pieces[pieces$role == "water", ]))))
@@ -357,15 +358,15 @@ gap_tab <- as.data.table(st_drop_geometry(pieces))[, .(pieces = .N, km2 = round(
 print(gap_tab)
 wp <- pieces[pieces$role == "water", ]; wc <- st_coordinates(st_transform(st_point_on_surface(st_geometry(wp)), 4326))
 cat("Water gaps (lon, lat, km2, lake cover):", paste(sprintf("(%.1f, %.1f, %.0f, %.2f)", wc[, 1], wc[, 2], wp$area_km2, wp$lake_cover), collapse = " "), "\n")
-assert(all(adm0$iso[adm0$iso == "COM"] %in% nop$iso) && isTRUE(nop_area[["TZA"]] > 1000), "the Comoros and Zanzibar have no Snow polygon")
+assert(all(adm0$iso[adm0$iso == "COM"] %in% nop$iso) && isTRUE(nop_area[["TZA"]] > 1000), "the Comoros and Zanzibar have no polygon")
 islands <- pol[Type == "Island"]
 assert(any(grepl("bioko", cbh_rkey(islands$AFR_Admin))) && any(grepl("annobon", cbh_rkey(islands$AFR_Admin))), "the island polygons are Bioko and Annobon")
 assert(all(pol[Country_ID == "LSO", Type] == "Malaria free"), "Lesotho is wholly malaria free")
-snow <- merge(snow[, c("Admin_ID", "geometry")], as.data.frame(pol[, .(Admin_ID, key)]), by = "Admin_ID")
+layer <- merge(layer[, c("Admin_ID", "geometry")], as.data.frame(pol[, .(Admin_ID, key)]), by = "Admin_ID")
 # The prepared layers, for maps drawn in the same style (the sub-region map of the subgroup analysis,
 # R_cbh/sensitivity/subgroups/04_subregion_units_map.R, 1 November 2026); polygons and slivers carry Admin_ID.
 cbh_atomic_rds(list(crs = crs, xr = xr, yr = yr, under_fill = under_fill, fringe = fringe[, c("Admin_ID", "geometry")],
-  snow = snow[, c("Admin_ID", "geometry")], polygons = as.data.frame(pol[, .(Admin_ID, Country_ID, Type)]), poly_lines = poly_lines,
+  layer = layer[, c("Admin_ID", "geometry")], polygons = as.data.frame(pol[, .(Admin_ID, Country_ID, Type)]), poly_lines = poly_lines,
   outside_coast = outside_coast, isles = isles, land_lines = land_lines, water = water, grey_line = grey_line),
   file.path(out, "map_layers.rds"))
 tick("geometry prepared")
@@ -408,7 +409,7 @@ border_lw <- 0.22                                             # ggplot linewidth
 mapp <- ggplot() +
   geom_sf(data = under_fill, aes(fill = "outside"), colour = NA) +           # no lines inside the pale areas
   geom_sf(data = fringe, aes(fill = key), colour = NA, show.legend = FALSE) +
-  geom_sf(data = snow, aes(fill = key), colour = NA) +
+  geom_sf(data = layer, aes(fill = key), colour = NA) +
   geom_sf(data = poly_lines, colour = "#FFFFFF", linewidth = 0.13, lineend = "round", linejoin = "round") +
   geom_sf(data = outside_coast, fill = NA, colour = grey_line, linewidth = 0.13) +
   geom_sf(data = isles, fill = NA, colour = grey_line, linewidth = 0.13) +
@@ -438,7 +439,7 @@ assert(leg_w > 20 && leg_w < 90 && leg_h > 20 && leg_h < 90, sprintf("legend siz
 lt <- npc(leg_xy[1], leg_xy[2])
 elems <- list(legend = box_sf(lt[1], lt[2] - mm(leg_h), lt[1] + mm(leg_w), lt[2]),
               scale_bar = box_sf(bar_x0, bar_y - mm(0.5), bar_x0 + bar_len, bar_y + mm(1.5 + fs$legend * 0.3528)))
-land <- c(st_geometry(snow), st_geometry(under))
+land <- c(st_geometry(layer), st_geometry(under))
 clear <- vapply(elems, function(e) min(as.numeric(st_distance(e, land))) / m_per_mm, 0)
 inside <- vapply(elems, function(e) isTRUE(st_within(e, frame, sparse = FALSE)[1, 1]), TRUE)
 cat(sprintf("Layout: legend %.1f x %.1f mm; clearance from land: %s mm\n", leg_w, leg_h, paste(names(clear), round(clear, 1), collapse = ", ")))
@@ -470,11 +471,12 @@ nodata_txt <- and_list(c(sprintf("%d in the %d countries that have malaria-endem
 pct_m <- 100 * mothers_merged / n_mothers
 frac_txt <- function(p) if (isTRUE(all.equal(p, 0.5))) "half" else sprintf("%s%%", 100 * p)
 src_scale <- sub("^ne_([0-9]+m)_.*$", "1:\\1", basename(paths[["lakes"]]))
-gadm <- identical(S$variant, "gadm")
-unit_txt <- if (gadm) paste("first-level administrative unit (polygons below): GADM 4.1 as merged by KEMRI-Wellcome, with national boundaries for",
-  "Botswana, Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda") else "sub-national polygon of Snow et al. (2017)"
-excl_txt <- if (gadm) "the %d malaria-free polygons (malaria free in Snow et al. (2017), or without a MAP PfPR estimate) and the %d island polygons (Bioko, Annobón)" else
-  "the %d malaria-free and %d island polygons (Bioko, Annobón)"
+unit_txt <- paste("first-level administrative unit (polygons below): GADM 4.1 admin-1 units (KEMRI-Wellcome merge; national boundaries",
+  "for Botswana, Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda)")
+# Unit types of 00_gadm_layer.R: more than half of the GPW 2020 population in Snow et al. malaria-free (island) areas,
+# or no MAP PfPR estimate.
+excl_txt <- paste("the %d malaria-free polygons (more than half of their population in the malaria-free areas of Snow et al. (2017),",
+  "or without a MAP PfPR estimate) and the %d island polygons (Bioko, Annobón)")
 # Lines 1-2 are the heading (04_paper_figures.R drops them and adds its own figure label).
 caption <- c("# Figure 1 caption", "",
   sprintf(paste0("Complete birth histories used in the primary analysis, by ", unit_txt, ". ",
@@ -501,7 +503,7 @@ con <- file(file.path(out, "CAPTION.md"), open = "w", encoding = "UTF-8"); write
 
 ## 7. Polygon table and provenance -------------------------------------------------------------------------------------
 r9 <- function(v) round(v, 9)                      # apportioned values, written so that their sums check at 1e-6
-tab <- pol[, .(Admin_ID, country = Country_ID, snow_name = AFR_Admin, Type, surveys = as.integer(surveys),
+tab <- pol[, .(Admin_ID, country = Country_ID, unit_name = AFR_Admin, Type, surveys = as.integer(surveys),
                mothers = r9(mothers), records = r9(records), deaths = r9(deaths), class)]
 assert(abs(sum(tab$mothers) - n_mothers) < 1e-6 && abs(sum(tab$records) - n_records) < 1e-6 && abs(sum(tab$deaths) - n_deaths) < 1e-6,
        "polygon table sums = mothers, records and deaths at 1e-6")

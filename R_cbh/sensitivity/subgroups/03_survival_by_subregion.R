@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Supplementary figure (user request, 15 October 2026): survival through each age band against PfPR[2-10] in the raw
-# data of the Snow-unit primary sample, by UN M49 sub-region, with an unadjusted spline fit for each sub-region. It shows
+# data of the GADM-unit primary sample, by UN M49 sub-region, with an unadjusted spline fit for each sub-region. It shows
 # the data behind the sub-region refits of 01_fit.R (for example the flat Central Africa curves at older ages, where
 # the low-prevalence records come mostly from Chad).
 #   Points: one per survey x area unit x band-entry year, drawn as open circles in the sub-region's colour; survival =
@@ -10,12 +10,13 @@
 #          complementary log-log link and a penalised cubic regression spline of PfPR[2-10] (basis dimension 5, as in
 #          the primary analysis; REML, gamma = 2), with no covariates. Drawn over the central 95% of the sub-region's
 #          exposure in that band, with pointwise 95% intervals. Southern Africa is shown as points only: its PfPR[2-10]
-#          spans 0-10%, too narrow a range for a spline (the reason it is not refitted either).
+#          stays below about 10% (the caption gives its maximum), too narrow a range for a spline (the reason it is not
+#          refitted either).
 #   Axes:  every panel has the same y-axis range (survival from the lowest record-weighted 2nd percentile of the seven
 #          bands up to 100%); points below it are drawn at the lower edge as open triangles (explained in the legend).
 #   Legend: the sub-region colours in the empty bottom-right cell of the 4 x 2 layout; the point symbols and sizes below.
 # Sub-regions: the UN M49 lists of R_cbh/sensitivity/subgroups/settings.R (Middle Africa as "Central Africa"; Southern
-# Africa is shown although it is not refitted). Snow-unit primary only (CBH_PRIMARY_VERSION=snow_merge).
+# Africa is shown although it is not refitted). GADM-unit primary (CBH_PRIMARY_VERSION=gadm).
 # Outputs (st$out, aggregates only): sfig_survival_vs_pfpr_by_subregion.png, CAPTION_sfig_survival_vs_pfpr_by_subregion.md,
 #   survival_spline_fits.csv (fitted curves), survival_by_subregion_summary.csv, central_africa_low_prevalence.csv
 #   (who supplies the low-prevalence records of Central Africa at 24-59 months, and their survival), survival_figure_provenance.csv.
@@ -24,7 +25,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/sensitivity/subgroups/settings.R")
 suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(mgcv) })
 st <- cbh_subgroup_settings()
-if (!identical(st$primary_version, "snow_merge")) stop("This figure belongs to the Snow-unit primary; set CBH_PRIMARY_VERSION=snow_merge.")
+if (!identical(st$primary_version, "gadm")) stop("This figure belongs to the GADM-unit primary; set CBH_PRIMARY_VERSION=gadm.")
 primary <- cbh_primary_settings(st$primary_version)
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 ages <- cbh_config()$age_bands$age_band
@@ -127,13 +128,14 @@ ggsave(figure, p, width = 6.5, height = 4.6, dpi = 320, device = ragg::agg_png, 
 
 fmt <- function(v) format(round(v), big.mark = ",", trim = TRUE)
 tot <- d[, .(surveys = uniqueN(survey), countries = uniqueN(country)), by = region][match(unname(regions), region)]
+sa_max <- ceiling(max(d[region == "Southern Africa", pfpr_pct]))   # Southern Africa's PfPR range, whole percentage points
 caption <- paste0(
   "Survival through each age band against PfPR[2–10] in the primary analysis sample, by UN sub-region. Each point is one survey × area unit × band-entry year: ",
   "the proportion of children entering the band who survived it, at the unit's MAP PfPR[2–10] in that year, drawn as an open circle whose area is proportional to the number of children entering the band (the largest 1% of points are drawn at the maximum size; ",
   fmt(nrow(pts)), " points over the seven bands). Lines are unadjusted spline fits for each sub-region (binomial generalised additive model of deaths with a complementary log-log link and a penalised cubic regression spline of PfPR[2–10], basis dimension 5, gamma = 2, no covariates), ",
   "drawn over the central 95% of the sub-region's exposure in each band, with pointwise 95% intervals shaded. Sub-regions (UN M49): ",
   paste(sprintf("%s (%d surveys in %d countries)", tot$region, tot$surveys, tot$countries), collapse = ", "),
-  "; Central Africa is UN Middle Africa. Southern Africa is shown as points only: its PfPR[2–10] spans 0–10%, too narrow a range for a spline fit (it is not refitted in the sub-region sensitivity analysis either). ",
+  "; Central Africa is UN Middle Africa. Southern Africa is shown as points only: its PfPR[2–10] spans 0–", sa_max, "%, too narrow a range for a spline fit (it is not refitted in the sub-region sensitivity analysis either). ",
   "All panels share the same y-axis; ", fmt(sum(below$points_below)), " points (", sprintf("%.1f", 100 * sum(below$children_below) / nrow(d)),
   "% of children) lie below ", sprintf("%.1f", 100 * lo), "% and are drawn at the lower edge as open triangles. ",
   "The fits are descriptive: unlike the adjusted age-band models of the sub-region refits, they do not adjust for confounders, calendar time or survey and area effects, and they mix variation within and between countries.")

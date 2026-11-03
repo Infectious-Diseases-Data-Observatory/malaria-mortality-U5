@@ -12,7 +12,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 library(ggplot2)
 library(patchwork)
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge")); root <- settings$out
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","gadm")); root <- settings$out
 annual <- file.path(root, "annual_comparison"); out <- file.path(root, "mortality_rates")
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 paths <- c(countries = file.path(annual, "source_country_rates_2000_2024.csv"),

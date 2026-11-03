@@ -4,7 +4,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/covariates/unicef.R")
 library(data.table)
-# cbh_unicef_fill (the WUENIC fallback of R_cbh/primary/00_prepare_snow.R): exact-year matching, observed values and
+# cbh_unicef_fill (the WUENIC fallback of R_cbh/primary/00_prepare.R): exact-year matching, observed values and
 # reported zeros kept, duplicate panel rows rejected (moved from the removed 05_validate.R, 1 November 2026).
 panel <- data.frame(country=c("TST","TST","TST"),year=c(2020,2021,2020),
   variable=c("dtp3_pct","dtp3_pct","hib3_pct"),value=c(70,90,0),source="UNICEF_WUENIC_country_year")

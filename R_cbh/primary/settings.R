@@ -1,54 +1,21 @@
-# Primary specification used in the paper: the Snow-unit primary (snow_merge): seven age-band models on DHS and MICS
-# surveys placed in the Snow et al. (2017) polygons, MAP PfPR, 17 adjustment covariates, gamma = 2. Earlier versions
-# (v1-v7) are history in the analysis project; the v9 survey-region primary (primary_map_regional17_dhsmics_gamma2_v9,
-# refitted on MAP 202608 as _v9_map202608) was removed from this repository on 1 November 2026 (author decision; code
-# in git history up to 0a9a198). Prepared data and national inputs are fixed.
-#
-# v9 (decided 27-28 September 2026; removed 1 November 2026): DHS and MICS surveys with complete birth histories;
-# regional covariates with the 28 September derivation corrections (Uganda 2016 wealth decoding; MICS vaccination
-# under the DHS tabulation rules with all DTP/pentavalent and measles-containing columns; MICS education,
-# facility delivery, water and sanitation coding; Mozambique MICS 2008; published-value joins; Sierra Leone
-# 2013 from its recodes); Uganda 2016's north and south Buganda regions admitted; Liberia's child HIV
-# incidence derived from UNAIDS counts (R_cbh/hiv/03_add_liberia_aidsinfo.R). Complete-case selection keeps
-# only MICS surveys with anthropometry.
-#
-# snow_merge (user decisions, 11 October 2026): the same seven age-band models, covariate definitions, knots, family
-# and gamma, with the Snow et al. (2017) polygons as the unit of analysis (R_cbh/snow/): every MAP-eligible DHS and
-# MICS survey; a record's unit is the Snow polygon holding >= 90% of its smallest reported admin unit, else the union
-# of the polygons each holding >= 5%; units more than half malaria-free dropped; exposure = MAP PfPR of the unit;
-# the 13 regional covariates recomputed per (survey, unit) from the recodes. The check that rebuilt the analysis
-# project's population-share split dataset (snow_split_repro) was removed on 1 November 2026 (git history).
-# snow_merge v12 (author decision, 29 October 2026): political stability in 2001, a year without a WGI round, is the
-# mean of the country's 2000 and 2002 values (R_cbh/primary/national_interpolations.R), so records entering a band in
-# 2001 are no longer lost to complete-case selection; sensitivities v6. v11 (sensitivities v5) is kept as history.
-# snow_merge v13 (author decision, 29 October 2026): health expenditure in 2024, not yet published for any country in
-# the analysis, is the country's 2023 value (same file), so 2024 band entries are kept; sensitivities v7. v12 (v6) is history.
-# snow_merge v14 (author decision, 1 November 2026): MAP PfPR2-10 release 202608 in place of 202508 for every exposure
-# (cbh_config()$map_release), and MAP's own national (admin-0) estimates in the burden in place of the GPW-weighted
-# raster means (and admin-1 for the Nigerian state burden, removed on 1 November 2026); burden uncertainty from 500
-# joint draws (R_cbh/burden/06_uncertainty_draws.R); sensitivities v8, country fixed effects v2, imputation v15. v13
-# (v7) is history; v9 was refitted on 202608 (..._v9_map202608) and then removed (1 November 2026).
-# gadm_merge (branch gadm-admin1, author request 3 November 2026): the v14 primary with the GADM 4.1 admin-1 units in
-# place of the Snow et al. polygons (Snow-module variant gadm; R_cbh/snow/00_gadm_layer.R): the same surveys,
-# specification, knots, seed, MAP release and burden inputs. Only the primary is fitted: no sensitivity analysis has
-# a GADM version.
-cbh_primary_settings <- function(version = Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge")) {
-  if (!version %in% c("snow_merge", "gadm_merge")) stop("Unknown primary version: ", version, " (snow_merge, gadm_merge)")
-  st <- cbh_snow_primary_settings(version)
-  if (identical(version, "gadm_merge")) st <- cbh_gadm_primary_settings(st)
-  st
-}
-cbh_gadm_primary_settings <- function(st) {
-  id <- "primary_gadm_merge_dhsmics_gamma2_v14"
-  private <- file.path("data/derived_cbh/models", id)
-  st[c("id", "out", "private", "data", "snow_variant")] <- list(id, file.path("results/cbh", id), private,
-    file.path(private, "complete_case_dataset.rds"), "gadm")
-  st["sensitivity_dirs"] <- list(NULL)
-  st$survey_reference <- file.path("results/cbh/primary_snow520_merge_dhsmics_gamma2_v14", "prepared_selection_by_survey.csv")
-  st
-}
-cbh_snow_primary_settings <- function(version) {
-  id <- "primary_snow520_merge_dhsmics_gamma2_v14"
+# Primary specification used in the paper (v15, version "gadm"; author decision, 3 November 2026): seven age-band models
+# on DHS and MICS surveys placed in the GADM 4.1 admin-1 units (KEMRI-Wellcome merge; national boundaries for Botswana,
+# Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda; R_cbh/units/), MAP PfPR2-10 (release 202608),
+# 17 adjustment covariates, gamma = 2. Every MAP-eligible DHS and MICS survey with a complete birth history (the 136
+# surveys of R_cbh/primary/survey_set.csv); a record's unit is the unit holding >= 90% of its smallest reported admin
+# unit, else the union of the units each holding >= 5%; units typed malaria-free or island (more than half of their
+# population in those areas of Snow et al. 2017, or no MAP PfPR estimate) are left out, and a record more than half in
+# them is dropped; exposure = MAP PfPR of the unit; the 13 regional covariates of v9 (with its 28 September 2026
+# derivation corrections) computed per (survey, unit) from the recodes; complete-case selection keeps only MICS surveys
+# with anthropometry. Declared national rules: South Sudan takes Sudan's values before 2011 (national_substitutions.R);
+# political stability in 2001 and health expenditure in 2024 are filled (national_interpolations.R); Liberia's child HIV
+# incidence comes from UNAIDS counts (R_cbh/hiv/03_add_liberia_aidsinfo.R). Burden on MAP's national (admin-0)
+# estimates with 500 joint draws (R_cbh/burden/06_uncertainty_draws.R).
+# The Snow-unit primary (v11-v14) was replaced by GADM units in v15 (author decision, 3 November 2026; code in git
+# history up to f2db98e); earlier versions (v1-v9) are history in the analysis project and in git.
+cbh_primary_settings <- function(version = Sys.getenv("CBH_PRIMARY_VERSION", "gadm")) {
+  if (!identical(version, "gadm")) stop("Unknown primary version: ", version, " (gadm)")
+  id <- "primary_gadm_merge_dhsmics_gamma2_v15"
   private <- file.path("data/derived_cbh/models", id)
   list(
     id = id, version = version,
@@ -62,8 +29,10 @@ cbh_snow_primary_settings <- function(version) {
     # Expected counts are set from a verified run; NULL = not yet fixed.
     expected_records = NULL, expected_deaths = NULL, expected_regions = NULL,
     mics_output_dir = "data/derived_mics/cbh_build", expected_mics_surveys = NULL,
-    sensitivity_dirs = c(subgroups = "results/cbh/subgroups_snow520_merge_gamma2_v8",
-                         nutrition = "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v8"),
-    unit = "snow", snow_variant = "merge",
-    prepare = "R_cbh/primary/00_prepare_snow.R")
+    sensitivity_dirs = c(subgroups = "results/cbh/subgroups_gadm_merge_gamma2_v9",
+                         nutrition = "results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9"),
+    unit = "gadm",
+    # The surveys of the sample (survey, country): 00_prepare.R stops unless the prepared sample has exactly these.
+    survey_reference = "R_cbh/primary/survey_set.csv",
+    prepare = "R_cbh/primary/00_prepare.R")
 }

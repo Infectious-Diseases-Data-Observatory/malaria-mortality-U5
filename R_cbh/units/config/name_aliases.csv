@@ -1,4 +1,4 @@
-country,value_key,snow_name,note
+country,value_key,unit_name,note
 AGO,huile,Huila,spelling
 AGO,malange,Malanje,spelling
 AGO,kwanzasul,Cuanza Sul,spelling
@@ -35,8 +35,8 @@ BDI,bujumbura,Bujumbura Rural,"""bujumbura-rural"" once the rural word is remove
 MOZ,maputoprovincia,Maputo,Maputo province
 MOZ,maputocidade,Maputo City,Maputo city
 TCD,ndjamena,Ville de N'Djamena,the capital
-TCD,ennediouest,Ennedi Ouest,"malaria-free unit (53% of its population in Snow malaria-free polygons); its 5,044 MC_TCD2019 records, kept in v14, stay excluded (author decision, 3 November 2026)"
-TCD,tibesti,Tibesti,"malaria-free unit; its 701 TD71FL records, kept in v14, stay excluded (author decision, 3 November 2026)"
+TCD,ennediouest,Ennedi Ouest,"malaria-free unit (53% of its population in Snow malaria-free polygons); its 5,044 MC_TCD2019 records are excluded (author decision, 3 November 2026)"
+TCD,tibesti,Tibesti,"malaria-free unit; its 701 TD71FL records are excluded (author decision, 3 November 2026)"
 KEN,merunorth,Meru,2003 district (Kenya 2003 DHS) within the county
 KEN,merucentral,Meru,2003 district (Kenya 2003 DHS) within the county
 KEN,merusouth,Tharaka-Nithi,2003 district (Kenya 2003 DHS) within the county

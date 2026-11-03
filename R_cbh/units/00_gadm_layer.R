@@ -1,30 +1,30 @@
 #!/usr/bin/env Rscript
-# GADM admin-1 units for the GADM variant of the unit construction (SNOW_VARIANT=gadm; branch gadm-admin1, author
-# request 3 November 2026). Source: GADM 4.1 admin 1 as merged with island layers by KEMRI-Wellcome
-# (S$source, 4 February 2026; not committed: GADM licence and size). Writes the layer with the columns of the Snow
-# shapefile (Admin_ID, Country_ID, AFR_Admin, Type), so that 01_polygons.R onwards run unchanged, for the 44 countries
-# the Snow shapefile covers outside North Africa:
-#   - left out, as the Snow shapefile has no polygon for them: Zanzibar and Pemba, and the island states (the Comoros,
+# The GADM admin-1 units of the analysis (units_settings(); author decision 3 November 2026). Source: GADM 4.1 admin 1
+# as merged with island layers by KEMRI-Wellcome (S$source, 4 February 2026; not committed: GADM licence and size).
+# Writes the layer read by 01_polygons.R (columns Admin_ID, Country_ID, AFR_Admin = unit name, Type) for the 44
+# countries outside North Africa of the Snow et al. (2017) reference shapefile (S$snow_shapefile):
+#   - left out, as the reference has no polygon for them: Zanzibar and Pemba, and the island states (the Comoros,
 #     Sao Tome and Principe, Cape Verde, Mauritius, Mayotte, Reunion, the Seychelles); also Tanzania's "Lakes" feature
 #     (lake water, not an admin unit) and the second copy of Bamako (no GID_1; the outline of MLI.1_1);
 #   - Addis Ababa, Niamey and Bamako, which the source leaves inside Oromia, Tillaberi and Koulikoro, are cut out of them;
 #   - Admin_ID: the file's GID_1 where it has one; Zambia's Lusaka and Southern take the two codes missing from
 #     GADM's alphabetical numbering (ZMB.5_1, ZMB.9_1); the units of Kenya, Ghana and mainland Tanzania, which have
-#     none, take the country code and the normalised name (KEN.baringo). config/gadm_unit_ids.csv pins the ids. The
-#     merge replaced GADM for some countries with national layers: besides Kenya, Ghana and mainland Tanzania, the
+#     none, take the country code and the normalised name (KEN.baringo). S$unit_ids (config/unit_ids.csv) pins the ids.
+#     The merge replaced GADM for some countries with national layers: besides Kenya, Ghana and mainland Tanzania, the
 #     regions of Uganda (4) and Malawi (3), Madagascar's 22 regions and Botswana's districts have their own codes
 #     (XXX.1_n, without GADM's HASC_1), labelled as such; Uganda's Western region is coded UCA.1_4 in the file (UGA.1_4 here);
 #   - Type: "Island" for a unit with more than half of its GPW 2020 population in Snow island polygons (Bioko,
-#     Annobon); "Malaria free" for one with more than half in Snow malaria-free polygons (Snow's exclusions), or
-#     without a MAP PfPR estimate (no population in cells of the 2024 layer, the mask of 02_pfpr_polygons.R; author
-#     decision 3 November 2026); otherwise "Endemic".
-# Output: S$shapefile (geopackage, git-ignored) and <out>/polygons/gadm_layer.csv (one row per unit; aggregates).
+#     Annobon); "Malaria free" for one with more than half in Snow malaria-free polygons, or without a MAP PfPR
+#     estimate (no population in cells of the 2024 layer, the mask of 02_pfpr_polygons.R; author decision 3 November
+#     2026); otherwise "Endemic". Only the unit's own-country pieces of the Snow polygons count.
+# Output: S$shapefile (geopackage, git-ignored) and <out>/polygons/gadm_layer.csv (one row per unit, with its shares
+# of population in Snow endemic, malaria-free and island polygons; aggregates).
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr) })
 sf_use_s2(FALSE)
-source("R_cbh/R/geography.R"); source("R_cbh/snow/R/settings.R"); source("R_cbh/00_config.R")
-S <- snow_dirs(snow_settings("gadm"), "polygons")
+source("R_cbh/R/geography.R"); source("R_cbh/units/R/settings.R"); source("R_cbh/00_config.R")
+S <- units_dirs(units_settings(), "polygons")
 dir.create(dirname(S$shapefile), recursive = TRUE, showWarnings = FALSE)
-snow <- st_make_valid(st_read(snow_settings("merge")$shapefile, quiet = TRUE))
+snow <- st_make_valid(st_read(S$snow_shapefile, quiet = TRUE))   # the Snow et al. (2017) reference polygons
 countries <- setdiff(unique(snow$Country_ID), S$north_africa)
 stopifnot(length(countries) == 44L)
 
@@ -67,7 +67,7 @@ nk <- is.na(g$GID_1); stopifnot(setequal(unique(g$GID_0[nk]), c("KEN", "GHA", "T
 g$GID_1[nk] <- paste0(g$GID_0[nk], ".", cbh_rkey(g$NAME_1[nk])); g$id_source[nk] <- "country + name"
 stopifnot(!anyDuplicated(g$GID_1), !anyNA(g$GID_1), !any(grepl("[+:|, ]", g$GID_1)))
 ids <- data.table(OBJECTID_1 = as.integer(g$OBJECTID_1), GID_0 = g$GID_0, NAME_1 = g$NAME_1, Admin_ID = g$GID_1, id_source = g$id_source)
-pin <- "R_cbh/snow/config/gadm_unit_ids.csv"
+pin <- S$unit_ids
 if (file.exists(pin)) {
   old <- fread(pin, encoding = "UTF-8")
   if (!isTRUE(all.equal(old, ids, check.attributes = FALSE))) stop("Unit ids differ from ", pin, "; review the source file")
@@ -105,6 +105,6 @@ if (file.exists(S$shapefile)) file.remove(S$shapefile)
 st_write(out, S$shapefile, quiet = TRUE)
 fwrite(tab[order(GID_0, GID_1)], file.path(S$out, "polygons", "gadm_layer.csv"))
 cat(sprintf("%s: %d units in %d countries (%d endemic, %d malaria free [%d Snow, %d no MAP estimate only], %d island); ids: %s\n",
-  S$variant, nrow(tab), uniqueN(tab$GID_0), sum(tab$Type == "Endemic"), sum(tab$Type == "Malaria free"),
+  S$units, nrow(tab), uniqueN(tab$GID_0), sum(tab$Type == "Endemic"), sum(tab$Type == "Malaria free"),
   sum(tab$type_reason %like% "^Snow malaria"), sum(tab$type_reason == "no MAP estimate"), sum(tab$Type == "Island"),
   paste(tab[, .N, by = id_source][, sprintf("%s %d", id_source, N)], collapse = ", ")))

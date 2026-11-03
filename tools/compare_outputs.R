@@ -2,7 +2,7 @@
 # Compare this repository's pipeline outputs with the analysis project's (opened read-only).
 #   Rscript tools/compare_outputs.R --reference="<analysis project>" --checkpoint=NAME [--overleaf="<dir>"]
 # Checkpoints follow the pipeline: inputs, hiv, dhs_bands, covariates, mics, primary (national burden inputs), paper; for
-# the Snow-unit primary also snow_units, snow_primary and snow_sensitivities (reference: a saved copy of this repository).
+# the GADM-unit primary also units, unit_primary and sensitivities (reference: a saved copy of this repository).
 # The v9 checkpoints (the v9 fits, its sensitivities) were removed with v9 on 1 November 2026, and the verification
 # records of earlier runs on the same day (git history keeps them).
 # Each file is classed as
@@ -18,7 +18,7 @@ ref <- opt("reference"); cp <- opt("checkpoint"); overleaf <- opt("overleaf")
 stopifnot(!is.null(ref), dir.exists(ref), !is.null(cp))
 ref <- normalizePath(ref); tgt <- normalizePath(getwd())
 suppressPackageStartupMessages(library(data.table))
-v14 <- "results/cbh/primary_snow520_merge_dhsmics_gamma2_v14"
+v15 <- "results/cbh/primary_gadm_merge_dhsmics_gamma2_v15"
 # Paths that differ only because of this repository's layout.
 renames <- c("/Users/jameswatson/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/", "~/.rdhs_cache/datasets_reformatted/" = "data/raw/dhs/",
   "data/dhs/" = "data/raw/dhs/", "data/MICS_extracted" = "data/raw/MICS_extracted", "data/MICS_Datasets" = "data/raw/MICS_Datasets",
@@ -43,12 +43,12 @@ sets <- list(
   covariates = "data/derived_cbh/regional_adjustment",
   mics = c("data/derived_mics", "results/mics_inventory"),
   primary = "results/cbh/national_burden_inputs",
-  # Snow-unit primary: checked against a saved copy of this repository's own earlier outputs (--reference=<copy>).
-  snow_units = c("results/cbh/snow_units/merge", "data/derived_cbh/snow/merge"),
-  snow_primary = c(v14, file.path("data/derived_cbh/models", basename(v14), "pfpr_components.rds")),
-  snow_sensitivities = c("results/cbh/subgroups_snow520_merge_gamma2_v8", "results/cbh/nutrition_adjustment_snow520_merge_gamma2_v8",
-                         "results/cbh/country_fixed_effects_snow520_merge_gamma2_v2",
-                         "results/cbh/primary_snow520_merge_imputed_gamma2_v15", "results/cbh/covariate_imputation_snow_v15"),
+  # GADM-unit primary: checked against a saved copy of this repository's own earlier outputs (--reference=<copy>).
+  units = c("results/cbh/units", "data/derived_cbh/units"),
+  unit_primary = c(v15, file.path("data/derived_cbh/models", basename(v15), "pfpr_components.rds")),
+  sensitivities = c("results/cbh/subgroups_gadm_merge_gamma2_v9", "results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9",
+                    "results/cbh/country_fixed_effects_gadm_merge_gamma2_v3",
+                    "results/cbh/primary_gadm_merge_imputed_gamma2_v16", "results/cbh/covariate_imputation_gadm_v16"),
   paper = "paper")
 stopifnot(cp %in% names(sets))
 skip <- "previous_overleaf|paper_refresh/export_|pipeline_stages[.]csv$|output_manifest[.]csv$|[.]log$|\\.DS_Store$|_cache/|/cache[.]rds$"

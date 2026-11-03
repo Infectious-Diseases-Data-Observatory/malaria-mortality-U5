@@ -1,5 +1,5 @@
-# Declared national-covariate fills of the Snow-unit primary (author decisions, 29 October 2026), applied to records
-# whose value is missing. Used by R_cbh/primary/00_prepare_snow.R (merge variant). Source after load_pipeline.R.
+# Declared national-covariate fills of the primary (author decisions, 29 October 2026), applied to records whose value
+# is missing. Used by R_cbh/primary/00_prepare.R. Source after load_pipeline.R.
 #   Political stability: the Worldwide Governance Indicators were published every two years until 2002, so there is no
 #     value for 1997, 1999 and 2001; of these only 2001 is a band-entry year. In a gap year a country's political
 #     stability is the mean of its values for the years before and after, the rule of the imputed-covariate sensitivity

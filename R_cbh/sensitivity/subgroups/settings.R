@@ -1,21 +1,22 @@
-# Subgroup refits of the Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge; v8 on primary v14, v7 = v13, v6 = v12,
-# v5 = v11; the v9 refits subgroups_dhsmics_map_gamma2_v4 and the DHS-only v3 were removed with v9 on 1 November 2026).
+# Subgroup refits of the GADM-unit primary (CBH_PRIMARY_VERSION=gadm; v9 on primary v15; the Snow-unit v5-v8 on
+# primary v11-v14 were replaced with it, author decision 3 November 2026; code in git history up to f2db98e).
 # Subsets of the fitted 17-variable sample, each refitted separately by age band:
-#   sahel           records whose source survey-region centroid is >= 12N, < 36E, outside ETH/ERI/SOM/DJI (as in v9)
+#   sahel           records whose source survey-region centroid is >= 12N, < 36E, outside ETH/ERI/SOM/DJI (as in the
+#                   survey-region primary v9)
 #   west_africa, central_africa, east_africa   UN M49 Western, Middle and Eastern Africa countries
 #   early, late     surveys with survey year <= / > the median survey year (one vote per survey)
 #   records_early, records_late   child-band records with calendar year <= / > the records' median calendar year
 cbh_subgroup_settings <- function() {
   # Full suite (user request, 12 October 2026): Sahel, the UN M49 sub-regions of Figure 1, and the survey-period
-  # split. Southern Africa is not refitted: 1,061 deaths in 7 surveys and PfPR below 10.3% (95% of records below
-  # 7.4%), so the curve at 20% and 40% would be an extrapolation (its size is reported in subregions_not_fitted.csv).
+  # split. Southern Africa is not refitted: about 1,000 deaths in 7 surveys and PfPR below about 10%, so the curve at
+  # 20% and 40% would be an extrapolation (its size is reported in subregions_not_fitted.csv).
   # Period splits: by survey (survey year up to / after the median survey year; each survey in one half) and, added
   # at the user's request (12 October 2026), by record (child-band calendar year up to / after the median calendar
   # year of the records, about 2013; every survey can contribute to both halves).
   st <- list(
     sample = "dhsmics",
-    id = "subgroups_snow520_merge_gamma2_v8",   # v8: primary v14 (MAP 202608); v7 = v13, v6 = v12, v5 = v11
-    primary_version = "snow_merge",
+    id = "subgroups_gadm_merge_gamma2_v9",   # v9: primary v15 (GADM units)
+    primary_version = "gadm",
     centroids = c("data/derived_dhs/dhs_region_centroids.csv", "data/derived_mics/mics_region_centroids.csv"),
     registry = c("data/derived_dhs/survey_registry.csv", "data/derived_mics/survey_registry_mics.csv"),
     sahel = list(latitude_min = 12, longitude_max = 36, exclude_countries = c("ETH", "ERI", "SOM", "DJI")),

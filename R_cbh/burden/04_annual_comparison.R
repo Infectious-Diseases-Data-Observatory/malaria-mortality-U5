@@ -9,7 +9,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(mgcv))
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","gadm"))
 out <- file.path(settings$out, "annual_comparison")
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
 years <- 2000:2024

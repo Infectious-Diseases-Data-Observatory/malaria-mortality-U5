@@ -1,11 +1,11 @@
 #!/usr/bin/env Rscript
-# Copies the DHS PR and HW recodes listed in R_cbh/snow/config/dhs_pr_hw_files.csv from the local rdhs cache into
+# Copies the DHS PR and HW recodes listed in R_cbh/units/config/dhs_pr_hw_files.csv from the local rdhs cache into
 # data/raw/dhs/<UPPER-CASE STEM>.rds (git-ignored; microdata), md5-checked, and APPENDS their rows to
 # data/raw_manifest.csv (role raw_dhs_recode). Rows already in the manifest are left unchanged; nothing else is
 # rewritten. Run from the repository root:  Rscript tools/import_pr_hw.R
 suppressPackageStartupMessages(library(data.table))
 stopifnot(file.exists("R_cbh/00_config.R"))
-cfg <- fread("R_cbh/snow/config/dhs_pr_hw_files.csv", na.strings = "")
+cfg <- fread("R_cbh/units/config/dhs_pr_hw_files.csv", na.strings = "")
 stems <- unique(c(cfg$pr_stem, cfg$hw_stem)); stems <- stems[!is.na(stems) & nzchar(stems)]
 cache <- path.expand("~/.rdhs_cache/datasets_reformatted")
 held <- list.files(cache, full.names = TRUE)

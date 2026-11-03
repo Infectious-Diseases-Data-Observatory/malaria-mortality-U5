@@ -5,7 +5,7 @@
 # (not in the paper). Aggregate counts only; no downloads.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge")); root <- st$out; mics <- isTRUE(st$mics)
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","gadm")); root <- st$out; mics <- isTRUE(st$mics)
 out <- file.path(root,"survey_map")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 paths <- c(coverage=file.path(root,"survey_coverage.csv"),

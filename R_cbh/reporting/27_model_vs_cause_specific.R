@@ -13,7 +13,7 @@ source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
 suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(patchwork) })
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge")); root <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "gadm")); root <- st$out
 out <- file.path(root, "model_vs_cause_specific"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 fig_year <- 2024L
 paths <- c(rates = file.path(root, sprintf("tables/country_rates_%d.csv", fig_year)),
@@ -59,26 +59,18 @@ d[, labelled := excess > above_min | excess < -below_min]
 d[, label := fifelse(labelled, sub("^(Central African|Republic of|Equatorial) ", "\\1\n", fcoalesce(unname(full_name[country]), country)), "")]
 # Fixed label positions: offset from the point to the label centre, in rates per 1,000, chosen on these data so that
 # no label covers a point or another label and no leader crosses another or passes through a point. The script stops
-# if the labelled set changes. Positions are per version: gadm_merge (branch gadm-admin1) keeps the v14 positions,
-# whose points moved by less than 0.6 per 1,000, and adds South Sudan; a version without any lets ggrepel place them.
+# if the labelled set changes. Positions are per version (gadm: set on the GADM-unit estimates, 3 November 2026); a
+# version without rows lets ggrepel place the labels.
 offsets <- fread(text = "version,panel,iso3,dx,dy
-snow_merge,A,GNQ,0.900,4.800
-snow_merge,A,LBR,0.900,-0.600
-snow_merge,B,BDI,1.100,-0.500
-snow_merge,B,CAF,-1.300,1.300
-snow_merge,B,GNQ,1.400,-0.800
-snow_merge,B,NER,0.700,0.600
-snow_merge,B,RWA,1.400,0.400
-snow_merge,B,TCD,-0.400,0.600
-gadm_merge,A,GNQ,0.900,4.800
-gadm_merge,A,LBR,0.900,-0.600
-gadm_merge,B,BDI,1.100,-0.500
-gadm_merge,B,CAF,-1.300,1.300
-gadm_merge,B,GNQ,1.400,-0.800
-gadm_merge,B,NER,0.700,0.600
-gadm_merge,B,RWA,1.400,0.400
-gadm_merge,B,TCD,-0.400,0.600
-gadm_merge,B,SSD,-1.900,-0.400")[version == st$version, !"version"]
+gadm,A,GNQ,0.900,4.800
+gadm,A,LBR,0.900,-0.600
+gadm,B,BDI,1.100,-0.500
+gadm,B,CAF,-1.300,1.300
+gadm,B,GNQ,1.400,-0.800
+gadm,B,NER,0.700,0.600
+gadm,B,RWA,1.400,0.400
+gadm,B,TCD,-0.400,0.600
+gadm,B,SSD,-1.900,-0.400")[version == st$version, !"version"]
 fixed_labels <- nrow(offsets) > 0
 if (fixed_labels) stopifnot(setequal(paste(offsets$panel, offsets$iso3), d[labelled == TRUE, paste(panel, iso3)]))
 d[, c("dx", "dy") := 0]

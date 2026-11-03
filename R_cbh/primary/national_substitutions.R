@@ -1,11 +1,11 @@
-# Declared national-covariate substitutions of the Snow-unit primary (author decision, 12 October 2026). South Sudan
+# Declared national-covariate substitutions of the primary (author decision, 12 October 2026). South Sudan
 # became independent in July 2011 and its World Bank and WGI series start in 2008 (GDP), 2011 (political stability) and
 # 2017 (health expenditure): for band-entry years before 2011 it takes Sudan's (SDN) GDP per capita, health expenditure
 # per capita and political stability for the same year, from the same files (cbh_config()$annual_panels) with the
 # validity rules and transformations of cbh_attach_external(). This replaces South Sudan's own 2008-2010 GDP too, so
 # the pre-independence series is Sudan's throughout. Child HIV incidence is not substituted (South Sudan has its own
-# UNAIDS series). Used by R_cbh/primary/00_prepare_snow.R (merge variant) and the Snow branch of
-# R_cbh/sensitivity/imputation_dhsmics (01_impute_national.R, 03_prepare.R). Source after load_pipeline.R.
+# UNAIDS series). Used by R_cbh/primary/00_prepare.R and R_cbh/sensitivity/imputation_dhsmics (01_impute_national.R,
+# 03_prepare.R). Source after load_pipeline.R.
 cbh_national_substitutions <- function() data.frame(country = "SSD", source_country = "SDN", before_year = 2011L,
   note = "independent from July 2011", stringsAsFactors = FALSE)
 # The substituted covariates: model variable, raw column (as named by cbh_attach_external()), annual panel, log scale.

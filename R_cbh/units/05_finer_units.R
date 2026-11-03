@@ -1,59 +1,57 @@
 #!/usr/bin/env Rscript
-# Can a finer location variable place the records of split survey-regions inside single Snow polygons? (Ported from
-# the analysis project's R_cbh/snow_units/03_finer_units.R.) For each survey with records in split survey-regions
-# (03_feasibility.R), every finer candidate variable from 04_location_variables.R (more values than the survey has
-# regions, values with names) is matched:
+# Can a finer location variable place the records of split survey-regions inside single units? For each survey with
+# records in split survey-regions (03_feasibility.R), every finer candidate variable from 04_location_variables.R (more
+# values than the survey has regions, values with names) is matched:
 #   geometry: to the region polygons of any local DHS boundary file of the same country (keys as in the child-band
-#             builder); a matched unit is placed if >= 90% of its GPW 2020 population lies in one of the 520 polygons;
-#   names:    otherwise, to a Snow polygon name in the same country, whole name ("name") or one part of a combined
-#             name such as "Trarza & Nouakchott" ("name part"), then to the documented spelling aliases in
-#             aliases of the variant (snow_settings()$aliases: config/name_aliases.csv for Snow, gadm_name_aliases.csv
-#             for GADM; "alias"; an alias to a malaria-free unit counts as malaria-free).
+#             builder); a matched unit is placed if >= 90% of its GPW 2020 population lies in one endemic unit;
+#   names:    otherwise, to a unit name in the same country, whole name ("name") or one part of a combined name split at
+#             ",", "&", " and " or "/" ("name part"), then to the reviewed spelling aliases (S$aliases,
+#             config/name_aliases.csv; "alias"; an alias to a malaria-free unit counts as malaria-free).
 # The variable placing the most records is kept. Records are the eligible child-band records of the shards, linked to
 # their recode row through child_id (survey:c:<row>), which holds for DHS and MICS.
-# Reviewed fixes (made after the reproduction of the analysis project's split dataset): variables describing a previous
-# residence are never location variables (R_cbh/snow/config/finer_variable_exclusions.csv; UG7BFL s104), and a
-# variable that places no record is not chosen (its records use their survey-region, as before).
+# Reviewed fixes: variables describing a previous residence or a health facility are never location variables
+# (config/finer_variable_exclusions.csv: UG7BFL s104; MZ41FL s321, s321d, s321p), and a variable that places no record
+# is not chosen (its records use their survey-region).
 # Output: <out>/feasibility/finer_{variable_choice,unit_crosswalk}.csv, record_placement_by_region.csv,
 #         survey_feasibility_final_all.csv (aggregates)
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr); library(haven) })
 sf_use_s2(FALSE)
-source("R_cbh/R/geography.R"); source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/placement.R")
-S <- snow_settings(); out <- file.path(S$out, "feasibility")
-snow <- readRDS(snow_polygons_path(S))[, c("Admin_ID", "Country_ID", "AFR_Admin", "Type", "in520")]
+source("R_cbh/R/geography.R"); source("R_cbh/units/R/settings.R"); source("R_cbh/units/R/placement.R")
+S <- units_settings(); out <- file.path(S$out, "feasibility")
+layer <- readRDS(units_polygons_path(S))[, c("Admin_ID", "Country_ID", "AFR_Admin", "Type", "endemic")]
 cls <- fread(file.path(out, "region_classification.csv"))
 inv <- fread(file.path(out, "location_variables.csv"))
 registry <- fread("data/derived_dhs/survey_registry.csv")
 setup <- fread("data/derived_mics/survey_setup.csv")
 dens <- crop(rast("data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"), ext(-26, 60, -36, 28))
 popc <- dens * cellSize(dens, unit = "km")
-excl <- fread("R_cbh/snow/config/finer_variable_exclusions.csv")
+excl <- fread("R_cbh/units/config/finer_variable_exclusions.csv")
 
-# Population share of each polygon in each Snow polygon; returns the largest share and its polygon.
+# Population share of each finer-unit polygon in each unit of the layer; returns the largest share and its unit.
 overlay <- function(p) {
   p <- suppressWarnings(st_cast(st_collection_extract(st_make_valid(p), "POLYGON"), "MULTIPOLYGON"))
-  pcs <- suppressWarnings(st_intersection(p, snow)); pcs <- pcs[st_dimension(pcs) == 2, ]
+  pcs <- suppressWarnings(st_intersection(p, layer)); pcs <- pcs[st_dimension(pcs) == 2, ]
   pcs$pop <- exact_extract(popc, pcs, "sum", progress = FALSE)
   x <- as.data.table(st_drop_geometry(pcs))[, share := pop / sum(pop), by = key]
-  x[order(-share), .(top_admin = Admin_ID[1], top_in520 = in520[1], top_share = share[1]), by = key]
+  x[order(-share), .(top_admin = Admin_ID[1], top_endemic = endemic[1], top_share = share[1]), by = key]
 }
-snow_names <- as.data.table(st_drop_geometry(snow))[, .(Admin_ID, Country_ID, in520, whole = cbh_rkey(AFR_Admin), AFR_Admin)]
-parts <- snow_names[, .(part = cbh_rkey(trimws(unlist(strsplit(AFR_Admin, ",|&| and |/"))))), by = .(Admin_ID, Country_ID, in520)][nzchar(part)]
+unit_names <- as.data.table(st_drop_geometry(layer))[, .(Admin_ID, Country_ID, endemic, whole = cbh_rkey(AFR_Admin), AFR_Admin)]
+parts <- unit_names[, .(part = cbh_rkey(trimws(unlist(strsplit(AFR_Admin, ",|&| and |/"))))), by = .(Admin_ID, Country_ID, endemic)][nzchar(part)]
 aliases <- fread(S$aliases)
-aliases <- merge(aliases, snow_names[, .(country = Country_ID, snow_name = AFR_Admin, Admin_ID, in520)], by = c("country", "snow_name"))
+aliases <- merge(aliases, unit_names[, .(country = Country_ID, unit_name = AFR_Admin, Admin_ID, endemic)], by = c("country", "unit_name"))
 stopifnot(nrow(aliases) == nrow(fread(S$aliases)))
 
 # Eligible records of every shard (one row per child: records = number of its child-band records).
 rd <- rbindlist(lapply(cls[, unique(survey)], function(s) {
-  d <- as.data.table(readRDS(snow_shard_path(s))$data[, c("survey", "regkey", "region", "child_id")])
-  d <- d[snow_eligible(d)]
+  d <- as.data.table(readRDS(units_shard_path(s))$data[, c("survey", "regkey", "region", "child_id")])
+  d <- d[units_eligible(d)]
   d[, c("survey", "regkey", "child_id") := lapply(.SD, as.character), .SDcols = c("survey", "regkey", "child_id")]
   d[, .(records = .N), by = .(survey, regkey, child_id)]
 }))
 setorder(rd, child_id)   # child_id order, as when the v9 counts were merged in (keeps the crosswalk's row order)
 rd[, row := as.integer(sub(".*:c:", "", child_id))]
 rd <- merge(rd, cls[, .(survey, regkey, class)], by = c("survey", "regkey"))
-split_surveys <- cls[class == "split across Snow polygons", unique(survey)]
+split_surveys <- cls[class == "split across units", unique(survey)]
 skip <- "lived before|circumcis|fistula|unicef|cluster|ward|locality|parish|moved|previous|lived in"
 
 choice <- list(); crosswalk <- list(); placement <- list()
@@ -64,8 +62,7 @@ for (s in split_surveys) {
   cand <- cand[!duplicated(variable)]
   if (!nrow(cand)) { choice[[s]] <- data.table(survey = s, variable = NA_character_, note = "no finer named variable"); next }
   x <- rd[survey == s]
-  # A MICS variable inventoried only in hh.sav cannot be linked to the bh.sav records (first met with the GADM units:
-  # MC_SEN2015DKR CT4D); every variable reached under the Snow units is in the file.
+  # A MICS variable inventoried only in hh.sav cannot be linked to the bh.sav records (MC_SEN2015DKR CT4D).
   bh <- if (startsWith(s, "MC_")) file.path("data/raw/MICS_extracted", setup[svkey == s, folder], "bh.sav") else NULL
   rec <- if (is.null(bh)) readRDS(registry[svkey == s, local_recode][1]) else NULL
   cand <- cand[variable %in% (if (is.null(bh)) names(rec) else names(read_sav(bh, n_max = 0)))]
@@ -80,8 +77,8 @@ for (s in split_surveys) {
   bkeys <- lapply(bfiles, function(f) cbh_rkey(readRDS(f)$DHSREGEN)); names(bkeys) <- bfiles
   res <- lapply(cand$variable, function(v) {
     val <- src[[v]][x$row]
-    u <- x[, .(records = sum(records), split_records = sum(records[class == "split across Snow polygons"])), by = .(value = val)]
-    u[, key := snow_clean_key(value)]
+    u <- x[, .(records = sum(records), split_records = sum(records[class == "split across units"])), by = .(value = val)]
+    u[, key := units_clean_key(value)]
     cover <- vapply(bkeys, function(k) sum(u$records[u$key %in% k]) / sum(u$records), 0)
     best <- if (length(cover) && max(cover) >= 0.9) names(which.max(cover)) else NA_character_
     u[, `:=`(boundary = best, method = NA_character_, Admin_ID = NA_character_, share = NA_real_)]
@@ -90,17 +87,17 @@ for (s in split_surveys) {
       b <- b[b$key %in% u$key & !duplicated(b$key), "key"]
       o <- overlay(st_transform(b, 4326))
       u <- merge(u, o, by = "key", all.x = TRUE)
-      u[!is.na(top_share), `:=`(method = fifelse(top_share >= S$whole & top_in520, "geometry", "geometry: split"),
+      u[!is.na(top_share), `:=`(method = fifelse(top_share >= S$whole & top_endemic, "geometry", "geometry: split"),
                                  Admin_ID = top_admin, share = top_share)]
-      u[, c("top_admin", "top_in520", "top_share") := NULL]
+      u[, c("top_admin", "top_endemic", "top_share") := NULL]
     }
-    sn <- snow_names[Country_ID == iso & in520 == TRUE]; sp <- parts[Country_ID == iso & in520 == TRUE]
+    sn <- unit_names[Country_ID == iso & endemic == TRUE]; sp <- parts[Country_ID == iso & endemic == TRUE]
     u[is.na(method) & key %in% sn$whole, `:=`(method = "name", Admin_ID = sn$Admin_ID[match(key, sn$whole)])]
     ambiguous <- sp$part[duplicated(sp$part)]   # a part shared by several polygons cannot place a unit
     u[is.na(method) & key %in% sp$part & !key %in% ambiguous,
       `:=`(method = "name part", Admin_ID = sp$Admin_ID[match(key, sp$part)])]
     al <- aliases[country == iso]
-    u[is.na(method) & key %in% al$value_key, `:=`(method = fifelse(al$in520[match(key, al$value_key)], "alias", "malaria-free (alias)"),
+    u[is.na(method) & key %in% al$value_key, `:=`(method = fifelse(al$endemic[match(key, al$value_key)], "alias", "malaria-free (alias)"),
                                                  Admin_ID = al$Admin_ID[match(key, al$value_key)])]
     u[is.na(method), method := "unmatched"]
     u[, `:=`(survey = s, variable = v)]
@@ -138,10 +135,10 @@ fwrite(crosswalk[, .(survey, variable, value, key, records, split_records, metho
 # Final placement of every record: by its survey-region, or (in split regions) by the chosen finer variable.
 pl <- rbindlist(placement)
 rd <- merge(rd, pl[, .(child_id, finer_method)], by = "child_id", all.x = TRUE)
-rd[, placed := fcase(class %like% "^inside one of the 520", "assignable (survey-region)",
-                     class == "split across Snow polygons" & finer_method %in% c("geometry", "name", "name part", "alias"), "assignable (finer variable)",
+rd[, placed := fcase(class %like% "^inside one unit", "assignable (survey-region)",
+                     class == "split across units" & finer_method %in% c("geometry", "name", "name part", "alias"), "assignable (finer variable)",
                      class == "inside a malaria-free/island unit" | finer_method %in% "malaria-free (alias)", "malaria-free or island unit",
-                     class == "no polygon", "outside the shapefile (Comoros, Zanzibar, Sao Tome)",
+                     class == "no polygon", "outside the layer (Comoros, Zanzibar, Sao Tome)",
                      default = "not assignable (split, no finer location)")]
 fwrite(rd[, .(records = sum(records)), by = .(survey, regkey, class, finer_method, placed)],
        file.path(out, "record_placement_by_region.csv"))

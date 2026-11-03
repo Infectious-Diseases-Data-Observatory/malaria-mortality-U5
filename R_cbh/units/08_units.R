@@ -1,19 +1,19 @@
 #!/usr/bin/env Rscript
-# Analysis units of the placed child-band records (R_cbh/snow/R/placement.R, snow_assign). Placement is per child
-# (all bands of a child share it), so units are assigned per child and carried to its bands.
-#   merge (primary; user decisions of 11 October 2026; tested in the analysis project's 19_merge_rule_all.R): the
-#     record's unit is the Snow polygon holding >= 90% of its smallest reported admin unit's population, else the
-#     union of the polygons each holding >= 5%; records whose unit is more than half malaria-free are dropped; one row
-#     per record, w = 1. Records of a survey with the same polygon set form one unit; units of a survey can overlap.
+# Analysis units of the placed child-band records (R_cbh/units/R/placement.R, units_assign). Placement is per child
+# (all bands of a child share it), so units are assigned per child and carried to its bands. Merge rule (user decisions
+# of 11 October 2026): the record's unit is the GADM admin-1 unit holding >= 90% of its smallest reported admin unit's
+# population, else the union of the admin-1 units each holding >= 5%; records whose unit is more than half malaria-free
+# are dropped; one row per record, w = 1. Records of a survey with the same set of admin-1 units form one analysis unit;
+# analysis units of a survey can overlap.
 # Writes <private>/records_units.rds (record level; private) and, in <out>/units/, units.csv (one row per survey x unit),
 # units_by_survey.csv and dropped_malaria_free.csv (aggregates).
 suppressPackageStartupMessages(library(data.table))
-source("R_cbh/R/geography.R"); source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/placement.R")
-S <- snow_dirs(snow_settings(), "units"); out <- file.path(S$out, "units")
+source("R_cbh/R/geography.R"); source("R_cbh/units/R/settings.R"); source("R_cbh/units/R/placement.R")
+S <- units_dirs(units_settings(), "units"); out <- file.path(S$out, "units")
 rec <- readRDS(file.path(S$private, "records_placed.rds"))
 pl <- unique(rec[, .(id = child_id, Admin_ID, w, rule)])
 stopifnot(!anyDuplicated(pl[, .(id, Admin_ID)]))
-un <- snow_assign(pl, S)
+un <- units_assign(pl, S)
 base <- unique(rec[, !c("Admin_ID", "w", "rule"), with = FALSE])
 stopifnot(!anyDuplicated(base[, .(child_id, age_band)]))
 d <- merge(base, un[, .(child_id = id, unit, w, rule, n_polygons, malaria_free)], by = "child_id")
@@ -30,5 +30,5 @@ fwrite(bys[order(country, survey)], file.path(out, "units_by_survey.csv"))
 fwrite(dropped[, .(records = .N, deaths = sum(death), mean_malaria_free = mean(malaria_free)), by = .(survey, country, regkey)][order(survey, regkey)],
        file.path(out, "dropped_malaria_free.csv"))
 cat(sprintf("%s (%s rule): %d surveys, %s records (%s deaths), %d units (%d merged; %.1f%% of records), %s records dropped as mostly malaria-free\n",
-  S$variant, S$rule, uniqueN(d$survey), format(round(sum(d$w)), big.mark = ","), format(round(sum(d$w * d$death)), big.mark = ","),
+  S$units, S$rule, uniqueN(d$survey), format(round(sum(d$w)), big.mark = ","), format(round(sum(d$w * d$death)), big.mark = ","),
   nrow(units), sum(units$n_polygons > 1), 100 * sum(units[n_polygons > 1, records]) / sum(units$records), format(nrow(dropped), big.mark = ",")))

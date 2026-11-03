@@ -3,8 +3,8 @@
 # Most of the variation in PfPR lies between countries, and the country random intercept is shrunk towards zero, so
 # part of the PfPR effect may be estimated from between-country contrasts that the four national covariates do not
 # fully adjust. With a fixed effect for each country, the PfPR effect is estimated from variation within countries
-# only. This refits the seven primary age-band models of the Snow primary on the SAME complete-case sample with the
-# same 17 covariates, reference knots, gamma = 2, offset and survey and survey x unit random intercepts; the only
+# only. This refits the seven primary age-band models of the GADM-unit primary on the SAME complete-case sample with
+# the same 17 covariates, reference knots, gamma = 2, offset and survey and survey x unit random intercepts; the only
 # change is s(country, bs = "re") -> country. No data rebuild, no HIV refit, no TeX writes.
 # Outputs (results/cbh/<id>/): fit_input_provenance.csv, covariate_scaling.csv, model_formula.txt, fit_diagnostics.csv,
 # pfpr_curves.csv (log HR relative to PfPR 20%), smooth_summaries.csv, fit_manifest.csv, session_info.txt; and
@@ -16,11 +16,12 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 library(mgcv); library(data.table)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--force"))
-# Snow primary only (the paper's primary since October 2026).
-stopifnot(identical(Sys.getenv("CBH_PRIMARY_VERSION"), "snow_merge"))
-st <- list(id = "country_fixed_effects_snow520_merge_gamma2_v2", replaced = "s(country, bs = \"re\")", by = "country")
+# GADM-unit primary only (v3 on primary v15; the Snow-unit v1-v2 were replaced with it, author decision 3 November
+# 2026; code in git history up to f2db98e).
+stopifnot(identical(Sys.getenv("CBH_PRIMARY_VERSION", "gadm"), "gadm"))
+st <- list(id = "country_fixed_effects_gadm_merge_gamma2_v3", replaced = "s(country, bs = \"re\")", by = "country")
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
-primary <- cbh_primary_settings("snow_merge"); stopifnot(isTRUE(primary$nutrition))
+primary <- cbh_primary_settings("gadm"); stopifnot(isTRUE(primary$nutrition))
 for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 

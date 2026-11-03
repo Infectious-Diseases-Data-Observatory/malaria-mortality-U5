@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Multiple-imputation check for the imputed-covariate sensitivity of the Snow-unit primary, as for
+# Multiple-imputation check for the imputed-covariate sensitivity of the GADM-unit primary, as for
 # the former DHS-only version (in git history). For each of M
 # imputed datasets (regional mice imputations; national draws of health expenditure,
 # GDP and political stability; child HIV incidence draws), refit the seven age-band
@@ -46,7 +46,7 @@ varied <- data.frame(component = c("regional covariates (any)", "health expendit
   "child HIV incidence (imputed or censored series)"),
   records = c(sum(rowSums(as.matrix(imputed_flags)) > 0), vapply(nk, function(x) sum(!is.na(x)), 0L), sum(vary_hiv)))
 write_csv(varied, "records_varied_by_component.csv")
-# Countries whose records take each national draw (the Snow-unit report names them).
+# Countries whose records take each national draw (the report names them).
 drawn <- vapply(nk, function(x) { k <- unique(as.character(d0$country[!is.na(x)]))
   if (!length(k)) return("no analysed record"); k <- sort(countrycode::countrycode(k, "iso3c", "country.name", warn = FALSE))
   paste("records in", if (length(k) > 1) paste(paste(k[-length(k)], collapse = ", "), "and", k[length(k)]) else k) }, "")

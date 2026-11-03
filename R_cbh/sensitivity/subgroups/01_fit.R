@@ -2,7 +2,7 @@
 # Refit the seven primary age-band models in four subgroups of the fitted
 # 17-variable sample: Sahel (>=12N), Eastern Africa, and surveys before/after
 # the median survey year. Subsets the saved prepared data; no data/HIV rebuild.
-# The Snow-unit primary (snow_merge); the v9 and DHS-only refits were removed with v9 (1 November 2026).
+# The GADM-unit primary (CBH_PRIMARY_VERSION=gadm).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
 source("R_cbh/sensitivity/model.R")

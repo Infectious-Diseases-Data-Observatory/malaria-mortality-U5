@@ -25,8 +25,8 @@ input <- prepared$data
 # Expected counts: set from the verified run (NULL until then).
 if(!is.null(settings$expected_records)) stopifnot(nrow(input)==settings$expected_records,sum(input$death)==settings$expected_deaths)
 stopifnot(!anyNA(input$child_id),data.table::uniqueN(input,by=c("child_id","age_band"))==nrow(input))
-# The Snow primary (merge rule) has one row per record with weight 1; weighted (split) data are not fitted here.
-if(identical(settings$unit,"snow")) stopifnot(all(input$w==1))
+# The merge rule gives one row per record with weight 1; weighted (split) data are not fitted here.
+if(identical(settings$unit,"gadm")) stopifnot(all(input$w==1))
 cbh_atomic_csv(data.frame(distinct_children=data.table::uniqueN(input$child_id),records=nrow(input),
   deaths=sum(input$death),surveys=data.table::uniqueN(input$survey),countries=data.table::uniqueN(input$country)),
   file.path(out,"primary_sample.csv"))

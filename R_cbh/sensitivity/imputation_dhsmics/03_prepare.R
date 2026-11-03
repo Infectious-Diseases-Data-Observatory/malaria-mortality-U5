@@ -1,11 +1,11 @@
 #!/usr/bin/env Rscript
-# Analysis dataset for the imputed-covariate sensitivity of the Snow-unit primary: every placed record
-# (R_cbh/snow/08_units.R), keyed by survey x unit, with regional covariates from the jointly imputed overlay, the three
+# Analysis dataset for the imputed-covariate sensitivity of the GADM-unit primary: every placed record
+# (R_cbh/units/08_units.R), keyed by survey x unit, with regional covariates from the jointly imputed overlay, the three
 # national series (political stability, log GDP, log health expenditure) from the imputed national panel by country
 # and band entry year, and child HIV incidence from the extended panel. Every placed record must be retained.
 # Covariates are re-standardised on this sample. No TeX writes; the prepared data stay under the ignored data folder.
 # The records first take the primary's declared national substitutions (R_cbh/primary/national_substitutions.R, as
-# R_cbh/primary/00_prepare_snow.R), so the observed-value check below also verifies that the imputed panel (01) holds
+# R_cbh/primary/00_prepare.R), so the observed-value check below also verifies that the imputed panel (01) holds
 # the same values; substituted records are counted separately (national_substituted), not as imputed.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/analysis/model.R")
@@ -22,7 +22,7 @@ stopifnot(identical(unname(vapply(provenance$file, cbh_file_hash, "")), provenan
 dmeta <- readRDS(file.path(cfg$output_dir, "manifest.rds")); mmeta <- readRDS(file.path(st$mics_output_dir, "manifest.rds"))
 stopifnot(dmeta$complete, mmeta$complete)
 source_files <- c(file.path(cfg$output_dir, "manifest.rds"), file.path(st$mics_output_dir, "manifest.rds"),
-  st$snow_records, st$snow_pfpr, "R_cbh/primary/national_substitutions.R",
+  st$unit_records, st$unit_pfpr, "R_cbh/primary/national_substitutions.R",
   file.path(st$imputation_results, c("regional_imputation_provenance.csv", "national_imputation_provenance.csv")),
   st$imputed_overlay, st$imputed_national, st$hiv_panel,
   "R_cbh/sensitivity/imputation_dhsmics/03_prepare.R", "R_cbh/sensitivity/imputation_dhsmics/settings.R",
@@ -46,14 +46,14 @@ national_vars <- c(political_stability = "political_stability", log_gdp_pc = "lo
 stopifnot(all(national_vars %in% spec$covariates))
 pieces <- selections <- counts_by_survey <- list()
 max_diff <- setNames(numeric(length(national_vars)), national_vars)
-# Every placed record (R_cbh/snow/08_units.R), keyed by survey x unit (column regkey of the imputed overlay holds the
-# unit); exposure = PfPR of the unit at band entry (as R_cbh/primary/00_prepare_snow.R).
-rec <- as.data.frame(readRDS(st$snow_records))
+# Every placed record (R_cbh/units/08_units.R), keyed by survey x unit (column regkey of the imputed overlay holds the
+# unit); exposure = PfPR of the unit at band entry (as R_cbh/primary/00_prepare.R).
+rec <- as.data.frame(readRDS(st$unit_records))
 stopifnot(all(rec$w == 1))
 ns <- cbh_national_substitute(rec$country, rec$entry_year, cfg)
 for (v in national_vars) { stopifnot(all(is.finite(ns[[v]]))); rec[[v]][ns$row] <- ns[[v]] }
 shards <- unique(data.frame(programme = ifelse(startsWith(rec$survey, "MC_"), "MICS", "DHS"), survey = rec$survey, country = rec$country))
-pf <- cbh_read_csv(st$snow_pfpr)
+pf <- cbh_read_csv(st$unit_pfpr)
 units <- unique(rec$unit)
 um <- do.call(rbind, lapply(units, function(u) data.frame(unit = u, Admin_ID = strsplit(u, "+", fixed = TRUE)[[1]])))
 um <- merge(um, pf[c("Admin_ID", "year", "pfpr2_10", "population_weight")], by = "Admin_ID")

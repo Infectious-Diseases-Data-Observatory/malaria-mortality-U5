@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Explicit public-data refresh; never reads or uploads respondent data.
-# Run from project root. R_cbh/snow/09_covariates_dhs.R validates against the national rows of this local snapshot
+# Run from project root. R_cbh/units/09_covariates_dhs.R validates against the national rows of this local snapshot
 # offline. National level only since 1 November 2026: the sub-national rows fed the removed v9 survey-region overlay.
 # The indicator query is unchanged, so the cached pages (named by level and batch) still match it.
 library(jsonlite)

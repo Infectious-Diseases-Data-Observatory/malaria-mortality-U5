@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
-# Regional covariates of each (DHS survey, Snow unit), recomputed from the recodes (user decision, 6 October 2026)
-# with the definitions of the v9 covariates (ported from the analysis project's 07_covariates_dhs.R in its
-# Snow-unit folder; only the grouping, paths and survey list differ; the v9 survey-region code that defined them,
-# R_cbh/covariates/regional.R, 11_extract_first_birth_age.R and 17_recode_replacements.R, was removed on 1 November 2026):
+# Regional covariates of each (DHS survey, analysis unit), recomputed from the recodes (user decision, 6 October 2026)
+# with the definitions of the v9 covariates (only the grouping, paths and survey list differ; the v9 survey-region code
+# that defined them, R_cbh/covariates/regional.R, 11_extract_first_birth_age.R and 17_recode_replacements.R, was
+# removed on 1 November 2026):
 #   BR (women's weight v005): mean maternal age at first birth (v212), education years (v133), wealth quintile (v190)
 #     and urban % (v025) over mothers with a live birth in the 60 months before interview, one row per mother;
 #     DTP3 (all of h3/h5/h7) and measles (h9) among living children 12-23 months; facility delivery (m15) among
@@ -16,30 +16,30 @@
 #   (each reproduces the published national value). Unknown labels stop (label_rules.R). Blank items (not asked) are outside the
 #   denominator; "missing" answers count as "no". Water labels without type information ("spring", "water vendor")
 #   take, per survey, the classification whose national value is closest to the published national value.
-# Placement (R_cbh/snow/R/placement.R): BR rows by their survey-region and finer location; PR rows by their cluster
-# (hv001 = v001), located from the BR rows of that cluster; then their analysis unit (snow_assign, merge rule): one
+# Placement (R_cbh/units/R/placement.R): BR rows by their survey-region and finer location; PR rows by their cluster
+# (hv001 = v001), located from the BR rows of that cluster; then their analysis unit (units_assign, merge rule): one
 # unit per row (weight = survey weight).
 # Outputs: <private>/covariates_dhs_long.csv (survey x unit x variable; private) and, in <out>/covariates/:
 #   dhs_national_validation.csv, dhs_region_consistency.csv, dhs_audit.csv.
 # Optional: --survey=AO71FL,BF62FL to run a subset (outputs then carry a _subset suffix).
 suppressPackageStartupMessages(library(data.table))
 source("R_cbh/load_pipeline.R")
-source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/placement.R"); source("R_cbh/snow/R/dhs_files.R"); source("R_cbh/snow/R/label_rules.R")
-S <- snow_dirs(snow_settings(), "covariates")
+source("R_cbh/units/R/settings.R"); source("R_cbh/units/R/placement.R"); source("R_cbh/units/R/dhs_files.R"); source("R_cbh/units/R/label_rules.R")
+S <- units_dirs(units_settings(), "covariates")
 cfg <- cbh_config()
 reg <- cbh_read_csv(cfg$registry); rules <- cbh_read_csv(cfg$survey_rules)
 bounds <- unique(cbh_read_csv(cfg$boundary_regions)[c("svkey", "region", "regkey")]); ov <- cbh_read_csv(cfg$region_overrides)
 priv <- S$private; out <- file.path(S$out, "covariates")
 cls <- fread(file.path(S$out, "feasibility", "region_classification.csv"))
-surveys <- intersect(snow_all_shards(), cls[programme == "DHS", unique(survey)])
+surveys <- intersect(units_all_shards(), cls[programme == "DHS", unique(survey)])
 only <- sub("^--survey=", "", grep("^--survey=", commandArgs(TRUE), value = TRUE))
 suffix <- if (length(only)) "_subset" else ""
 if (length(only)) surveys <- intersect(surveys, strsplit(only, ",")[[1]])
-R <- snow_rules(S)
-series <- fread("R_cbh/snow/config/vaccine_series.csv"); overrides <- fread("R_cbh/snow/config/label_overrides.csv")
+R <- units_rules(S)
+series <- fread("R_cbh/units/config/vaccine_series.csv"); overrides <- fread("R_cbh/units/config/label_overrides.csv")
 overrides[, label := gsub('""', '"', label, fixed = TRUE)]   # CSV-escaped quotes as read by fread; labels carry single quotes
 # Reviewed survey-specific label decisions take precedence; the general rules (f) classify the remaining labels, so a
-# label covered by an override need not be known to label_rules.R (labels of the surveys added for the Snow units).
+# label covered by an override need not be known to label_rules.R (labels of the surveys added since v9).
 override <- function(sv, item, x, f) {
   o <- overrides[survey == sv & variable == item]; hit <- x %in% o$label
   out <- rep(NA_real_, length(x)); if (any(!hit)) out[!hit] <- f(x[!hit])
@@ -66,7 +66,7 @@ published <- function(id) {
 lab <- function(d, v) if (v %in% names(d)) tolower(trimws(cbh_label(d[[v]]))) else rep(NA_character_, nrow(d))
 num <- function(d, v) cbh_column(d, v, TRUE)
 wmean <- function(x, w) { ok <- is.finite(x) & is.finite(w) & w > 0; if (any(ok)) sum(x[ok] * w[ok]) / sum(w[ok]) else NA_real_ }
-# Weighted mean of a row-level value by unit over placed rows (id = row index or cluster id; pl from snow_assign).
+# Weighted mean of a row-level value by unit over placed rows (id = row index or cluster id; pl from units_assign).
 by_unit <- function(sv, var, pop, value, mask, w, pl, key) {
   i <- match(pl$id, key); x <- value[i]; m <- mask[i]; ww <- w[i] * pl$w
   d <- data.table(unit = pl$unit, x, m, ww)[m %in% TRUE & is.finite(ww) & ww > 0]
@@ -99,50 +99,50 @@ for (sv in surveys) {
   alive <- cbh_decode_category(br$b5, c("no", "yes"), c(0, 1))
   child <- is.finite(age_c) & age_c >= 12 & age_c <= 23 & alive %in% 1
   births <- is.finite(age_c) & age_c >= 0 & age_c < 60
-  hd <- lapply(c("h3", "h5", "h7", xd), function(v) snow_vacc(lab(br, v)))
-  hm <- lapply(c("h9", xm), function(v) snow_vacc(lab(br, v)))
+  hd <- lapply(c("h3", "h5", "h7", xd), function(v) units_vacc(lab(br, v)))
+  hm <- lapply(c("h9", xm), function(v) units_vacc(lab(br, v)))
   asked <- Reduce(`|`, lapply(hd, Negate(is.na))); asked_m <- Reduce(`|`, lapply(hm, Negate(is.na)))
   dtp_doses <- Reduce(`+`, lapply(hd, function(z) z %in% 1)); measles_any <- Reduce(`|`, lapply(hm, function(z) z %in% 1))
-  b11 <- num(br, "b11"); m15 <- lab(br, "m15"); fac <- override(sv, "m15", m15, snow_facility)
+  b11 <- num(br, "b11"); m15 <- lab(br, "m15"); fac <- override(sv, "m15", m15, units_facility)
   bv <- list(mean_maternal_age_first_birth = afb, mean_maternal_education_years = educ, mean_wealth_quintile = wealth,
     urban_pct = 100 * (urban == 1), dtp3_pct = ifelse(asked, 100 * (dtp_doses >= 3), NA),
     measles_pct = ifelse(asked_m, 100 * measles_any, NA), facility_delivery_pct = 100 * fac, short_birth_interval_pct = ifelse(is.finite(b11), 100 * (b11 >= 7 & b11 <= 23), NA))
   bm <- list(first, first, first, first, child, child, births, births & is.finite(b11)); names(bm) <- names(bv)
   bp <- c(rep("mothers_with_birth_last_60_months", 4), rep("living_children_12_23_months", 2), "live_births_last_60_months", "non_first_births_last_60_months")
   # Placement of BR rows.
-  fk <- if (length(fv)) snow_clean_key(cbh_column(br, fv)) else rep(NA_character_, n)
+  fk <- if (length(fv)) units_clean_key(cbh_column(br, fv)) else rep(NA_character_, n)
   known <- !is.na(geo$regkey) & paste(sv, geo$regkey) %in% paste(R$region$survey, R$region$regkey)
-  pl <- snow_assign(snow_place(data.table(id = which(known), survey = sv, regkey = geo$regkey[known], finer_key = fk[known]), R), S)
+  pl <- units_assign(units_place(data.table(id = which(known), survey = sv, regkey = geo$regkey[known], finer_key = fk[known]), R), S)
   for (k in seq_along(bv)) long[[length(long) + 1]] <- by_unit(sv, names(bv)[k], bp[k], bv[[k]], bm[[k]], w_br, pl, seq_len(n))
   for (k in 1:4) cons[[length(cons) + 1]] <- data.table(regkey = geo$regkey, x = bv[[k]], m = bm[[k]], w = w_br)[m %in% TRUE & !is.na(regkey),
     .(value = wmean(x, w)), by = regkey][, `:=`(survey = sv, variable = names(bv)[k])]
   nat <- vapply(seq_along(bv), function(k) wmean(ifelse(bm[[k]], bv[[k]], NA), w_br), 0); names(nat) <- names(bv)
 
   # PR: households and children, placed by cluster.
-  prp <- snow_pr_path(sv); if (is.na(prp)) stop(sv, ": no PR file")
+  prp <- units_pr_path(sv); if (is.na(prp)) stop(sv, ": no PR file")
   pr <- readRDS(prp); names(pr) <- tolower(names(pr)); cbh_require(pr, c("hv001", "hv002", "hv005"), paste(sv, "PR"))
   v001 <- num(br, "v001")
   cl <- data.table(cluster = v001, regkey = geo$regkey, finer_key = fk)[known & is.finite(v001)]
   cl <- cl[, .N, by = .(cluster, regkey, finer_key)][order(cluster, -N)][!duplicated(cluster)]
-  cpl <- snow_assign(snow_place(cl[, .(id = as.character(cluster), survey = sv, regkey, finer_key)], R), S)
+  cpl <- units_assign(units_place(cl[, .(id = as.character(cluster), survey = sv, regkey, finer_key)], R), S)
   hv001 <- as.character(num(pr, "hv001")); w_pr <- num(pr, "hv005") / 1e6
   hh <- !duplicated(paste(hv001, num(pr, "hv002")))
   wl <- lab(pr, "hv201"); pubv <- published(s$SurveyId)
   opts <- CJ(spring = if (any(wl[hh] == "spring", na.rm = TRUE)) c(0, 1) else 0, vendor = if (any(wl[hh] == "water vendor", na.rm = TRUE)) c(1, 0) else 1)
-  opts[, nat := mapply(function(a, b) wmean(ifelse(hh, 100 * override(sv, "hv201", wl, function(z) snow_water(z, a, b)), NA), w_pr), spring, vendor)]
+  opts[, nat := mapply(function(a, b) wmean(ifelse(hh, 100 * override(sv, "hv201", wl, function(z) units_water(z, a, b)), NA), w_pr), spring, vendor)]
   pick <- if (nrow(opts) > 1 && is.finite(pubv[["improved_water_pct"]])) which.min(abs(opts$nat - pubv[["improved_water_pct"]])) else 1L
   sl <- lab(pr, "hv205")
-  pv <- list(improved_water_pct = 100 * override(sv, "hv201", wl, function(z) snow_water(z, opts$spring[pick], opts$vendor[pick])),
-    improved_sanitation_pct = 100 * override(sv, "hv205", sl, snow_sanitation), electricity_pct = 100 * snow_yesno(lab(pr, "hv206"), paste(sv, "hv206")))
+  pv <- list(improved_water_pct = 100 * override(sv, "hv201", wl, function(z) units_water(z, opts$spring[pick], opts$vendor[pick])),
+    improved_sanitation_pct = 100 * override(sv, "hv205", sl, units_sanitation), electricity_pct = 100 * units_yesno(lab(pr, "hv206"), paste(sv, "hv206")))
   # WHO z-scores: PR hc70/hc72 when labelled WHO; otherwise the HW file (hwhhid, hwline = hhid, hvidx).
   zsrc <- "none"; z70 <- z72 <- rep(NA_real_, nrow(pr))
   lab70 <- attr(pr$hc70, "label"); if (is.null(lab70)) lab70 <- ""
   if ("hc70" %in% names(pr) && grepl("WHO", lab70)) { z70 <- num(pr, "hc70"); z72 <- num(pr, "hc72"); zsrc <- "PR (WHO)" } else {
-    hwp <- snow_hw_path(sv)
+    hwp <- units_hw_path(sv)
     if (!is.na(hwp)) { hw <- readRDS(hwp); names(hw) <- tolower(names(hw))
       j <- match(paste(trimws(cbh_column(pr, "hhid")), num(pr, "hvidx")), paste(trimws(cbh_column(hw, "hwhhid")), num(hw, "hwline")))
       z70 <- num(hw, "hc70")[j]; z72 <- num(hw, "hc72")[j]; zsrc <- "HW (WHO)" } }
-  hc1 <- num(pr, "hc1"); defacto <- snow_yesno(lab(pr, "hv103"), paste(sv, "hv103")) %in% 1
+  hc1 <- num(pr, "hc1"); defacto <- units_yesno(lab(pr, "hv103"), paste(sv, "hv103")) %in% 1
   under5 <- defacto & is.finite(hc1) & hc1 >= 0 & hc1 < 60
   pv$stunting_pct <- ifelse(is.finite(z70) & z70 < 9996, 100 * (z70 < -200), NA)
   pv$wasting_pct <- ifelse(is.finite(z72) & z72 < 9996, 100 * (z72 < -200), NA)

@@ -1,16 +1,15 @@
 #!/usr/bin/env Rscript
-# MAP PfPR2-10 for each endemic unit of the variant (the 520 Snow polygons; the GADM endemic units) and each year
-# 2000-2024 (ported from the analysis project's R_cbh/snow_units/06_pfpr_polygons.R): exact fractional polygon
-# coverage of the MAP grid, GPW v4 2020 population as weights resampled bilinearly to the MAP grid, masked to cells
-# with a MAP value. The weight is GPW density x cell area
-# (population counts). The weight sum is written with each value, so that the PfPR of a union of polygons is
-# sum(weight * PfPR) / sum(weight), identical to an extraction over the union.
-# Output: <out>/pfpr/pfpr_polygon_year.csv (polygon-year aggregates)
+# MAP PfPR2-10 for each endemic unit (the 535 endemic GADM admin-1 units) and each year 2000-2024: exact fractional
+# polygon coverage of the MAP grid, GPW v4 2020 population as weights resampled bilinearly to the MAP grid, masked to
+# cells with a MAP value. The weight is GPW density x cell area (population counts). The weight sum is written with each
+# value, so that the PfPR of a union of units is sum(weight * PfPR) / sum(weight), identical to an extraction over the
+# union.
+# Output: <out>/pfpr/pfpr_polygon_year.csv (unit-year aggregates), pfpr_raster_provenance.csv
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra) })
 sf_use_s2(FALSE)
-source("R_cbh/snow/R/settings.R")
-S <- snow_dirs(snow_settings(), "pfpr")
-p <- readRDS(snow_polygons_path(S)); p <- p[p$in520, ]
+source("R_cbh/units/R/settings.R")
+S <- units_dirs(units_settings(), "pfpr")
+p <- readRDS(units_polygons_path(S)); p <- p[p$endemic, ]
 stopifnot(nrow(p) == S$counts[["endemic"]], !anyDuplicated(p$Admin_ID))
 source("R_cbh/00_config.R")   # cbh_config()$map_raster_dir: the MAP release of every exposure
 rf <- list.files(cbh_config()$map_raster_dir, pattern = "pfpr2_10_[0-9]{4}[.]tif$", full.names = TRUE)
@@ -30,6 +29,6 @@ fwrite(res, file.path(S$out, "pfpr", "pfpr_polygon_year.csv"))
 # Which rasters were read (the MAP release is otherwise invisible downstream).
 fwrite(data.table(file = rf[order(ry)], md5 = unname(tools::md5sum(rf[order(ry)])), map_release = cbh_config()$map_release),
        file.path(S$out, "pfpr", "pfpr_raster_provenance.csv"))
-cat(sprintf("%s (density x area weights): %d polygons x %d years; PfPR %.1f-%.1f%%; polygons without a value: %d\n", S$variant,
+cat(sprintf("%s (density x area weights): %d units x %d years; PfPR %.1f-%.1f%%; units without a value: %d\n", S$units,
             uniqueN(res$Admin_ID), uniqueN(res$year), min(res$pfpr2_10, na.rm = TRUE), max(res$pfpr2_10, na.rm = TRUE),
             uniqueN(res[!is.finite(pfpr2_10), Admin_ID])))

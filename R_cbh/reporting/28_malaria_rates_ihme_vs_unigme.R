@@ -4,7 +4,8 @@
 # 2024, from IHME all-cause deaths against UN IGME all-cause deaths, for the 42 burden countries. Reads the crisis-free
 # rates of R_cbh/burden/04_annual_comparison.R. It supplies the UN IGME / IHME ratio range quoted in the Results.
 #   Point: one country, coloured by UN M49 sub-region as in the mortality-rate figures; dashed line: equality.
-#   Labels: countries at 1.5 or more per 1,000 in either source, at fixed positions beside their points.
+#   Labels: countries at 1.5 or more per 1,000 in either source, at fixed positions beside their points where the
+#     version has them, otherwise placed by ggrepel.
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in. The in-panel correlation and ratio summary is
 # kept as in the Overleaf version (moving it to CAPTION.md is for the author to decide); no title or caption.
 # Outputs (<out>/ihme_vs_unigme/): sfig_malaria_rates_ihme_vs_unigme_2024.png, malaria_rates_ihme_vs_unigme_2024.csv,
@@ -12,7 +13,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({ library(data.table); library(ggplot2) })
-st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge")); root <- st$out
+st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "gadm")); root <- st$out
 out <- file.path(root, "ihme_vs_unigme"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 year_shown <- 2024L
 paths <- c(rates = file.path(root, "annual_comparison/source_country_rates_2000_2024.csv"))
@@ -40,40 +41,15 @@ crisis <- w[ihme_crisis | unigme_crisis, label]
 # Countries with low malaria mortality (below 1.5 per 1,000 in both sources) are drawn but not labelled (user request).
 label_min <- 1.5
 w[, labelled := pmax(ihme, unigme) >= label_min]
-# Fixed label positions: offset from the point to the label centre, in rates per 1,000. ggrepel's own layout put labels
-# beside other countries' points in the crowded middle (with MAP 202608, Côte d'Ivoire on Mali's point), so the
-# positions were chosen by a placement search on these data (2 November 2026): each label is nearer its own point than
-# any other point and each labelled point nearer its own label than any other, and no label touches a point, another
-# label, the equality line (Liberia and Guinea were then moved to at least 0.6 mm from it), the note or the panel edge.
-# Leaders shorter than 1.5 mm are not drawn. The script stops if the labelled set changes. The positions belong to the
-# v14 (snow_merge) estimates; another version (gadm_merge, branch gadm-admin1) has its labels placed by ggrepel.
-offsets <- fread(text = "iso3,dx,dy
-AGO,0.303,-0.110
-BDI,0.329,0.110
-BEN,-0.258,0.110
-BFA,-0.526,0.110
-CAF,-0.222,0.110
-CIV,0.532,-0.140
-CMR,0.428,0.110
-COD,-0.226,0.110
-COG,0.168,0.110
-GHA,0.294,0.110
-GIN,0.300,0.135
-GNQ,-0.455,0.110
-LBR,-0.345,0.160
-MDG,-0.495,0.110
-MLI,0.199,-0.110
-MOZ,0.534,0.000
-MWI,0.302,-0.110
-NER,0.244,0.110
-NGA,0.307,0.110
-SLE,0.000,0.131
-SSD,0.518,0.110
-TCD,-0.244,0.110
-TGO,-0.226,0.110
-UGA,0.355,0.000
-ZMB,0.320,0.110")
-fixed_labels <- identical(st$version, "snow_merge")
+# Fixed label positions: offset from the point to the label centre, in rates per 1,000, per version. ggrepel's own layout
+# can put labels beside other countries' points in the crowded middle, so positions are chosen by a placement search on
+# the version's estimates (method of 2 November 2026): each label is nearer its own point than any other point and each
+# labelled point nearer its own label than any other, and no label touches a point, another label, the equality line
+# (at least 0.6 mm from it), the note or the panel edge. Leaders shorter than 1.5 mm are not drawn. The script stops if
+# the labelled set changes. The GADM-unit positions are to be set on the v15 estimates; until then (no rows for the
+# version) ggrepel places the labels.
+offsets <- fread(text = "version,iso3,dx,dy\n", colClasses = c("character", "character", "numeric", "numeric"))[version == st$version, !"version"]
+fixed_labels <- nrow(offsets) > 0
 if (fixed_labels) stopifnot(setequal(offsets$iso3, w[labelled == TRUE, iso3]))
 w[, c("dx", "dy") := 0]
 if (fixed_labels) w[offsets, on = "iso3", c("dx", "dy") := .(i.dx, i.dy)]

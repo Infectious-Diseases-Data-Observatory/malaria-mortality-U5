@@ -1,26 +1,25 @@
 #!/usr/bin/env Rscript
-# Study flow (Figure S1) for the Snow-unit primary: the ledger of the former survey-region (v9) study flow
-# (R_cbh/reporting/01_study_flow.R, removed 1 November 2026) with the survey-region MAP step replaced by placement in
-# the Snow et al. (2017) polygons (R_cbh/snow/). Aggregate inputs, except the count of mothers, which reads the record
+# Study flow (Figure S1) of the primary: the survey-region ledger with the survey-region MAP step replaced by placement
+# in the GADM 4.1 admin-1 units (R_cbh/units/). Aggregate inputs, except the count of mothers, which reads the record
 # shards as 03_survey_map.R does.
 # The full ledger (flow_counts.csv) runs: survey registry -> band entries within 5 years of interview -> eligible
-# child-age bands -> placed in a Snow polygon -> primary analysis sample, with exclusions for surveys not processed (no
-# MAP geography) or without a complete birth history; band eligibility; not placed (survey-region not matched; no Snow
-# polygon; malaria-free or island unit; unit more than half malaria-free); required covariate unavailable (first
-# missing input). The diagram (simplified 27 October 2026, user request, to match the Results text) shows the survey
-# steps all surveys -> complete birth history -> included (at least one primary record), with the excluded surveys by
-# reason, then the records excluded within the included surveys. The declared national substitutions of the
-# preparation (national_substitutions.csv: South Sudan before independence takes Sudan's values) are stated in the
-# caption and counted (national_substituted).
+# child-age bands -> placed in a unit -> primary analysis sample, with exclusions for surveys not processed (no MAP
+# geography) or without a complete birth history; band eligibility; not placed (survey-region not matched; no unit;
+# malaria-free or island unit; unit more than half malaria-free); required covariate unavailable (first missing
+# input). The diagram (simplified 27 October 2026, user request, to match the Results text) shows the survey steps all
+# surveys -> complete birth history -> included (at least one primary record), with the excluded surveys by reason,
+# then the records excluded within the included surveys. The declared national substitutions of the preparation
+# (national_substitutions.csv: South Sudan before independence takes Sudan's values) are stated in the caption and
+# counted (national_substituted).
 # Writes <out>/study_flow/: study_flow_diagram.png, CAPTION.md, flow_counts.csv, survey_selection.csv (the layout
 # 03_survey_map.R reads), excluded_surveys.csv, figure_labels.csv, provenance.csv.
-source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_cbh/snow/R/settings.R")
+source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_cbh/units/R/settings.R")
 library(ggplot2)
-settings <- cbh_primary_settings(); stopifnot(identical(settings$unit, "snow"))
-S <- snow_settings(settings$snow_variant)
-# Unit wording: the Snow et al. polygons, or the GADM admin-1 units of the gadm_merge version (branch gadm-admin1).
-units_txt <- if (identical(S$variant, "gadm")) c(set = "GADM admin-1 units", set_ref = "GADM admin-1 units (KEMRI-Wellcome merge)", one = "GADM admin-1 unit") else
-  c(set = "Snow et al. polygons", set_ref = "Snow et al. (2017) polygons", one = "Snow et al. polygon")
+settings <- cbh_primary_settings(); stopifnot(identical(settings$unit, "gadm"))
+S <- units_settings()
+# Unit wording: the set (diagram and survey exclusions), its full description (placement sentence) and one unit.
+units_txt <- c(set = S$units, one = "GADM admin-1 unit", full = paste("GADM 4.1 admin-1 units (KEMRI-Wellcome merge; national boundaries",
+  "for Botswana, Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda)"))
 root <- settings$out; out <- file.path(root, "study_flow"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
 md <- settings$mics_output_dir
 input_paths <- c(survey_manifest = "data/derived_cbh/survey_manifest.csv", child_checks = "data/derived_cbh/child_checks.csv",
@@ -95,8 +94,8 @@ n$national_substituted <- sum(nsc$records_in_sample)   # sample records whose GD
 stopifnot(n$entered - n$excluded_eligibility == n$eligible, n$eligible - n$not_placed == n$placed, n$placed - n$missing_covariates == n$primary,
   n$mostly_malaria_free >= 0, abs(sum(lost$records) - n$missing_covariates) < 1e-6)
 # Survey steps of the diagram: surveys with a complete birth history, then the included surveys (at least one primary
-# record). A processed survey with no placed record has no Snow polygon; one with placed records but no primary record
-# lacks a required covariate in every survey x unit area.
+# record). A processed survey with no placed record lies outside the units; one with placed records but no primary
+# record lacks a required covariate in every survey x unit area.
 types <- rbind(rd("registry")[c("svkey", "SurveyType")], rd("mics_registry")[c("svkey", "SurveyType")])
 cbh_unique(types, "svkey", "DHS and MICS registries")
 kind <- function(s) types$SurveyType[match(s, types$svkey)]
@@ -125,7 +124,7 @@ n$primary_units <- unique(d$regions)
 stopifnot(n$included_entered - n$included_excluded_eligibility == sum(inc$eligible_rows), n$included_malaria_free >= 0,
   abs(sum(rci$records) - sum(inc$matched_rows)) < 1e-6, abs(sum(losti$records) - n$included_missing_covariates) < 1e-6,
   n$included_entered - n$included_excluded == n$primary, length(n$primary_units) == 1L,
-  # The included surveys' only records without a Snow polygon are Zanzibar's (Tanzania), as the caption says.
+  # The included surveys' only records without a unit are Zanzibar's (Tanzania), as the caption says.
   all(rci$country[rci$class == "no polygon"] == "TZA"))
 # Mothers (complete birth histories) with at least one record in the primary sample, counted as in 03_survey_map.R:
 # children in the prepared sample matched to their shard's mother id.
@@ -172,7 +171,7 @@ nodes <- data.frame(
     "No complete birth history",
     sprintf("%s %s: malaria free\n%s %s:\noutside the %s\n%s (%s):\na confounder unavailable in every area",
       fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, units_txt[["set"]], fmt(n$excluded_no_covariate), by_type(no_covariate_surveys)),
-    sprintf("%s: band not completed by\ninterview or begun outside 2000–2024\n%s: area not placed in a polygon\nor mainly malaria free\n%s: a confounder unavailable",
+    sprintf("%s: band not completed by\ninterview or begun outside 2000–2024\n%s: area not placed in a unit\nor mainly malaria free\n%s: a confounder unavailable",
       fmt(n$included_excluded_eligibility), fmt(n$included_not_placed), fmt(n$included_missing_covariates))))
 cbh_atomic_csv(nodes, file.path(out, "figure_labels.csv"))
 fill <- c(main = "#EAF2F8", excluded = "#F6F3EF"); border <- c(main = "#346A8C", excluded = "#A29588")
@@ -207,18 +206,19 @@ subst_text <- paste0(vapply(seq_len(nrow(nsc)), function(i) sprintf(" For %s (%s
 caption <- c(paste0("# Figure caption — primary sample inclusion (", units_txt[["set"]], ")"), "",
   sprintf("**Figure. Sample inclusion for the primary analysis.** Of %s DHS, MIS and MICS surveys conducted in sub-Saharan Africa since 2000 (%s; %s countries), %s recorded complete birth histories (%s; %s countries); the other %s MICS surveys recorded only summary birth histories. %s surveys were excluded: %s from %s, which is malaria free and has no Malaria Atlas Project prevalence surface; %s from %s, which lie outside the %s; and %s (%s) in which at least one required covariate was unavailable in every survey × unit area. %s surveys (%s) from %s countries were included.",
     fmt(n$registry_all), all_types, fmt(n$registry_countries_all), fmt(n$cbh_surveys), by_type(cbh$survey), fmt(n$cbh_countries), fmt(n$mics_no_cbh),
-    fmt(n$excluded_surveys), fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, units_txt[["set_ref"]], fmt(n$excluded_no_covariate),
+    fmt(n$excluded_surveys), fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, units_txt[["set"]], fmt(n$excluded_no_covariate),
     by_type(no_covariate_surveys), fmt(n$surveys), by_type(inc$survey), fmt(n$countries)), "",
-  sprintf("In the included surveys, %s child age-band records were entered within the 60 months before interview; counts from here are records, not unique children. %s were excluded because the band could not be completed by the interview (%s) or began outside 2000–2024 (%s); %s because the record's area could not be placed in a %s (%s in survey-regions not matched to a boundary; %s in Zanzibar, which has no polygon) or lay in malaria-free or island units or in units more than half malaria free (%s); and %s because at least one required covariate was unavailable (first missing: %s). Each record is placed in the polygons through its smallest reported administrative unit: the polygon holding at least 90%% of that unit's population, or else the union of the polygons each holding at least 5%%. The primary sample has %s records and %s deaths from %s children of %s mothers (complete birth histories), in %s survey × unit areas.",
+  sprintf("In the included surveys, %s child age-band records were entered within the 60 months before interview; counts from here are records, not unique children. %s were excluded because the band could not be completed by the interview (%s) or began outside 2000–2024 (%s); %s because the record's area could not be placed in a %s (%s in survey-regions not matched to a boundary; %s in Zanzibar, which has no unit) or lay in malaria-free or island units or in units more than half malaria free (%s); and %s because at least one required covariate was unavailable (first missing: %s). Each record is placed in the %s through its smallest reported administrative area: in the unit holding at least %s%% of that area's population, or else in the union of the units each holding at least %s%%. The primary sample has %s records and %s deaths from %s children of %s mothers (complete birth histories), in %s survey × unit areas.",
     fmt(n$included_entered), fmt(n$included_excluded_eligibility), fmt(n$included_incomplete), fmt(n$included_outside_year), fmt(n$included_not_placed), units_txt[["one"]],
     fmt(n$included_unmatched), fmt(n$included_no_polygon), fmt(n$included_malaria_free), fmt(n$included_missing_covariates), first_missing,
+    units_txt[["full"]], 100 * S$whole, 100 * S$link,
     fmt(n$primary), fmt(n$deaths), fmt(n$primary_distinct_children), fmt(n$primary_mothers), fmt(n$primary_units)), "",
   sprintf("Record counts over all %s processed surveys, including the excluded ones, are in the full ledger: %s band entries, %s eligible records, %s placed in %s survey × unit areas.",
     fmt(n$built), fmt(n$entered), fmt(n$eligible), fmt(n$placed), fmt(n$units)), "",
-  paste0("Seven completed-month bands are analysed separately: <1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59. The outcome is death during the band. Annual MAP PfPR₂–₁₀ of the record's unit (population-weighted over its polygons) and the national covariates are assigned at band-entry year. The 17 adjustment variables comprise survey × unit summaries of maternal age at first birth, education, wealth, urban residence, DTP3/measles coverage, facility delivery, short birth interval, improved water, improved sanitation, electricity, wasting and stunting, computed from the DHS and MICS recodes, plus national annual log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability.", subst_text),
+  paste0("Seven completed-month bands are analysed separately: <1, 1–5, 6–11, 12–23, 24–35, 36–47 and 48–59. The outcome is death during the band. Annual MAP PfPR₂–₁₀ of the record's unit (population-weighted over its admin-1 units) and the national covariates are assigned at band-entry year. The 17 adjustment variables comprise survey × unit summaries of maternal age at first birth, education, wealth, urban residence, DTP3/measles coverage, facility delivery, short birth interval, improved water, improved sanitation, electricity, wasting and stunting, computed from the DHS and MICS recodes, plus national annual log child HIV incidence, log GDP per capita, log health expenditure per capita and political stability.", subst_text),
   "Counts are read from the saved build, eligibility, placement, unit and selection ledgers and reconciled with the seven age-band fits. See [counts](flow_counts.csv) and [survey selection](survey_selection.csv).")
 writeLines(caption, file.path(out, "CAPTION.md"))
 provenance <- c(unname(input_paths), settings$data, file.path(shard_dirs, "manifest.rds"),
-  "R_cbh/reporting/01_study_flow_snow.R", "R_cbh/primary/settings.R", "R_cbh/snow/R/settings.R")
+  "R_cbh/reporting/01_study_flow.R", "R_cbh/primary/settings.R", "R_cbh/units/R/settings.R")
 cbh_atomic_csv(data.frame(file = provenance, md5 = vapply(provenance, cbh_file_hash, "")), file.path(out, "provenance.csv"))
-message("Saved Snow-unit study flow and caption: ", out)
+message("Saved study flow and caption: ", out)

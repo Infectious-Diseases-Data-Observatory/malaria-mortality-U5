@@ -12,10 +12,10 @@
 #   options: --hiv=refit   use the panels refitted by --only=hiv instead of the paper's frozen panels (default frozen)
 #            --ignore-versions  run with package versions that differ from the recorded ones
 #
-# The primary analysis uses the Snow et al. (2017) polygons as its unit (stages snow_units, snow_covariates, primary;
-# R_cbh/snow/README.md). The v9 survey-region primary (stage primary_v9) and its comparison with the Snow units were
-# removed on 1 November 2026 (author decision), with the Snow split reproduction check (stage snow_repro), the
-# merge-unit and boundary maps (stage snow_maps) and the outputs main.tex does not use (git history keeps them).
+# The primary analysis uses the GADM 4.1 admin-1 units (KEMRI-Wellcome merge) as its unit (stages units,
+# unit_covariates, primary; R_cbh/units/README.md). The Snow-unit primary (v11-v14) was replaced by GADM units in v15
+# (author decision, 3 November 2026; code in git history up to f2db98e); the v9 survey-region primary and the outputs
+# main.tex does not use were removed on 1 November 2026 (git history keeps them).
 # The full run takes about 5 hours;
 # run it detached: ./run_detached.sh --all   (logs in logs/, completion markers in logs/state/).
 # No stage downloads anything: network access is blocked for every step (fetch scripts are in
@@ -34,11 +34,11 @@ hiv_refit <- identical(opt("hiv"), "refit")
 
 R <- function(script, ..., env = character()) list(cmd = file.path(R.home("bin"), "Rscript"), args = c(script, ...), script = script, env = env)
 PY <- function(script, ..., env = character()) list(cmd = "python3", args = c(script, ...), script = script, env = env)
-# The version is passed to each step (child processes): the Snow-unit primary.
-SNOW <- c("CBH_PRIMARY_VERSION=snow_merge", "SNOW_VARIANT=merge")
-snow_unit_steps <- function(env) c(lapply(c("01_polygons.R", "02_pfpr_polygons.R", "03_feasibility.R", "04_location_variables.R",
+# The version is passed to each step (child processes): the primary, on the GADM admin-1 units.
+GADM <- c("CBH_PRIMARY_VERSION=gadm")
+unit_steps <- lapply(c("00_gadm_layer.R", "01_polygons.R", "02_pfpr_polygons.R", "03_feasibility.R", "04_location_variables.R",
   "05_finer_units.R", "07_placement.R", "08_units.R", "09_covariates_dhs.R", "10_covariates_mics.R"),
-  function(f) R(file.path("R_cbh/snow", f), env = env)))
+  function(f) R(file.path("R_cbh/units", f), env = GADM))
 stages <- list(
   restore = list(R("tools/restore_frozen.R")),
   inputs = list(R("R_inputs/02_extract_map_pfpr.R"), R("R_inputs/41_extract_map_window_years.R"),
@@ -51,28 +51,28 @@ stages <- list(
   mics = lapply(c("00a_extract.R", "00_dump_metadata.R", "01_inventory.R", "04_boundaries_gnb_caf.R", "05_region_map.R",
                   "06_polygons_pfpr_registry.R", "07_make_recodes.R", "08_build_child_bands.R",
                   "11_region_centroids.R"), function(f) R(file.path("R_mics", f))),
-  snow_units = snow_unit_steps(SNOW)[1:7],
-  snow_covariates = snow_unit_steps(SNOW)[8:9],
-  primary = list(R("R_cbh/primary/run_regional.R", env = SNOW)),
-  subgroups = list(R("R_cbh/sensitivity/subgroups/01_fit.R", env = SNOW), R("R_cbh/sensitivity/subgroups/02_report.R", env = SNOW),
-                   R("R_cbh/sensitivity/subgroups/03_survival_by_subregion.R", env = SNOW),
-                   R("R_cbh/sensitivity/subgroups/04_subregion_units_map.R", env = SNOW)),
-  nutrition = list(R("R_cbh/sensitivity/nutrition/01_fit.R", env = SNOW), R("R_cbh/sensitivity/nutrition/02_report.R", env = SNOW)),
-  country_fe = list(R("R_cbh/sensitivity/country_fe/01_fit.R", env = SNOW), R("R_cbh/sensitivity/country_fe/02_report.R", env = SNOW)),
+  units = unit_steps[1:8],
+  unit_covariates = unit_steps[9:10],
+  primary = list(R("R_cbh/primary/run_regional.R", env = GADM)),
+  subgroups = list(R("R_cbh/sensitivity/subgroups/01_fit.R", env = GADM), R("R_cbh/sensitivity/subgroups/02_report.R", env = GADM),
+                   R("R_cbh/sensitivity/subgroups/03_survival_by_subregion.R", env = GADM),
+                   R("R_cbh/sensitivity/subgroups/04_subregion_units_map.R", env = GADM)),
+  nutrition = list(R("R_cbh/sensitivity/nutrition/01_fit.R", env = GADM), R("R_cbh/sensitivity/nutrition/02_report.R", env = GADM)),
+  country_fe = list(R("R_cbh/sensitivity/country_fe/01_fit.R", env = GADM), R("R_cbh/sensitivity/country_fe/02_report.R", env = GADM)),
   imputation = lapply(c("01_impute_national.R", "02_impute_regional.R", "03_prepare.R", "04_fit.R", "05_propagate.R",
-                        "06_report.R"), function(f) R(file.path("R_cbh/sensitivity/imputation_dhsmics", f), env = SNOW)),
-  validate = list(R("R_cbh/reporting/10_validate_reporting.R", env = SNOW)),
-  export = list(PY("R_cbh/reporting/export_paper.py", "--destination", "paper", "--copy", env = SNOW)))
+                        "06_report.R"), function(f) R(file.path("R_cbh/sensitivity/imputation_dhsmics", f), env = GADM)),
+  validate = list(R("R_cbh/reporting/10_validate_reporting.R", env = GADM)),
+  export = list(PY("R_cbh/reporting/export_paper.py", "--destination", "paper", "--copy", env = GADM)))
 optional <- "hiv"   # run only when named with --only
 minutes <- c(restore = 1, inputs = 30, hiv = 30, hiv_panels = 1, dhs_bands = 6, covariates = 2, mics = 30,
-             snow_units = 15, snow_covariates = 12, primary = 25, subgroups = 45, nutrition = 20, country_fe = 20, imputation = 90, validate = 1,
+             units = 25, unit_covariates = 12, primary = 25, subgroups = 45, nutrition = 20, country_fe = 20, imputation = 90, validate = 1,
              export = 1)
 # A stage's dependency set: its scripts, the other code and config in their folders, and the shared helpers. A completion
 # marker whose recorded md5s differ from the current files is stale, so the stage is pending again.
 helpers <- c(list.files("R_cbh/R", "[.]R$", full.names = TRUE), "R_cbh/00_config.R", "R_cbh/load_pipeline.R",
   "R_cbh/analysis/model.R", "R_cbh/sensitivity/model.R", "R_cbh/primary/settings.R", "R_cbh/primary/specification.R",
   "R_cbh/primary/national_substitutions.R",
-  list.files("R_cbh/snow/R", "[.]R$", full.names = TRUE), list.files("R_cbh/snow/config", "[.]csv$", full.names = TRUE))
+  list.files("R_cbh/units/R", "[.]R$", full.names = TRUE), list.files("R_cbh/units/config", "[.]csv$", full.names = TRUE))
 deps <- function(s) {
   scripts <- unique(vapply(stages[[s]], `[[`, "", "script"))
   dirs <- unique(c(dirname(scripts), if (any(grepl("run_regional", scripts))) c("R_cbh/reporting", "R_cbh/burden")))
@@ -140,10 +140,15 @@ bad <- inputs$file[unname(tools::md5sum(inputs$file)) != inputs$md5]
 if (length(bad)) stop("Committed inputs differ from data/INPUTS_MANIFEST.csv: ", paste(head(bad, 5), collapse = ", "))
 size_bad <- raw$file[file.exists(raw$file) & file.size(raw$file) != raw$bytes]
 if (length(size_bad)) stop("Raw files differ in size from data/raw_manifest.csv: ", paste(head(size_bad, 5), collapse = ", "))
+# The GADM 4.1 admin-1 layer (KEMRI-Wellcome merge) is not committed (GADM licence) and not in either manifest; stage
+# units reads it (R_cbh/units/00_gadm_layer.R), later stages read the unit layer that stage writes.
+source("R_cbh/units/R/settings.R")
+if ("units" %in% run && !file.exists(units_settings()$source))
+  stop("The GADM admin-1 layer is missing: ", units_settings()$source, ". See data/README.md.")
 # Block network access for every step, so that a missing cache fails instead of downloading.
 Sys.setenv(http_proxy = "http://127.0.0.1:9", https_proxy = "http://127.0.0.1:9", HTTP_PROXY = "http://127.0.0.1:9",
            HTTPS_PROXY = "http://127.0.0.1:9", ALL_PROXY = "http://127.0.0.1:9", no_proxy = "", NO_PROXY = "",
-           CBH_PRIMARY_VERSION = "snow_merge")
+           CBH_PRIMARY_VERSION = "gadm")
 commit <- tryCatch(system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE), error = function(e) NA_character_)
 dirty <- length(tryCatch(system2("git", c("status", "--porcelain", "--untracked-files=no"), stdout = TRUE, stderr = FALSE),
                          error = function(e) character())) > 0

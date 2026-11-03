@@ -3,7 +3,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
-root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"))$out
+root <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","gadm"))$out
 out <- file.path(root,"paper_figures")
 dir.create(out,recursive=TRUE,showWarnings=FALSE)
 # Main figures (28 October 2026, author request): 1 the map of complete birth histories by analysis unit

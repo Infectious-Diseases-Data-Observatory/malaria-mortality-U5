@@ -9,7 +9,7 @@ MW81FL,hv205,pit latrine with log/rock,1,reproduces the published national value
 ZA71FL,hv205,pit latrine without ventilation pipe,1,reproduces the published national value (75.7 -> 95.6; published 95.6)
 MZ62FL,hv205,"toilet without flush, don't know where",1,reproduces the published national value (23.3 -> 26.1; published 26.1)
 MW4EFL,m15,traditional birth attendant,1,coded in the private-sector range in this survey; reproduces the published facility-delivery value (57.2 -> 69.3; published 69.4)
-BJ41FL,m15,gov village unit(uvs),1,government village health unit (Unite villageoise de sante): public facility (reviewed 12 Oct 2026; survey added to the Snow universe)
+BJ41FL,m15,gov village unit(uvs),1,government village health unit (Unite villageoise de sante): public facility (reviewed 12 Oct 2026; survey added since v9)
 BJ51FL,m15,"village health unit (""unité villageoise"")",1,public village health unit: facility (reviewed 12 Oct 2026)
 BJ61FL,m15,"village health unit (""unité villageoise"")",1,public village health unit: facility (reviewed 12 Oct 2026)
 ET41FL,m15,forest / bush,0,not a facility (reviewed 12 Oct 2026)

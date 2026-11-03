@@ -19,7 +19,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({ library(data.table); library(mgcv) })
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "gadm"))
 cfg <- list(draws = 500L, seed = 20261101L, igme_level = 0.90, ihme_level = 0.95, map_level = 0.95, ui = c(.025, .975))
 ac <- file.path(settings$out, "annual_comparison")
 out <- file.path(settings$out, "uncertainty"); dir.create(out, recursive = TRUE, showWarnings = FALSE)

@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
-# Supplementary figure (author request, 1 November 2026): the Snow et al. (2017) polygons in each regional sub-analysis
+# Supplementary figure (author request, 1 November 2026): the GADM 4.1 admin-1 polygons in each regional sub-analysis
 # of the subgroup refits: A Sahel, B West Africa, C Central Africa, D East Africa. Drawn in the style of Figure 1, from
-# the map layers that R_cbh/reporting/23_analysis_units_map.R saves (projection, frame, slivers, lakes, borders).
+# the map layers that R_cbh/reporting/23_analysis_units_map.R saves (projection, frame, slivers, lakes, borders; the
+# polygons under the list element "layer").
 # Membership: a record belongs to a sub-analysis by its source survey-region (region_selection.csv of
 # R_cbh/sensitivity/subgroups/01_fit.R: the Sahel by survey-region centroid, the sub-regions by country), and a polygon
 # holds the record if it is in the record's analysis unit (a polygon or a union of polygons). A polygon is in the
@@ -10,12 +11,12 @@
 # the subgroup sample sizes against sample_summary.csv.
 # Outputs (<subgroups out>/): sfig_subregion_units_map.png (165 mm wide, 400 dpi), CAPTION_sfig_subregion_units_map.md,
 # subregion_units_by_polygon.csv, subregion_units_map_provenance.csv. Aggregates only.
-# Run from the repository root: CBH_PRIMARY_VERSION=snow_merge Rscript R_cbh/sensitivity/subgroups/04_subregion_units_map.R
+# Run from the repository root: Rscript R_cbh/sensitivity/subgroups/04_subregion_units_map.R
 suppressPackageStartupMessages({ library(data.table); library(sf); library(ggplot2); library(patchwork) })
 sf_use_s2(FALSE)
 source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_cbh/sensitivity/subgroups/settings.R")
 st <- cbh_subgroup_settings(); P <- cbh_primary_settings(st$primary_version)
-if (!identical(P$unit, "snow")) stop("The sub-region map needs the Snow-unit primary (CBH_PRIMARY_VERSION=snow_merge).")
+if (!identical(P$unit, "gadm")) stop("The sub-region map needs the GADM-unit primary (CBH_PRIMARY_VERSION=gadm).")
 panels <- c(sahel = "A", west_africa = "B", central_africa = "C", east_africa = "D")
 stopifnot(all(names(panels) %in% st$subgroups))
 paths <- c(dataset = P$data, regions = file.path(st$out, "region_selection.csv"), samples = file.path(st$out, "sample_summary.csv"),
@@ -71,12 +72,12 @@ lat12 <- st_transform(st_sfc(st_linestring(cbind(seq(-18, 36, by = 0.5), 12)), c
 draw <- function(s) {
   z <- tab[subgroup == s]; key <- setNames(z$class, z$Admin_ID)
   fills <- c(neutral, `in` = st$colours[[s]], partly = tint(st$colours[[s]], 0.4))
-  snow <- L$snow; snow$class <- key[snow$Admin_ID]; fringe <- L$fringe; fringe$class <- key[fringe$Admin_ID]
-  stopifnot(!anyNA(snow$class), !anyNA(fringe$class))
+  layer <- L$layer; layer$class <- key[layer$Admin_ID]; fringe <- L$fringe; fringe$class <- key[fringe$Admin_ID]
+  stopifnot(!anyNA(layer$class), !anyNA(fringe$class))
   p <- ggplot() +
     geom_sf(data = L$under_fill, fill = neutral[["outside"]], colour = NA) +
     geom_sf(data = fringe, aes(fill = class), colour = NA, show.legend = FALSE) +
-    geom_sf(data = snow, aes(fill = class), colour = NA, show.legend = FALSE) +
+    geom_sf(data = layer, aes(fill = class), colour = NA, show.legend = FALSE) +
     geom_sf(data = L$poly_lines, colour = "#FFFFFF", linewidth = 0.09, lineend = "round", linejoin = "round") +
     geom_sf(data = L$outside_coast, fill = NA, colour = L$grey_line, linewidth = 0.1) +
     geom_sf(data = L$isles, fill = NA, colour = L$grey_line, linewidth = 0.1) +
@@ -125,7 +126,7 @@ panel_text <- vapply(names(panels), function(s) {
     as.integer(m$countries))
 }, "")
 caption <- c("# Supplementary figure caption: polygons of the regional sub-analyses", "",
-  paste0("Sub-national polygons of Snow et al. (2017) in each regional sub-analysis of the subgroup refits, in the style of Figure 1. ",
+  paste0("GADM 4.1 admin-1 polygons in each regional sub-analysis of the subgroup refits, in the style of Figure 1. ",
     "A record belongs to a sub-analysis by its source survey-region: the Sahel holds survey regions whose boundary centroid lies at or north of ",
     sahel_def$latitude_min, "°N (dashed line) and west of ", sahel_def$longitude_max, "°E, outside ", and_list(countrycode::countrycode(sahel_def$exclude_countries, "iso3c", "country.name")),
     "; West, Central and East Africa hold the surveys of the UN M49 sub-regions of Figure 1 (Middle Africa as Central Africa). ",

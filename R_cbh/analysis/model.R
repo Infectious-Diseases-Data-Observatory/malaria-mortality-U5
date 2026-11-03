@@ -1,4 +1,4 @@
-# Child HIV incidence join of the child-band records (R_cbh/snow/07_placement.R, the imputed-covariate sensitivity).
+# Child HIV incidence join of the child-band records (R_cbh/units/07_placement.R, the imputed-covariate sensitivity).
 # Source after R_cbh/load_pipeline.R. The exploratory joint age-band model (cbh_trial_*), which no kept step ran, was
 # removed on 1 November 2026 (git history).
 cbh_attach_incidence <- function(d, panel) {

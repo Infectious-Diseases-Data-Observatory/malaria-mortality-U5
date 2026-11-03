@@ -5,7 +5,7 @@
 # Markdown table and the LaTeX fragment were dropped on 1 November 2026 (not used by the paper).
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "snow_merge"))
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION", "gadm"))
 out <- file.path(settings$out, "burden_comparison")
 years <- c(2000L, 2004L, 2015L, 2024L)
 

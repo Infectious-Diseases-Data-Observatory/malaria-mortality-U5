@@ -1,13 +1,13 @@
 #!/usr/bin/env Rscript
-# Inventory of location variables finer than the survey-region, for every survey of the feasibility overlay (ported
-# from the analysis project's R_cbh/snow_units/02_location_variables.R). DHS: the Births Recode used by the child-band
-# builder; candidates are v023/v024/v101 and any country-specific (s...) variable whose label names an
-# administrative unit. MICS: geographic variables of bh.sav and hh.sav (HH7, HH7A, ...). Only variable names, labels,
-# counts of distinct values and up to 12 example values are written (no records); the file stays in ignored results/.
+# Inventory of location variables finer than the survey-region, for every survey of the feasibility overlay
+# (03_feasibility.R). DHS: the Births Recode used by the child-band builder; candidates are v023/v024/v101 and any
+# country-specific (s...) variable whose label names an administrative unit. MICS: geographic variables of bh.sav and
+# hh.sav (HH7, HH7A, ...). Only variable names, labels, counts of distinct values and up to 12 example values are
+# written (no records); the file stays in ignored results/.
 # Output: <out>/feasibility/location_variables.csv
 suppressPackageStartupMessages({ library(data.table); library(haven) })
-source("R_cbh/snow/R/settings.R")
-S <- snow_settings(); out <- file.path(S$out, "feasibility")
+source("R_cbh/units/R/settings.R")
+S <- units_settings(); out <- file.path(S$out, "feasibility")
 surveys <- fread(file.path(out, "survey_feasibility.csv"))
 registry <- fread("data/derived_dhs/survey_registry.csv")
 setup <- fread("data/derived_mics/survey_setup.csv")
@@ -45,4 +45,4 @@ for (s in surveys$survey) {
 inv <- rbindlist(rows)
 inv <- merge(surveys[, .(survey, programme, country, survey_regions, pct_records_split)], inv, by = "survey")
 fwrite(inv[order(country, survey, -n_values)], file.path(out, "location_variables.csv"))
-cat(S$variant, ":", nrow(inv), "candidate variables in", uniqueN(inv$survey), "surveys\n")
+cat(S$units, ":", nrow(inv), "candidate variables in", uniqueN(inv$survey), "surveys\n")

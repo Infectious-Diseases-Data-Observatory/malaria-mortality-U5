@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Comparison of the imputed-covariate sensitivity (v15) with the complete-case Snow-unit primary (v14), including the
+# Comparison of the imputed-covariate sensitivity (v16) with the complete-case GADM-unit primary (v15), including the
 # primary's declared national substitutions (national_substitutions.csv: South Sudan's pre-independence values are
 # Sudan's in both analyses, so they are not counted as imputed): overlaid PfPR splines (supplementary manuscript
 # figure), hazard ratio contrasts, sample sizes, caption and report. Reads saved aggregates only; no refitting, no TeX
@@ -9,7 +9,7 @@ source("R_cbh/reporting/labels.R")
 source("R_cbh/sensitivity/imputation_dhsmics/settings.R")
 library(ggplot2)
 st <- cbh_imputed_dhsmics_settings(); out <- st$out; ref <- st$reference
-vr <- sub(".*_(v[0-9]+)$", "\\1", basename(ref)); vi <- sub(".*_(v[0-9]+)$", "\\1", st$id)   # version labels, e.g. v14 and v15
+vr <- sub(".*_(v[0-9]+)$", "\\1", basename(ref)); vi <- sub(".*_(v[0-9]+)$", "\\1", st$id)   # version labels, e.g. v15 and v16
 mi_dir <- file.path(out, "multiple_imputation")
 inputs <- c(file.path(ref, c("pfpr_curves.csv", "fit_diagnostics.csv", "prepared_sample.csv")),
   file.path(out, c("pfpr_curves.csv", "fit_diagnostics.csv", "prepared_sample.csv", "imputation_record_counts.csv",
@@ -91,13 +91,13 @@ caption <- c("# Supplementary figure caption: imputed-covariate sensitivity (DHS
   paste0("Sensitivity of the fitted PfPR–mortality relationship to the treatment of missing covariates. ",
   "Log mortality hazard ratios relative to PfPR[2–10] = 20% by completed-month age band, with pointwise 95% conditional intervals shaded, from the ", cbh_paper_model_label(), " fitted to the complete-case primary sample (",
   fmt(row("Child-band records")$previous), " child–age-band records, ", fmt(row("Deaths")$previous), " deaths, ", row("Surveys")$previous, " surveys in ", row("Countries")$previous,
-  " countries) and to every record placed in a Snow et al. unit after imputing all remaining covariate gaps (",
+  " countries) and to every record placed in a GADM 4.1 admin-1 unit after imputing all remaining covariate gaps (",
   fmt(row("Child-band records")$revised), " records, ", fmt(row("Deaths")$revised), " deaths, ", row("Surveys")$revised, " surveys in ", row("Countries")$revised,
   " countries, including all five Malaria Indicator Surveys and all ", mics_surveys, " MICS surveys with complete birth histories outside Lesotho",
-  ", the Comoros and São Tomé and Príncipe, which have no Snow et al. malaria-endemic polygon). ",
+  ", the Comoros and São Tomé and Príncipe, which have no malaria-endemic unit). ",
   "Whole-survey gaps in the regional indicators (wasting, stunting, facility delivery, electricity and the wealth score) were imputed by chained equations at the survey × unit level (predictive mean matching, ", M, " imputations, point value their mean); the missing 2001 World Governance Indicators round by linear interpolation; ",
   "health expenditure for Zimbabwe 2000–2009, Somalia 2000–2012 and all countries in 2024 from a generalised additive model on the observed national panel; ",
-  "Liberia's child HIV incidence from UNAIDS counts of new infections among children (São Tomé and Príncipe, the only country without an incidence series, has no Snow et al. unit). ",
+  "Liberia's child HIV incidence from UNAIDS counts of new infections among children (São Tomé and Príncipe, the only country without an incidence series, has no analysis unit). ",
   paste0(if (nzchar(subst_text)) paste0("In both analyses, ", subst_text, ". "), "Values used by the complete-case analysis were never replaced. "),
   "The specification, reference knots, basis dimensions and gamma = 2 are those of the primary analysis; covariates were re-standardised on the enlarged sample. ",
   "Each curve is drawn over the central 95% of its own exposure distribution. ",
@@ -114,7 +114,7 @@ tab <- function(w, title) c(paste0("### PfPR ", title), "", paste0("| Age (month
   sprintf("| %s | %s | %s |", ages, fmt_ci(w$r), fmt_ci(w$i)), "")
 tot <- counts[counts$programme == "All", ]
 lines <- c(sprintf("# Imputed-covariate sensitivity on the DHS and MICS sample (%s)", vi), "",
-  sprintf("The 17-covariate primary specification refitted after imputing every remaining covariate gap, so that every DHS and MICS record placed in a Snow et al. unit is retained. Reference: the complete-case Snow-unit primary `%s`. This version: `%s`.", basename(ref), st$id), "",
+  sprintf("The 17-covariate primary specification refitted after imputing every remaining covariate gap, so that every DHS and MICS record placed in a GADM 4.1 admin-1 unit is retained. Reference: the complete-case GADM-unit primary `%s`. This version: `%s`.", basename(ref), st$id), "",
   "## Sample", "", sprintf("| Measure | Complete case (%s) | Imputed (%s) |", vr, vi), "|---|---:|---:|",
   sprintf("| %s | %s | %s |", sample$measure, fmt(sample$previous), fmt(sample$revised)), "",
   sprintf("Records whose values were imputed (point version): regional covariates %s; political stability %s (2001 interpolation); GDP %s; health expenditure %s; child HIV incidence without an adolescent series %s.%s The extended HIV panel also changes censored and imputed incidence values in other countries, so the comparison mixes the covariate imputation with that panel change, as for v4 against v3.",

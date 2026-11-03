@@ -1,10 +1,10 @@
 #!/usr/bin/env Rscript
-# Prepared dataset of the Snow-unit primary (ported from the analysis project's R_cbh/snow_units/09_assemble.R).
-#   records:  the analysis units of R_cbh/snow/08_units.R (every eligible child-band record placed in the Snow et al.
-#             polygons; merge rule: one unit per record, w = 1; national covariates and child HIV incidence as in v9);
-#   exposure: MAP PfPR2-10 of the record's unit in its band-entry year: the population-weighted mean over the unit's
-#             endemic polygons (R_cbh/snow/02_pfpr_polygons.R), identical to an extraction over their union;
-#   regional covariates: the 13 v9 covariates of each (survey, unit) from the recodes (R_cbh/snow/09, 10), then the v9
+# Prepared dataset of the primary (GADM 4.1 admin-1 units; R_cbh/primary/settings.R).
+#   records:  the analysis units of R_cbh/units/08_units.R (every eligible child-band record placed in the GADM admin-1
+#             units; merge rule: one unit per record, w = 1; national covariates and child HIV incidence as in v9);
+#   exposure: MAP PfPR2-10 of the record's unit in its band-entry year: the population-weighted mean over the endemic
+#             admin-1 units it joins (R_cbh/units/02_pfpr_polygons.R), identical to an extraction over their union;
+#   regional covariates: the 13 v9 covariates of each (survey, unit) from the recodes (R_cbh/units/09, 10), then the v9
 #             fallbacks in the v9 order: national WUENIC DTP3/measles for the survey year (cbh_unicef_fill), then the
 #             within-survey mean of the units with a value, variable by variable (weighted by the units' records);
 #   national: the declared substitutions of R_cbh/primary/national_substitutions.R: South Sudan's GDP per capita,
@@ -14,22 +14,21 @@
 #             year without a WGI round, is the mean of the country's 2000 and 2002 values, and health expenditure in
 #             2024, not yet published, is the country's 2023 value;
 #   unit:     region = survey : unit (the analogue of the v9 survey-region random effect).
-# Complete cases on the v9 requirements; z-scores as in v9 (the merge rule gives one row per record, w = 1).
-# Writes the prepared dataset (private) in the layout of v9's preparation, and summaries in the result folder:
+# Complete cases on the v9 requirements; z-scores as in v9 (the merge rule gives one row per record, w = 1). The
+# sample's surveys must be exactly those of R_cbh/primary/survey_set.csv (settings$survey_reference).
+# Writes the prepared dataset and <private>/regional_covariates_wide.csv (private) in the layout of v9's preparation,
+# and summaries in the result folder:
 # prepared_sample.csv, prepared_selection_by_survey.csv, covariate_scaling.csv, covariate_fallbacks.csv,
 # national_substitutions.csv (one row per substituted country and covariate; header only when none applies),
 # national_interpolations.csv (one row per filled covariate, country and year),
 # complete_case_losses.csv (first missing input) and preparation_provenance.csv.
 source("R_cbh/load_pipeline.R"); source("R_cbh/covariates/unicef.R"); source("R_cbh/primary/specification.R"); source("R_cbh/primary/settings.R")
 source("R_cbh/primary/national_substitutions.R"); source("R_cbh/primary/national_interpolations.R")
-source("R_cbh/snow/R/settings.R")
+source("R_cbh/units/R/settings.R")
 suppressPackageStartupMessages(library(data.table))
 settings <- cbh_primary_settings()
-S <- snow_settings(settings$snow_variant)
-stopifnot(identical(settings$unit, "snow"))
-# The unit scripts take their variant from SNOW_VARIANT; a different one set here would mix unit sets.
-if (nzchar(Sys.getenv("SNOW_VARIANT")) && !identical(Sys.getenv("SNOW_VARIANT"), S$variant))
-  stop("SNOW_VARIANT=", Sys.getenv("SNOW_VARIANT"), " but primary version ", settings$version, " uses Snow variant ", S$variant)
+S <- units_settings()
+stopifnot(identical(settings$unit, "gadm"))
 spec <- cbh_primary_regional_spec(settings); regional <- spec$regional; national <- spec$annual; covs <- spec$covariates
 stopifnot(length(covs) == 17L)
 for (p in c(settings$out, settings$private)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
@@ -41,16 +40,16 @@ src <- c(records = file.path(S$private, "records_units.rds"), dhs = file.path(S$
          mics = file.path(S$private, "covariates_mics_long.csv"), pfpr = file.path(S$out, "pfpr", "pfpr_polygon_year.csv"),
          unicef = "data/derived_cbh/regional_adjustment/unicef/country_year_estimates.csv",
          setNames(rel(vapply(sv$panel, function(k) cfg$annual_panels[[k]]$path, "")), sv$panel),   # the substitutions' source panels
-         code = "R_cbh/primary/00_prepare_snow.R", spec = "R_cbh/primary/specification.R", snow = "R_cbh/snow/R/settings.R",
+         code = "R_cbh/primary/00_prepare.R", spec = "R_cbh/primary/specification.R", units = "R_cbh/units/R/settings.R",
          substitutions = "R_cbh/primary/national_substitutions.R", interpolations = "R_cbh/primary/national_interpolations.R",
-         if (!is.null(settings$survey_reference)) c(reference = settings$survey_reference))
+         reference = settings$survey_reference)
 stopifnot(all(file.exists(src)))
 signature <- cbh_hash(list(files = unname(src), hashes = vapply(src, cbh_file_hash, ""), spec = spec, variant = S$variant))
 signature_path <- file.path(settings$private, "preparation_signature.rds")
 if (file.exists(settings$data) && file.exists(signature_path)) {
   cache <- readRDS(signature_path)
   if (identical(cache$signature, signature) && identical(cache$data_md5, cbh_file_hash(settings$data))) {
-    message("Verified current Snow prepared dataset; retaining it."); quit(save = "no", status = 0)
+    message("Verified current prepared dataset; retaining it."); quit(save = "no", status = 0)
   }
 }
 
@@ -74,10 +73,10 @@ for (v in regional) {
 fills <- rbindlist(lapply(regional, function(v) data.table(variable = v, survey_units = nrow(W), observed = observed[[v]],
   wuenic = if (v %in% c("dtp3_pct", "measles_pct")) sum(W[[paste0(v, "_imputed")]]) else 0L,
   survey_mean = sum(W[[paste0(v, "_regional_mean_imputed")]]), still_missing = sum(!is.finite(W[[v]])))))
-fwrite(W, file.path(settings$private, "regional_covariates_wide_snow.csv"))
+fwrite(W, file.path(settings$private, "regional_covariates_wide.csv"))
 cbh_atomic_csv(fills, file.path(settings$out, "covariate_fallbacks.csv"))
 
-# Exposure: unit PfPR by entry year = population-weighted mean over the unit's polygons.
+# Exposure: unit PfPR by entry year = population-weighted mean over the admin-1 units it joins (Admin_ID).
 pf <- fread(src[["pfpr"]])[, .(Admin_ID, year, pfpr2_10, population_weight)]
 um <- unique(rec[, .(unit)])[, .(Admin_ID = strsplit(unit, "+", fixed = TRUE)[[1]]), by = unit]
 stopifnot(all(um$Admin_ID %in% pf$Admin_ID))
@@ -127,20 +126,14 @@ nint <- fills_rows[, .(variable, rule, country = as.character(d$country[row]), y
   records_in_sample = sum(w[kept]), deaths_in_sample = sum((w * death)[kept])), by = .(variable, rule, country, year)][order(variable, country, year)]
 cbh_atomic_csv(nint, file.path(settings$out, "national_interpolations.csv"))
 d <- d[ok]
-# Surveys of a reference version (gadm_merge: those of the Snow v14 primary): exactly the same surveys; the records and
-# deaths of each survey are compared and every difference printed.
-if (!is.null(settings$survey_reference)) {
-  ref <- fread(settings$survey_reference)
-  cmp <- merge(ref[, .(survey, country, records_reference = records, deaths_reference = deaths)],
-               d[, .(records = sum(w), deaths = sum(w * death)), by = .(survey = as.character(survey))], by = "survey", all = TRUE)
-  if (!setequal(ref$survey, unique(as.character(d$survey))))
-    stop("Surveys differ from the reference sample (", settings$survey_reference, "): ",
-         paste(cmp[is.na(records) | is.na(records_reference), survey], collapse = ", "))
-  cbh_atomic_csv(cmp, file.path(settings$out, "surveys_vs_reference.csv"))
-  for (i in which(cmp$records != cmp$records_reference))
-    message(sprintf("Records differ from the reference: %s %s records (%+d), %s deaths (%+d)", cmp$survey[i], format(cmp$records[i], big.mark = ","),
-                    as.integer(cmp$records[i] - cmp$records_reference[i]), cmp$deaths[i], as.integer(cmp$deaths[i] - cmp$deaths_reference[i])))
-}
+# The sample's surveys: exactly those of the committed survey set, each in its country.
+ref <- fread(settings$survey_reference, colClasses = "character")
+stopifnot(identical(names(ref), c("survey", "country")), !anyDuplicated(ref$survey))
+got <- unique(d[, .(survey = as.character(survey), country = as.character(country))])
+if (!setequal(ref$survey, got$survey))
+  stop("Surveys differ from ", settings$survey_reference, ": not in the sample ", paste(setdiff(ref$survey, got$survey), collapse = ", "),
+       "; not in the set ", paste(setdiff(got$survey, ref$survey), collapse = ", "))
+stopifnot(!anyDuplicated(got$survey), identical(got$country[match(ref$survey, got$survey)], ref$country))
 ages <- cbh_config()$age_bands$age_band
 d[, age_band := factor(age_band, levels = ages)]
 for (v in c("survey", "country", "region")) d[, (v) := factor(get(v))]
@@ -154,6 +147,7 @@ for (i in seq_len(nrow(scaling))) d[, (paste0("z_", scaling$variable[i])) := (ge
 keep <- unique(c(required, paste0("z_", covs), "child_id", "entry_year", "survey_year", "regkey", "unit", "n_polygons", "rule", "w"))
 d <- as.data.frame(d[, ..keep])
 
+# polygons: the admin-1 units (Admin_ID) the sample uses; merged_units: survey-units joining more than one.
 counts <- data.frame(records = sum(d$w), children = uniqueN(d$child_id), deaths = sum(d$w * d$death), regions = nlevels(d$region),
   surveys = nlevels(d$survey), countries = nlevels(d$country), rows = nrow(d),
   polygons = uniqueN(unlist(strsplit(unique(as.character(d$unit)), "+", fixed = TRUE))),
@@ -161,7 +155,7 @@ counts <- data.frame(records = sum(d$w), children = uniqueN(d$child_id), deaths 
 selection <- as.data.frame(as.data.table(d)[, .(records = sum(w), deaths = sum(w * death), units = uniqueN(region)), by = .(survey = as.character(survey), country = as.character(country))][order(survey)])
 prepared <- list(signature = signature, data = d, scaling = scaling, specification = spec, counts = counts, selection = selection,
   national_substitutions = as.data.frame(nsub),
-  source_hashes = data.frame(file = unname(src), md5 = vapply(src, cbh_file_hash, ""), row.names = NULL), snow = S)
+  source_hashes = data.frame(file = unname(src), md5 = vapply(src, cbh_file_hash, ""), row.names = NULL), units = S)
 cbh_atomic_rds(prepared, settings$data)
 cbh_atomic_rds(list(signature = signature, data_md5 = cbh_file_hash(settings$data)), signature_path)
 cbh_atomic_csv(counts, file.path(settings$out, "prepared_sample.csv"))
@@ -175,4 +169,4 @@ for (k in unique(nsub$country)) with(nsub[nsub$country == k, ], message(sprintf(
 for (v in unique(nint$variable)) with(nint[nint$variable == v, ], message(sprintf("National fill: %s in %s (%s) for %d countries: %s records, %s deaths (%s records and %s deaths in the sample)",
   v, paste(unique(year), collapse = ", "), rule[1], length(unique(country)), format(sum(records), big.mark = ","), format(sum(deaths), big.mark = ","),
   format(sum(records_in_sample), big.mark = ","), format(sum(deaths_in_sample), big.mark = ","))))
-message("Snow-unit prepared dataset written (", S$variant, ")")
+message("Prepared dataset written (", S$units, ")")

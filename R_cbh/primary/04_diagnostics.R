@@ -4,7 +4,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 # Require an explicit version (run_regional.R sets it), so that a direct run cannot write into the wrong result folder.
-if(!nzchar(Sys.getenv("CBH_PRIMARY_VERSION"))) stop("Set CBH_PRIMARY_VERSION (snow_merge for the Snow-unit primary), or run R_cbh/primary/run_regional.R.",call.=FALSE)
+if(!nzchar(Sys.getenv("CBH_PRIMARY_VERSION"))) stop("Set CBH_PRIMARY_VERSION (gadm for the primary), or run R_cbh/primary/run_regional.R.",call.=FALSE)
 library(data.table)
 settings <- cbh_primary_settings();out <- settings$out
 manifest <- cbh_read_csv(file.path(out,"fit_manifest.csv"))

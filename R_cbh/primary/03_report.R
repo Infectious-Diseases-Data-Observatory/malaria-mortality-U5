@@ -5,7 +5,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/age_band_table.R")
-settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"));out <- settings$out
+settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","gadm"));out <- settings$out
 writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
 ages <- cbh_config()$age_bands$age_band
 diag <- cbh_read_csv(file.path(out,"fit_diagnostics.csv"))

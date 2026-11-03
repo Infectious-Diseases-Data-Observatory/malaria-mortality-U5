@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# National annual covariate gaps for the imputed-covariate sensitivity of the Snow-unit primary (imputed_snow_v15), on
+# National annual covariate gaps for the imputed-covariate sensitivity of the GADM-unit primary (imputed_gadm_v16), on
 # the countries of the combined DHS and MICS sample. First the primary's declared substitutions
 # (R_cbh/primary/national_substitutions.R): South Sudan's GDP, health expenditure and political stability before
 # independence (2000-2010) are Sudan's observed values for the same year (labels *_substituted_sdn; Sudan has no 2001 WGI
@@ -146,7 +146,7 @@ runs <- function(y) { y <- sort(unique(y)); b <- cumsum(c(1L, diff(y) != 1L))
 cells <- function(miss) { every <- as.integer(names(which(table(grid$year[miss]) == length(countries)))); rest <- miss[!grid$year[miss] %in% every]
   txt <- c(if (length(rest)) vapply(split(grid$year[rest], grid$iso3[rest]), runs, ""), if (length(every)) c(`every country in` = runs(every)))
   if (length(txt)) paste(paste(ifelse(nchar(names(txt)) == 3L, cname(names(txt)), names(txt)), txt), collapse = "; ") else "none" }
-snow_text <- { r <- unique(ns[c("country", "source_country")]); rules <- cbh_national_substitutions(); k <- match(r$country, rules$country)
+subst_text_national <- { r <- unique(ns[c("country", "source_country")]); rules <- cbh_national_substitutions(); k <- match(r$country, rules$country)
   gaps <- ns[!is.finite(ns$political_stability), ]   # no WGI round in the source country: interpolated as for every country
   c(sprintf("**Declared substitutions, as in the primary analysis (`R_cbh/primary/national_substitutions.R`):** %s. These %d country-years (%s) are labelled `*_substituted_%s`, are not modelled and have no draws, so they are the same in every imputed dataset; they are not used to fit the models below, which use each country's own series.%s Child HIV incidence is not substituted.",
     paste(sprintf("%s (%s) takes %s's observed GDP per capita, health expenditure per capita and political stability for years before %d",
@@ -154,9 +154,9 @@ snow_text <- { r <- unique(ns[c("country", "source_country")]); rules <- cbh_nat
     nrow(ns), paste(sprintf("%s %s", cname(r$country), vapply(r$country, function(x) runs(ns$year[ns$country == x]), "")), collapse = "; "),
     paste(unique(tolower(r$source_country)), collapse = "/"),
     if (nrow(gaps)) sprintf(" %s has no WGI estimate for %s; that political stability is interpolated as below.", paste(unique(cname(gaps$source_country)), collapse = ", "), runs(gaps$year)) else ""), "") }
-writeLines(c("# National covariate imputation (DHS and MICS, Snow-unit version imputed_snow_v15)", "",
+writeLines(c(paste0("# National covariate imputation (DHS and MICS, GADM units, ", basename(out_private), ")"), "",
   sprintf("Countries: the %d countries with built DHS or MICS surveys; years %d-%d. Methods follow the DHS-only version (in git history); the MICS countries add Somalia, South Sudan, the Central African Republic and Guinea-Bissau.",
-    length(countries), min(years), max(years)), "", snow_text,
+    length(countries), min(years), max(years)), "", subst_text_national,
   c(sprintf("**Political stability (WGI):** %d country-years in 2001 (no WGI round) filled by the mean of each country's 2000 and 2002 estimates (deterministic, `wgi_2001_interpolated`). %s",
     length(interp), if (length(miss_ps)) sprintf("The other %d gaps (%s) are filled from `%s` fitted by REML to %d observed country-years (residual SD %.3f), with %d draws saved.",
       length(miss_ps), cells(miss_ps), check$model[1], check$n_observed_in_fit[1], check$residual_sd[1], n_draws) else "No other gap remains: no model fill and no draws."), "",

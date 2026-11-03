@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Point-imputation fits for the imputed-covariate sensitivity of the Snow-unit primary: the seven
+# Point-imputation fits for the imputed-covariate sensitivity of the GADM-unit primary: the seven
 # primary age-band models (17 covariates, reference knots, gamma = 2, fREML, discrete)
 # refitted on the prepared dataset from 03_prepare.R. Same fitting and acceptance rules
 # as the other sensitivity refits (R_cbh/sensitivity/nutrition/01_fit.R). Aggregate
@@ -45,8 +45,8 @@ for (i in seq_along(ages)) {
   knots <- setNames(lapply(c("pfpr_pct", "calendar_year"), function(v) {
     k <- knot_table[knot_table$age_band == age & knot_table$variable == v, ]; k$value[order(k$index)] }), c("pfpr_pct", "calendar_year"))
   stopifnot(length(knots$pfpr_pct) == 5L, length(knots$calendar_year) == 6L)
-  # Snow units reach slightly beyond the reference knots at both ends (unit PfPR 0.009-96.3 against 0.0165-94.76); the
-  # cr basis then extrapolates linearly, as in the primary fit, and the records outside are reported.
+  # Unit PfPR can reach beyond the reference knots (0.0165-94.76) at either end; the cr basis then
+  # extrapolates linearly, as in the primary fit, and the records outside are reported.
   outside_knots[[age]] <- data.frame(age_band = age, below_first_knot = sum(d$pfpr_pct < min(knots$pfpr_pct)),
     above_last_knot = sum(d$pfpr_pct > max(knots$pfpr_pct)), records = nrow(d))
   write_csv(do.call(rbind, outside_knots), "records_outside_knots.csv")

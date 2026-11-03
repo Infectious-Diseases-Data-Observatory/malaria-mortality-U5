@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Multiple imputation of the remaining regional covariate gaps, one row per survey x unit of the Snow primary's
+# Multiple imputation of the remaining regional covariate gaps, one row per survey x unit of the GADM-unit primary's
 # covariate table (DHS and MICS jointly), with the specification of the former DHS-only version
 # (in git history): chained equations with predictive mean
 # matching over the 13 regional covariates and the unit's MAP PfPR at the survey year,
@@ -15,16 +15,16 @@ spec <- cbh_primary_regional_spec(st); regional <- spec$regional
 stopifnot(length(regional) == 13L)
 reg <- do.call(rbind, lapply(st$registries, function(x) cbh_read_csv(x)[c("svkey", "iso3", "year")]))
 cbh_unique(reg, "svkey", "Combined registry")
-# One row per survey x unit (the Snow primary's covariate table, after its WUENIC and within-survey fallbacks); the key
+# One row per survey x unit (the primary's covariate table, after its WUENIC and within-survey fallbacks); the key
 # column regkey holds the unit (Admin_IDs joined by "+"). PfPR of the unit at the survey year, population-weighted over
-# its polygons as in R_cbh/primary/00_prepare_snow.R.
-w0 <- cbh_read_csv(st$snow_overlay)
+# its polygons as in R_cbh/primary/00_prepare.R.
+w0 <- cbh_read_csv(st$unit_overlay)
 wide <- data.frame(survey = w0$survey, regkey = w0$unit, w0[regional], programme = ifelse(startsWith(w0$survey, "MC_"), "MICS", "DHS"))
-cbh_unique(wide, c("survey", "regkey"), "Snow covariate table")
+cbh_unique(wide, c("survey", "regkey"), "Primary covariate table")
 wide$country <- reg$iso3[match(wide$survey, reg$svkey)]
 wide$survey_year <- reg$year[match(wide$survey, reg$svkey)]
 stopifnot(!anyNA(wide$country), !anyNA(wide$survey_year))
-pf <- cbh_read_csv(st$snow_pfpr)
+pf <- cbh_read_csv(st$unit_pfpr)
 parts <- do.call(rbind, lapply(seq_len(nrow(wide)), function(i) data.frame(row = i, Admin_ID = strsplit(wide$regkey[i], "+", fixed = TRUE)[[1]])))
 parts$year <- wide$survey_year[parts$row]
 j <- match(paste(parts$Admin_ID, parts$year), paste(pf$Admin_ID, pf$year)); stopifnot(!anyNA(j))
@@ -89,17 +89,17 @@ ragg::agg_png(file.path(out, "mice_density.png"), width = 2200, height = 1600, r
 plotted <- regional[vapply(regional, function(v) sum(!is.finite(before[[v]])) >= 2L, logical(1))]
 print(densityplot(imp, as.formula(paste("~", paste(plotted, collapse = "+"))))); dev.off()
 fmt_na <- function(x) ifelse(is.na(x), "—", sprintf("%.2f", x))
-writeLines(c("# Regional covariate imputation (DHS and MICS, imputed_dhsmics_v6)", "",
-  sprintf("Chained-equation multiple imputation (`mice`, predictive mean matching, m = %d, maxit = %d, seed %d) at the survey-region level on %d survey-regions (%d DHS, %d MICS) from %d surveys, imputed jointly. Targets: the 13 regional covariates and regional MAP PfPR at the survey year; predictors: all of these plus survey year, the national series at survey year (log GDP, log health expenditure, political stability, from `01_impute_national.R`) and a country factor. The specification is that of the DHS-only version (in git history); with the larger donor pool and a different random stream, DHS imputed values differ from that version. Observed values are unchanged. The point overlay is the mean of the %d imputations; all are kept for propagation.",
+writeLines(c(paste0("# Regional covariate imputation (DHS and MICS, GADM units, ", basename(st$imputation_private), ")"), "",
+  sprintf("Chained-equation multiple imputation (`mice`, predictive mean matching, m = %d, maxit = %d, seed %d) on the %d survey x unit rows (%d DHS, %d MICS) of the primary's covariate table from %d surveys, imputed jointly. Targets: the 13 regional covariates and regional MAP PfPR at the survey year; predictors: all of these plus survey year, the national series at survey year (log GDP, log health expenditure, political stability, from `01_impute_national.R`) and a country factor. The specification is that of the DHS-only version (in git history); with the larger donor pool and a different random stream, DHS imputed values differ from that version. Observed values are unchanged. The point overlay is the mean of the %d imputations; all are kept for propagation.",
     st$m, st$maxit, st$imputation_seed, nrow(res), sum(res$programme == "DHS"), sum(res$programme == "MICS"), length(unique(res$survey)), st$m), "",
-  sprintf("%d MICS survey-regions without MAP prevalence at the survey year and without analysis records were dropped: %s.", nrow(no_map), paste(no_map$survey, no_map$regkey, collapse = ", ")), "",
-  "| Variable | Survey-regions imputed (DHS / MICS) | Surveys | Observed mean | Imputed mean | Between-imputation SD |", "|---|---:|---:|---:|---:|---:|",
+  sprintf("%d survey x unit rows without MAP prevalence at the survey year were dropped: %s.", nrow(no_map), paste(no_map$survey, no_map$regkey, collapse = ", ")), "",
+  "| Variable | Survey x unit rows imputed (DHS / MICS) | Surveys | Observed mean | Imputed mean | Between-imputation SD |", "|---|---:|---:|---:|---:|---:|",
   sprintf("| %s | %d (%d / %d) | %d | %.2f | %s | %s |", by_var$variable, by_var$imputed_regions, by_var$imputed_regions_dhs,
     by_var$imputed_regions_mics, by_var$imputed_surveys, by_var$observed_mean, fmt_na(by_var$imputed_mean), fmt_na(by_var$between_imputation_sd)), "",
   "MICS gaps are whole-survey wasting and stunting gaps (Nigeria 2021, Madagascar 2012 South, Somalia 2011 North-East and Somaliland 2011). Somalia's only other survey with anthropometry (MICS 2006) reports one national wasting and stunting value, so the country factor carries little Somalia-specific information.", "",
   "[Convergence traces](mice_convergence.png) · [Observed versus imputed densities](mice_density.png) · [By variable](regional_imputation_by_variable.csv) · [By survey](regional_imputation_by_survey.csv)"),
   file.path(out, "REGIONAL_IMPUTATION.md"))
-paths <- c(st$snow_overlay, st$snow_pfpr, st$registries, st$imputed_national,
+paths <- c(st$unit_overlay, st$unit_pfpr, st$registries, st$imputed_national,
   "R_cbh/sensitivity/imputation_dhsmics/02_impute_regional.R", "R_cbh/sensitivity/imputation_dhsmics/settings.R",
   "R_cbh/primary/specification.R")
 cbh_atomic_csv(data.frame(file = paths, md5 = vapply(paths, cbh_file_hash, "")), file.path(out, "regional_imputation_provenance.csv"))

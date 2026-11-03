@@ -15,7 +15,7 @@ cls <- fread(file.path(S$out, "feasibility", "region_classification.csv"))
 surveys <- intersect(snow_all_shards(), cls$survey)
 
 # 1. Population shares of finer units that are themselves split ("geometry: split").
-snow <- readRDS(file.path(S$private, "polygons_551.rds"))[, c("Admin_ID", "Country_ID", "Type", "in520")]
+snow <- readRDS(snow_polygons_path(S))[, c("Admin_ID", "Country_ID", "Type", "in520")]
 dens <- crop(rast("data/pop/gpw_v4_population_density_rev11_2020_2.5m.tif"), ext(-26, 60, -36, 28))
 popc <- dens * cellSize(dens, unit = "km")
 cw <- fread(file.path(S$out, "feasibility", "finer_unit_crosswalk.csv"))

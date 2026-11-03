@@ -12,7 +12,7 @@ suppressPackageStartupMessages({ library(data.table); library(sf); library(terra
 sf_use_s2(FALSE)
 source("R_cbh/R/geography.R"); source("R_cbh/snow/R/settings.R")
 S <- snow_dirs(snow_settings(), "feasibility"); out <- file.path(S$out, "feasibility")
-snow <- readRDS(file.path(S$private, "polygons_551.rds"))[, c("Admin_ID", "Country_ID", "AFR_Admin", "Type", "in520")]
+snow <- readRDS(snow_polygons_path(S))[, c("Admin_ID", "Country_ID", "AFR_Admin", "Type", "in520")]
 
 # Survey-regions and their eligible records. Feasibility covers every built shard so that the unit construction
 # does not depend on which surveys a sample later keeps.

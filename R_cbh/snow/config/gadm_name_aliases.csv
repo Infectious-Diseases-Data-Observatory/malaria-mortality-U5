@@ -1,0 +1,64 @@
+country,value_key,snow_name,note
+AGO,huile,Huila,spelling
+AGO,malange,Malanje,spelling
+AGO,kwanzasul,Cuanza Sul,spelling
+AGO,kwanzanorte,Cuanza Norte,spelling
+AGO,kuandokubango,Cuando Cubango,spelling
+COD,tanganyka,Tanganyika,spelling
+NGA,zamfora,Zamfara,spelling
+NGA,fct,Abuja FCT,Federal Capital Territory
+NGA,abuja,Abuja FCT,Federal Capital Territory
+NGA,fctabuja,Abuja FCT,Federal Capital Territory
+NGA,ncfctabuja,Abuja FCT,Federal Capital Territory (zone prefix)
+TZA,daressalam,Dar es Salaam,spelling
+SOM,lowershabelle,Shabeellaha Hoose,English name of the Somali region
+SOM,middleshabelle,Shabeellaha Dhexe,English name of the Somali region
+SOM,banadir,Banaadir,spelling
+SOM,wgalbeed,Woqooyi Galbeed,abbreviation
+SOM,nugal,Nugaal,spelling
+SOM,lowerjuba,Jubbada Hoose,English name of the Somali region
+SOM,middlejuba,Jubbada Dhexe,English name of the Somali region
+SOM,hiran,Hiiraan,spelling
+SOM,togdhere,Togdheer,spelling
+MRT,tirsezemour,Tiris Zemmour,spelling; malaria-free unit
+MRT,tiriszemour,Tiris Zemmour,spelling; malaria-free unit
+MRT,inchiri,Inchiri,malaria-free unit
+NGA,nassarawa,Nasarawa,spelling
+GAB,woleuntem,Wouleu-Ntem,spelling (GADM spells Woleu-Ntem as Wouleu-Ntem)
+LBR,gbarpolu,Gbapolu,spelling (GADM spells Gbarpolu as Gbapolu)
+SEN,ziquinchor,Ziguinchor,spelling
+SEN,pikine,Dakar,department of the Dakar region
+SEN,guediawaye,Dakar,department of the Dakar region
+SEN,rufisque,Dakar,department of the Dakar region
+GNB,sab,Bissau,Sector Autonomo de Bissau
+BDI,bujumbura,Bujumbura Rural,"""bujumbura-rural"" once the rural word is removed"
+MOZ,maputoprovincia,Maputo,Maputo province
+MOZ,maputocidade,Maputo City,Maputo city
+TCD,ndjamena,Ville de N'Djamena,the capital
+TCD,ennediouest,Ennedi Ouest,malaria-free unit
+TCD,tibesti,Tibesti,malaria-free unit
+KEN,merunorth,Meru,2003 district (Kenya 2003 DHS) within the county
+KEN,merucentral,Meru,2003 district (Kenya 2003 DHS) within the county
+KEN,merusouth,Tharaka-Nithi,2003 district (Kenya 2003 DHS) within the county
+KEN,tharaka,Tharaka-Nithi,2003 district (Kenya 2003 DHS) within the county
+KEN,mbeere,Embu,2003 district (Kenya 2003 DHS) within the county
+KEN,mwingi,Kitui,2003 district (Kenya 2003 DHS) within the county
+KEN,moyale,Marsabit,2003 district (Kenya 2003 DHS) within the county
+KEN,maragua,Murang'a,2003 district (Kenya 2003 DHS) within the county
+KEN,malindi,Kilifi,2003 district (Kenya 2003 DHS) within the county
+KEN,gucha,Kisii,2003 district (Kenya 2003 DHS) within the county
+KEN,centralkisii,Kisii,2003 district (Kenya 2003 DHS) within the county
+KEN,rachuonyo,Homa Bay,2003 district (Kenya 2003 DHS) within the county
+KEN,suba,Homa Bay,2003 district (Kenya 2003 DHS) within the county
+KEN,kuria,Migori,2003 district (Kenya 2003 DHS) within the county
+KEN,bondo,Siaya,2003 district (Kenya 2003 DHS) within the county
+KEN,nyando,Kisumu,2003 district (Kenya 2003 DHS) within the county
+KEN,teso,Busia,2003 district (Kenya 2003 DHS) within the county
+KEN,buteremumias,Kakamega,2003 district (Kenya 2003 DHS) within the county
+KEN,lugari,Kakamega,2003 district (Kenya 2003 DHS) within the county
+KEN,mtelgon,Bungoma,2003 district (Kenya 2003 DHS) within the county
+KEN,buret,Kericho,2003 district (Kenya 2003 DHS) within the county
+KEN,transmara,Narok,2003 district (Kenya 2003 DHS) within the county
+KEN,marakwet,Elgeyo-Marakwet,2003 district (Kenya 2003 DHS) within the county
+KEN,keiyo,Elgeyo-Marakwet,2003 district (Kenya 2003 DHS) within the county
+KEN,koibatek,Baringo,2003 district (Kenya 2003 DHS) within the county

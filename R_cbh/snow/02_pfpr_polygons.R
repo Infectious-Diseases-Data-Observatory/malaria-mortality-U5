@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
-# MAP PfPR2-10 for each of the 520 endemic Snow polygons and each year 2000-2024 (ported from the analysis project's
-# R_cbh/snow_units/06_pfpr_polygons.R): exact fractional polygon coverage of the MAP grid, GPW v4 2020 population as
-# weights resampled bilinearly to the MAP grid, masked to cells with a MAP value. The weight is GPW density x cell area
+# MAP PfPR2-10 for each endemic unit of the variant (the 520 Snow polygons; the GADM endemic units) and each year
+# 2000-2024 (ported from the analysis project's R_cbh/snow_units/06_pfpr_polygons.R): exact fractional polygon
+# coverage of the MAP grid, GPW v4 2020 population as weights resampled bilinearly to the MAP grid, masked to cells
+# with a MAP value. The weight is GPW density x cell area
 # (population counts). The weight sum is written with each value, so that the PfPR of a union of polygons is
 # sum(weight * PfPR) / sum(weight), identical to an extraction over the union.
 # Output: <out>/pfpr/pfpr_polygon_year.csv (polygon-year aggregates)
@@ -9,8 +10,8 @@ suppressPackageStartupMessages({ library(data.table); library(sf); library(terra
 sf_use_s2(FALSE)
 source("R_cbh/snow/R/settings.R")
 S <- snow_dirs(snow_settings(), "pfpr")
-p <- readRDS(file.path(S$private, "polygons_551.rds")); p <- p[p$in520, ]
-stopifnot(nrow(p) == 520L, !anyDuplicated(p$Admin_ID))
+p <- readRDS(snow_polygons_path(S)); p <- p[p$in520, ]
+stopifnot(nrow(p) == S$counts[["endemic"]], !anyDuplicated(p$Admin_ID))
 source("R_cbh/00_config.R")   # cbh_config()$map_raster_dir: the MAP release of every exposure
 rf <- list.files(cbh_config()$map_raster_dir, pattern = "pfpr2_10_[0-9]{4}[.]tif$", full.names = TRUE)
 ry <- as.integer(regmatches(basename(rf), regexpr("[0-9]{4}", basename(rf))))

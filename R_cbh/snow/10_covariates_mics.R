@@ -49,11 +49,14 @@ getv <- function(d, ...) { low <- tolower(names(d)); for (a in tolower(c(...))) 
 labs_of <- function(x) { l <- attr(x, "labels"); if (is.null(l)) return(setNames(character(), character())); setNames(tolower(names(l)), l) }
 wmean <- function(x, w) { ok <- is.finite(x) & is.finite(w) & w > 0; if (!any(ok)) return(c(NA, 0, 0)); c(sum(x[ok] * w[ok]) / sum(w[ok]), sum(ok), sum(w[ok])) }
 region_of <- function(d, s) {
-  if (startsWith(s$region_var, "CONST:")) return(rep(paste(cbh_rkey(sub("CONST:", "", s$region_var)), NA, sep = "\t"), nrow(d)))   # one-region survey
-  v <- sub("^WM:", "", s$region_var); x <- getv(d, v, "HH7", "hh7", "HHB", "HHREG", "WMREG", "region", "zone")
-  if (is.null(x)) return(rep(NA_character_, nrow(d)))
-  # Labels can differ in case or accents between files of the same survey, so match on normalised keys.
-  m <- rmap[svkey == s$svkey]; ar <- m$analysis_region[match(cbh_rkey(as.character(as_factor(x))), cbh_rkey(m$mics_label))]
+  # A one-region survey takes its finer location too where it has one: its region is split across the GADM units
+  # (MC_SEN2015DKR, Dakar & Thies), though under the Snow polygons no one-region survey is.
+  if (startsWith(s$region_var, "CONST:")) ar <- rep(sub("CONST:", "", s$region_var), nrow(d)) else {
+    v <- sub("^WM:", "", s$region_var); x <- getv(d, v, "HH7", "hh7", "HHB", "HHREG", "WMREG", "region", "zone")
+    if (is.null(x)) return(rep(NA_character_, nrow(d)))
+    # Labels can differ in case or accents between files of the same survey, so match on normalised keys.
+    m <- rmap[svkey == s$svkey]; ar <- m$analysis_region[match(cbh_rkey(as.character(as_factor(x))), cbh_rkey(m$mics_label))]
+  }
   # Snow placement key: analysis region + the survey's finer location variable (03_finer_units.R), if any.
   fv <- R$choice[survey == s$svkey, variable]; fx <- if (length(fv)) getv(d, fv) else NULL
   if (length(fv) && is.null(fx)) message(s$svkey, ": finer variable ", fv, " not in this file; its rows use survey-region shares")

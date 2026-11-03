@@ -7,7 +7,8 @@
 #             builder); a matched unit is placed if >= 90% of its GPW 2020 population lies in one of the 520 polygons;
 #   names:    otherwise, to a Snow polygon name in the same country, whole name ("name") or one part of a combined
 #             name such as "Trarza & Nouakchott" ("name part"), then to the documented spelling aliases in
-#             R_cbh/snow/config/name_aliases.csv ("alias"; an alias to a malaria-free unit counts as malaria-free).
+#             aliases of the variant (snow_settings()$aliases: config/name_aliases.csv for Snow, gadm_name_aliases.csv
+#             for GADM; "alias"; an alias to a malaria-free unit counts as malaria-free).
 # The variable placing the most records is kept. Records are the eligible child-band records of the shards, linked to
 # their recode row through child_id (survey:c:<row>), which holds for DHS and MICS.
 # Reviewed fixes (made after the reproduction of the analysis project's split dataset): variables describing a previous
@@ -19,7 +20,7 @@ suppressPackageStartupMessages({ library(data.table); library(sf); library(terra
 sf_use_s2(FALSE)
 source("R_cbh/R/geography.R"); source("R_cbh/snow/R/settings.R"); source("R_cbh/snow/R/placement.R")
 S <- snow_settings(); out <- file.path(S$out, "feasibility")
-snow <- readRDS(file.path(S$private, "polygons_551.rds"))[, c("Admin_ID", "Country_ID", "AFR_Admin", "Type", "in520")]
+snow <- readRDS(snow_polygons_path(S))[, c("Admin_ID", "Country_ID", "AFR_Admin", "Type", "in520")]
 cls <- fread(file.path(out, "region_classification.csv"))
 inv <- fread(file.path(out, "location_variables.csv"))
 registry <- fread("data/derived_dhs/survey_registry.csv")
@@ -38,9 +39,9 @@ overlay <- function(p) {
 }
 snow_names <- as.data.table(st_drop_geometry(snow))[, .(Admin_ID, Country_ID, in520, whole = cbh_rkey(AFR_Admin), AFR_Admin)]
 parts <- snow_names[, .(part = cbh_rkey(trimws(unlist(strsplit(AFR_Admin, ",|&| and |/"))))), by = .(Admin_ID, Country_ID, in520)][nzchar(part)]
-aliases <- fread("R_cbh/snow/config/name_aliases.csv")
+aliases <- fread(S$aliases)
 aliases <- merge(aliases, snow_names[, .(country = Country_ID, snow_name = AFR_Admin, Admin_ID, in520)], by = c("country", "snow_name"))
-stopifnot(nrow(aliases) == nrow(fread("R_cbh/snow/config/name_aliases.csv")))
+stopifnot(nrow(aliases) == nrow(fread(S$aliases)))
 
 # Eligible records of every shard (one row per child: records = number of its child-band records).
 rd <- rbindlist(lapply(cls[, unique(survey)], function(s) {
@@ -68,6 +69,10 @@ for (s in split_surveys) {
     src <- as.data.frame(lapply(src, function(z) if (is.labelled(z)) as.character(as_factor(z)) else as.character(z)))
   } else src <- as.data.frame(lapply(readRDS(registry[svkey == s, local_recode][1])[cand$variable], as.character))
   stopifnot(max(x$row) <= nrow(src))
+  # A MICS variable inventoried only in hh.sav cannot be linked to the bh.sav records (first met with the GADM units:
+  # MC_SEN2015DKR CT4D); every variable reached under the Snow units is in the file.
+  cand <- cand[variable %in% names(src)]
+  if (!nrow(cand)) { choice[[s]] <- data.table(survey = s, variable = NA_character_, note = "no finer named variable in the records' file"); next }
   # Boundary files of the same country (DHS spatial data repository), keyed as in the builder.
   bfiles <- unique(registry[iso3 == iso & file.exists(boundary_file), boundary_file])
   bkeys <- lapply(bfiles, function(f) cbh_rkey(readRDS(f)$DHSREGEN)); names(bkeys) <- bfiles

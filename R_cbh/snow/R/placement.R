@@ -66,13 +66,14 @@ snow_place <- function(d, R) {
 
 # Analysis units of placed ids. pl: id, Admin_ID, w, rule (from snow_place). Returns id, unit, w, rule, n_polygons,
 # malaria_free (share of the location unit's population in malaria-free or island units); ids dropped (malaria-free
-# share > 0.5) do not appear. Units are Admin_IDs joined by "+" in sorted order.
+# share > 0.5) do not appear. Units are Admin_IDs joined by "+" in C-locale (radix) order, so the strings do not depend
+# on the collation locale (GADM ids NGA.1_1 and NGA.10_1 sort differently in en_GB; Snow ids sort the same either way).
 snow_assign <- function(pl, S) {
   if (!nrow(pl)) return(data.table(id = pl$id, unit = character(), w = numeric(), rule = character(), n_polygons = integer(), malaria_free = numeric()))
   pl[, `:=`(mf = pmax(0, 1 - sum(w)), top = max(w)), by = id]
   u <- pl[, {
     keep <- if (top[1] >= S$whole) Admin_ID[which.max(w)] else if (any(w >= S$link)) Admin_ID[w >= S$link] else Admin_ID
-    .(unit = paste(sort(keep), collapse = "+"), n_polygons = length(keep), malaria_free = mf[1], rule = rule[1])
+    .(unit = paste(sort(keep, method = "radix"), collapse = "+"), n_polygons = length(keep), malaria_free = mf[1], rule = rule[1])
   }, by = id]
   pl[, c("mf", "top") := NULL]
   u[malaria_free <= S$malaria_free_drop, .(id, unit, w = 1, rule, n_polygons, malaria_free)]

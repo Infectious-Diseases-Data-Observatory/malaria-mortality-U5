@@ -1,2 +1,5 @@
 survey,variable,reason
 UG7BFL,s104,District lived in previous to current residence: a previous residence is not a location of the record (reviewed 11 October 2026)
+MZ41FL,s321,"Province of the health facility (contraceptive source): not a location of the record (reviewed 3 November 2026; met with the GADM units)"
+MZ41FL,s321d,"District of the health facility (contraceptive source): not a location of the record (reviewed 3 November 2026; met with the GADM units)"
+MZ41FL,s321p,"Province of the health facility (contraceptive source): not a location of the record (reviewed 3 November 2026; met with the GADM units)"

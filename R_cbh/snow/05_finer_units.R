@@ -64,15 +64,17 @@ for (s in split_surveys) {
   cand <- cand[!duplicated(variable)]
   if (!nrow(cand)) { choice[[s]] <- data.table(survey = s, variable = NA_character_, note = "no finer named variable"); next }
   x <- rd[survey == s]
-  if (startsWith(s, "MC_")) {
-    src <- read_sav(file.path("data/raw/MICS_extracted", setup[svkey == s, folder], "bh.sav"), col_select = any_of(cand$variable))
-    src <- as.data.frame(lapply(src, function(z) if (is.labelled(z)) as.character(as_factor(z)) else as.character(z)))
-  } else src <- as.data.frame(lapply(readRDS(registry[svkey == s, local_recode][1])[cand$variable], as.character))
-  stopifnot(max(x$row) <= nrow(src))
   # A MICS variable inventoried only in hh.sav cannot be linked to the bh.sav records (first met with the GADM units:
   # MC_SEN2015DKR CT4D); every variable reached under the Snow units is in the file.
-  cand <- cand[variable %in% names(src)]
+  bh <- if (startsWith(s, "MC_")) file.path("data/raw/MICS_extracted", setup[svkey == s, folder], "bh.sav") else NULL
+  rec <- if (is.null(bh)) readRDS(registry[svkey == s, local_recode][1]) else NULL
+  cand <- cand[variable %in% (if (is.null(bh)) names(rec) else names(read_sav(bh, n_max = 0)))]
   if (!nrow(cand)) { choice[[s]] <- data.table(survey = s, variable = NA_character_, note = "no finer named variable in the records' file"); next }
+  if (!is.null(bh)) {
+    src <- read_sav(bh, col_select = all_of(cand$variable))
+    src <- as.data.frame(lapply(src, function(z) if (is.labelled(z)) as.character(as_factor(z)) else as.character(z)))
+  } else { src <- as.data.frame(lapply(rec[cand$variable], as.character)); rm(rec) }
+  stopifnot(max(x$row) <= nrow(src))
   # Boundary files of the same country (DHS spatial data repository), keyed as in the builder.
   bfiles <- unique(registry[iso3 == iso & file.exists(boundary_file), boundary_file])
   bkeys <- lapply(bfiles, function(f) cbh_rkey(readRDS(f)$DHSREGEN)); names(bkeys) <- bfiles

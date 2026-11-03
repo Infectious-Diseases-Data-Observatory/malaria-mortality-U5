@@ -466,7 +466,8 @@ no_survey <- no_survey[order(cn[Country_ID])]; nodata_other <- nodata_other[orde
 fw <- merge(fieldwork, cov[, .(survey, year)], by = "survey")
 assert(nrow(fw) == length(inc) && all(fw$y0 >= fw$year - 1L & fw$y1 <= fw$year + 2L),
        "interview years of each survey within one year before and two after its registry year (Gregorian dates)")
-nodata_txt <- and_list(c(sprintf("%d in the %d countries that have malaria-endemic polygons but no included survey (%s)", sum(no_survey$N), nrow(no_survey), and_list(unname(cn[no_survey$Country_ID]))),
+nodata_txt <- and_list(c(sprintf("%s in the %d countries that have malaria-endemic polygons but no included survey (%s)",
+                                 if (nrow(nodata_other)) sum(no_survey$N) else "all", nrow(no_survey), and_list(unname(cn[no_survey$Country_ID]))),
                          sprintf("%d in %s", nodata_other$N, cn[nodata_other$Country_ID])))
 pct_m <- 100 * mothers_merged / n_mothers
 frac_txt <- function(p) if (isTRUE(all.equal(p, 0.5))) "half" else sprintf("%s%%", 100 * p)

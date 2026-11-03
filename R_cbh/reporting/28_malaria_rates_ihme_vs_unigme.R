@@ -46,9 +46,35 @@ w[, labelled := pmax(ihme, unigme) >= label_min]
 # the version's estimates (method of 2 November 2026): each label is nearer its own point than any other point and each
 # labelled point nearer its own label than any other, and no label touches a point, another label, the equality line
 # (at least 0.6 mm from it), the note or the panel edge. Leaders shorter than 1.5 mm are not drawn. The script stops if
-# the labelled set changes. The GADM-unit positions are to be set on the v15 estimates; until then (no rows for the
-# version) ggrepel places the labels.
-offsets <- fread(text = "version,iso3,dx,dy\n", colClasses = c("character", "character", "numeric", "numeric"))[version == st$version, !"version"]
+# the labelled set changes. The GADM-unit positions were set on the v15 estimates (3 November 2026) by a constraint
+# search over the crowded cluster (Liberia to Equatorial Guinea); a version without rows falls back to ggrepel.
+offsets <- fread(text = "version,iso3,dx,dy
+gadm,AGO,0.326,-0.118
+gadm,BDI,0.355,0.118
+gadm,BEN,-0.278,0.118
+gadm,BFA,-0.568,0.118
+gadm,CAF,-0.239,0.118
+gadm,CIV,0.564,-0.056
+gadm,CMR,0.461,0.118
+gadm,COD,0.244,0.118
+gadm,COG,-0.181,-0.118
+gadm,GHA,0.317,0.118
+gadm,GIN,-0.336,0.118
+gadm,GNQ,-0.491,0.118
+gadm,LBR,0.223,-0.161
+gadm,MDG,-0.534,0.118
+gadm,MLI,0.238,-0.019
+gadm,MOZ,0.576,0.019
+gadm,MWI,-0.326,-0.118
+gadm,NER,0.263,0.118
+gadm,NGA,0.331,0.118
+gadm,SLE,-0.299,0.141
+gadm,SSD,0.558,0.118
+gadm,TCD,-0.263,0.118
+gadm,TGO,-0.244,0.118
+gadm,UGA,0.360,-0.118
+gadm,ZMB,0.346,0.118
+", colClasses = c("character", "character", "numeric", "numeric"))[version == st$version, !"version"]
 fixed_labels <- nrow(offsets) > 0
 if (fixed_labels) stopifnot(setequal(offsets$iso3, w[labelled == TRUE, iso3]))
 w[, c("dx", "dy") := 0]

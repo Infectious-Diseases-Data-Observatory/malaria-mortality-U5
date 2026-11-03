@@ -478,10 +478,10 @@ OBJECTID_1,GID_0,NAME_1,Admin_ID,id_source
 477,KEN,Vihiga,KEN.vihiga,country + name
 478,KEN,Wajir,KEN.wajir,country + name
 479,KEN,West Pokot,KEN.westpokot,country + name
-480,UGA,Central,UGA.1_1,GADM GID_1
-481,UGA,Eastern,UGA.1_2,GADM GID_1
-482,UGA,Northern,UGA.1_3,GADM GID_1
-483,UGA,Western,UCA.1_4,GADM GID_1
+480,UGA,Central,UGA.1_1,"source code (national layer, not GADM)"
+481,UGA,Eastern,UGA.1_2,"source code (national layer, not GADM)"
+482,UGA,Northern,UGA.1_3,"source code (national layer, not GADM)"
+483,UGA,Western,UGA.1_4,"source code (national layer, not GADM)"
 484,TZA,Arusha,TZA.arusha,country + name
 485,TZA,Dar es Salaam,TZA.daressalaam,country + name
 486,TZA,Dodoma,TZA.dodoma,country + name
@@ -508,41 +508,41 @@ OBJECTID_1,GID_0,NAME_1,Admin_ID,id_source
 507,TZA,Songwe,TZA.songwe,country + name
 508,TZA,Tabora,TZA.tabora,country + name
 509,TZA,Tanga,TZA.tanga,country + name
-511,MWI,Central Region,MWI.1_2,GADM GID_1
-512,MWI,Northern Region,MWI.1_3,GADM GID_1
-513,MWI,Southern Region,MWI.1_1,GADM GID_1
-515,BWA,Central,BWA.1_1,GADM GID_1
-516,BWA,Chobe,BWA.1_2,GADM GID_1
-517,BWA,Ghanzi,BWA.1_4,GADM GID_1
-518,BWA,Kgalagadi,BWA.1_5,GADM GID_1
-519,BWA,Kgatieng,BWA.1_7,GADM GID_1
-520,BWA,Kweneng,BWA.1_8,GADM GID_1
-521,BWA,Ngamiland,BWA.1_3,GADM GID_1
-522,BWA,North East,BWA.1_10,GADM GID_1
-523,BWA,South-East,BWA.1_9,GADM GID_1
-524,BWA,Southern,BWA.1_6,GADM GID_1
-525,MDG,Alaotra Mangoro,MDG.1_1,GADM GID_1
-526,MDG,Amoron I Mania,MDG.1_2,GADM GID_1
-527,MDG,Analamanga,MDG.1_3,GADM GID_1
-528,MDG,Analanjirofo,MDG.1_4,GADM GID_1
-529,MDG,Androy,MDG.1_5,GADM GID_1
-530,MDG,Anosy,MDG.1_6,GADM GID_1
-531,MDG,Atsimo Andrefana,MDG.1_7,GADM GID_1
-532,MDG,Atsimo Atsinanana,MDG.1_8,GADM GID_1
-533,MDG,Atsinanana,MDG.1_9,GADM GID_1
-534,MDG,Betsiboka,MDG.1_10,GADM GID_1
-535,MDG,Boeny,MDG.1_11,GADM GID_1
-536,MDG,Bongolava,MDG.1_12,GADM GID_1
-537,MDG,Diana,MDG.1_13,GADM GID_1
-538,MDG,Haute Matsiatra,MDG.1_14,GADM GID_1
-539,MDG,Ihorombe,MDG.1_15,GADM GID_1
-540,MDG,Itasy,MDG.1_16,GADM GID_1
-541,MDG,Melaky,MDG.1_17,GADM GID_1
-542,MDG,Menabe,MDG.1_18,GADM GID_1
-543,MDG,Sava,MDG.1_19,GADM GID_1
-544,MDG,Sofia,MDG.1_20,GADM GID_1
-545,MDG,Vakinankaratra,MDG.1_21,GADM GID_1
-546,MDG,Vatovavy Fitovinany,MDG.1_22,GADM GID_1
+511,MWI,Central Region,MWI.1_2,"source code (national layer, not GADM)"
+512,MWI,Northern Region,MWI.1_3,"source code (national layer, not GADM)"
+513,MWI,Southern Region,MWI.1_1,"source code (national layer, not GADM)"
+515,BWA,Central,BWA.1_1,"source code (national layer, not GADM)"
+516,BWA,Chobe,BWA.1_2,"source code (national layer, not GADM)"
+517,BWA,Ghanzi,BWA.1_4,"source code (national layer, not GADM)"
+518,BWA,Kgalagadi,BWA.1_5,"source code (national layer, not GADM)"
+519,BWA,Kgatieng,BWA.1_7,"source code (national layer, not GADM)"
+520,BWA,Kweneng,BWA.1_8,"source code (national layer, not GADM)"
+521,BWA,Ngamiland,BWA.1_3,"source code (national layer, not GADM)"
+522,BWA,North East,BWA.1_10,"source code (national layer, not GADM)"
+523,BWA,South-East,BWA.1_9,"source code (national layer, not GADM)"
+524,BWA,Southern,BWA.1_6,"source code (national layer, not GADM)"
+525,MDG,Alaotra Mangoro,MDG.1_1,"source code (national layer, not GADM)"
+526,MDG,Amoron I Mania,MDG.1_2,"source code (national layer, not GADM)"
+527,MDG,Analamanga,MDG.1_3,"source code (national layer, not GADM)"
+528,MDG,Analanjirofo,MDG.1_4,"source code (national layer, not GADM)"
+529,MDG,Androy,MDG.1_5,"source code (national layer, not GADM)"
+530,MDG,Anosy,MDG.1_6,"source code (national layer, not GADM)"
+531,MDG,Atsimo Andrefana,MDG.1_7,"source code (national layer, not GADM)"
+532,MDG,Atsimo Atsinanana,MDG.1_8,"source code (national layer, not GADM)"
+533,MDG,Atsinanana,MDG.1_9,"source code (national layer, not GADM)"
+534,MDG,Betsiboka,MDG.1_10,"source code (national layer, not GADM)"
+535,MDG,Boeny,MDG.1_11,"source code (national layer, not GADM)"
+536,MDG,Bongolava,MDG.1_12,"source code (national layer, not GADM)"
+537,MDG,Diana,MDG.1_13,"source code (national layer, not GADM)"
+538,MDG,Haute Matsiatra,MDG.1_14,"source code (national layer, not GADM)"
+539,MDG,Ihorombe,MDG.1_15,"source code (national layer, not GADM)"
+540,MDG,Itasy,MDG.1_16,"source code (national layer, not GADM)"
+541,MDG,Melaky,MDG.1_17,"source code (national layer, not GADM)"
+542,MDG,Menabe,MDG.1_18,"source code (national layer, not GADM)"
+543,MDG,Sava,MDG.1_19,"source code (national layer, not GADM)"
+544,MDG,Sofia,MDG.1_20,"source code (national layer, not GADM)"
+545,MDG,Vakinankaratra,MDG.1_21,"source code (national layer, not GADM)"
+546,MDG,Vatovavy Fitovinany,MDG.1_22,"source code (national layer, not GADM)"
 547,GNQ,Annobón,GNQ.1_1,GADM GID_1
 548,GNQ,Bioko,GNQ.2_1,GADM GID_1
 599,GHA,Ashanti,GHA.ashanti,country + name

@@ -59,7 +59,8 @@ d[, labelled := excess > above_min | excess < -below_min]
 d[, label := fifelse(labelled, sub("^(Central African|Republic of|Equatorial) ", "\\1\n", fcoalesce(unname(full_name[country]), country)), "")]
 # Fixed label positions: offset from the point to the label centre, in rates per 1,000, chosen on these data so that
 # no label covers a point or another label and no leader crosses another or passes through a point. The script stops
-# if the labelled set changes.
+# if the labelled set changes. The positions belong to the v14 (snow_merge) estimates; another version (gadm_merge,
+# branch gadm-admin1) has its labels placed by ggrepel.
 offsets <- fread(text = "panel,iso3,dx,dy
 A,GNQ,0.900,4.800
 A,LBR,0.900,-0.600
@@ -69,8 +70,10 @@ B,GNQ,1.400,-0.800
 B,NER,0.700,0.600
 B,RWA,1.400,0.400
 B,TCD,-0.400,0.600")
-stopifnot(setequal(paste(offsets$panel, offsets$iso3), d[labelled == TRUE, paste(panel, iso3)]))
-d[, c("dx", "dy") := 0][offsets, on = c("panel", "iso3"), c("dx", "dy") := .(i.dx, i.dy)]
+fixed_labels <- identical(st$version, "snow_merge")
+if (fixed_labels) stopifnot(setequal(paste(offsets$panel, offsets$iso3), d[labelled == TRUE, paste(panel, iso3)]))
+d[, c("dx", "dy") := 0]
+if (fixed_labels) d[offsets, on = c("panel", "iso3"), c("dx", "dy") := .(i.dx, i.dy)]
 cbh_atomic_csv(d, file.path(out, "figure_data.csv"))
 # Axes reach the points and every interval no longer than 1.5 times the largest point; a longer interval (South
 # Sudan's, from UN IGME's wide all-cause bounds) is truncated at the edge with an arrow and given in the caption.
@@ -87,7 +90,7 @@ panel <- function(p, source_label, tag) ggplot(d[panel == p], aes(cause_specific
     linewidth = .3, alpha = .55, arrow = grid::arrow(length = grid::unit(1.4, "mm")), show.legend = FALSE) +
   geom_point(aes(colour = region), size = 1.7) +
   ggrepel::geom_text_repel(aes(label = label), size = 9 / .pt, colour = "grey20", seed = 20261028L, max.overlaps = Inf,
-    nudge_x = d[panel == p, dx], nudge_y = d[panel == p, dy], max.iter = 0, point.size = 1.7, lineheight = .95,
+    nudge_x = d[panel == p, dx], nudge_y = d[panel == p, dy], max.iter = if (fixed_labels) 0 else 10000, point.size = 1.7, lineheight = .95,
     min.segment.length = grid::unit(1.5, "mm"), segment.colour = "grey50", segment.size = .25, box.padding = .2, point.padding = .15) +
   scale_colour_manual(values = colours, drop = FALSE, name = NULL) +
   scale_x_continuous(limits = lim, breaks = axis_breaks, expand = expansion(mult = c(0, .02))) +

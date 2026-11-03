@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 # Figure 1 (main text): complete birth histories used in the primary analysis, by sub-national polygon of Snow et al.
-# (2017) (user request, 12 October 2026). Each sub-Saharan polygon is coloured by the number of complete birth histories
+# (2017) (user request, 12 October 2026); for the gadm_merge version (branch gadm-admin1), by GADM 4.1 admin-1 unit,
+# with the same rules (the units of the variant's layer stand for the Snow polygons throughout). Each sub-Saharan polygon is coloured by the number of complete birth histories
 # (interviewed mothers) with at least one child-band record in the final sample, summed over the included surveys. The
 # previous Figure 1 (survey map and timing) is no longer drawn (1 November 2026); 03_survey_map.R writes its tables only.
 # Rules:
@@ -36,7 +37,7 @@
 #   CIE76 dE in CIELAB) and the legend and scale bar for clearance from land. Planar geometry (sf_use_s2(FALSE)) in the
 #   Africa Albers equal-area projection (ESRI:102022). Deterministic; no caches.
 # Inputs: P$data; the child-band shard manifests and shards of the included surveys (cbh_config()$output_dir,
-#   P$mics_output_dir); <S$private>/records_placed.rds and polygons_551.rds; S$shapefile (Western Sahara only);
+#   P$mics_output_dir); <S$private>/records_placed.rds and polygons_<count>.rds; the Snow shapefile (Western Sahara only);
 #   data/africa_admin0.rds; data/external/natural_earth/ne_10m_lakes.geojson; <P$out>/prepared_sample.csv,
 #   survey_map/mothers_by_survey.csv and survey_map/survey_coverage.csv (03_survey_map.R); this script, the settings and
 #   the R_cbh helper files it sources.
@@ -56,8 +57,11 @@ cfg <- cbh_config()
 rel <- function(p) ifelse(startsWith(p, paste0(cfg$root, "/")), substring(p, nchar(cfg$root) + 2L), p)   # repository-relative
 self <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
 if (length(self) != 1L || !file.exists(self)) self <- "R_cbh/reporting/23_analysis_units_map.R"
-shp_parts <- sub("[.]shp$", "", S$shapefile); shp_parts <- paste0(shp_parts, c(".shp", ".shx", ".dbf", ".prj", ".cpg"))
-paths <- c(dataset = P$data, records_placed = file.path(S$private, "records_placed.rds"), polygons = file.path(S$private, "polygons_551.rds"),
+# Western Sahara is drawn from the Snow shapefile for every variant (the GADM layer has no North Africa).
+esh_shp <- snow_settings("merge")$shapefile
+shp_parts <- sub("[.]shp$", "", esh_shp); shp_parts <- paste0(shp_parts, c(".shp", ".shx", ".dbf", ".prj", ".cpg"))
+if (!identical(S$shapefile, esh_shp)) shp_parts <- c(shp_parts, S$shapefile)   # the layer of 01_polygons.R
+paths <- c(dataset = P$data, records_placed = file.path(S$private, "records_placed.rds"), polygons = snow_polygons_path(S),
            admin0 = "data/africa_admin0.rds", lakes = "data/external/natural_earth/ne_10m_lakes.geojson",
            sample = file.path(P$out, "prepared_sample.csv"), mothers = file.path(P$out, "survey_map", "mothers_by_survey.csv"),
            coverage = file.path(P$out, "survey_map", "survey_coverage.csv"),
@@ -70,11 +74,12 @@ assert_helpers <- setdiff(file.path("R_cbh/R", list.files("R_cbh/R", "[.]R$")), 
 if (length(assert_helpers)) stop("Helper files missing from the provenance list (see cbh_source()): ", paste(assert_helpers, collapse = ", "))
 rm(assert_helpers)
 shp_parts <- shp_parts[file.exists(shp_parts)]
-if (any(!file.exists(paths)) || !length(shp_parts)) stop("Missing input: ", paste(c(paths[!file.exists(paths)], if (!length(shp_parts)) S$shapefile), collapse = ", "))
+if (any(!file.exists(paths)) || !length(shp_parts)) stop("Missing input: ", paste(c(paths[!file.exists(paths)], if (!length(shp_parts)) esh_shp), collapse = ", "))
 t0 <- Sys.time(); tick <- function(msg) cat(sprintf("[%6.1f s] %s\n", as.numeric(difftime(Sys.time(), t0, units = "secs")), msg))
 
-# Fixed counts of the Snow et al. shapefile (01_polygons.R). Sample counts are checked against the primary's outputs instead.
-expected <- list(polygons = 551L, endemic = 520L, malaria_free = 29L, island = 2L)
+# Fixed counts of the variant's layer (snow_settings()$counts, 01_polygons.R). Sample counts are checked against the
+# primary's outputs instead.
+expected <- as.list(S$counts)
 check <- function(name, got) {
   if (!isTRUE(all.equal(as.numeric(got), as.numeric(expected[[name]]))))
     stop(sprintf("Check failed: %s = %s, expected %s", name, paste(got, collapse = ","), expected[[name]]), call. = FALSE)
@@ -222,8 +227,8 @@ setorder(pol, Admin_ID)
 
 ## 3. Geometry: frame, underlay, gaps between the Snow polygons and the national boundaries, lakes -----------------------
 adm0 <- prep(readRDS(paths[["admin0"]]))
-lyr <- tools::file_path_sans_ext(basename(S$shapefile))
-esh <- prep(st_read(S$shapefile, query = sprintf("SELECT Country_ID FROM \"%s\" WHERE Country_ID = 'ESH'", lyr), quiet = TRUE))
+lyr <- tools::file_path_sans_ext(basename(esh_shp))
+esh <- prep(st_read(esh_shp, query = sprintf("SELECT Country_ID FROM \"%s\" WHERE Country_ID = 'ESH'", lyr), quiet = TRUE))
 assert(nrow(esh) >= 1L && !"ESH" %in% adm0$iso, "Western Sahara from the Snow shapefile, absent from admin0")
 assert(!any(c("COM", "STP") %in% snow$Country_ID) && "COM" %in% adm0$iso && !"STP" %in% adm0$iso, "Comoros in admin0 only; Sao Tome and Principe in neither")
 fig_w <- 156                                                  # mm, the canvas
@@ -318,7 +323,9 @@ lake_u <- st_union(st_geometry(lakes))
 
 # Gaps: national land (sub-Saharan admin0) not covered by any Snow polygon. A piece is attached to the polygons it
 # touches (or, for numerically detached slivers, comes within 100 m of); it takes the class of an attached polygon of its
-# own country where there is one. Pieces touching no polygon are islands without a polygon and keep the pale underlay.
+# own country where there is one. Pieces touching no polygon are islands without a polygon and keep the pale underlay,
+# as do attached pieces larger than fringe_max_km2, which are not digitising slivers (none for the Snow polygons, whose
+# largest is 355 km2; for the GADM units, the Hala'ib triangle, which GADM places in Egypt, and others).
 gap <- st_difference(st_union(st_geometry(ssa)), st_union(st_geometry(snow)))
 pieces <- st_sf(geometry = suppressWarnings(st_cast(st_collection_extract(gap, "POLYGON"), "POLYGON")))
 pieces$area_km2 <- as.numeric(st_area(pieces)) / 1e6
@@ -331,7 +338,11 @@ pieces$iso <- ssa$iso[vapply(pi_iso, function(j) if (length(j)) j[1] else NA_int
 pieces$lake_cover <- 0
 hit <- which(pieces$area_km2 >= 1 & lengths(st_intersects(pieces, lake_u)) > 0)
 pieces$lake_cover[hit] <- vapply(hit, function(i) sum(as.numeric(st_area(st_intersection(st_geometry(pieces)[i], lake_u)))) / 1e6 / pieces$area_km2[i], 0)
-pieces$role <- fifelse(pieces$lake_cover >= 0.5, "water", fifelse(pieces$attached, "fringe", "no_polygon"))
+fringe_max_km2 <- 400
+pieces$role <- fifelse(pieces$lake_cover >= 0.5, "water", fifelse(pieces$attached & pieces$area_km2 <= fringe_max_km2, "fringe", "no_polygon"))
+big <- pieces[pieces$attached & pieces$role == "no_polygon", ]
+big_xy <- st_coordinates(st_transform(st_point_on_surface(st_geometry(big)), 4326))
+cat(sprintf("Gaps over %d km2 drawn pale: %s\n", fringe_max_km2, if (nrow(big)) paste(sprintf("%s (%.1f, %.1f) %.0f km2", big$iso, big_xy[, 1], big_xy[, 2], big$area_km2), collapse = "; ") else "none"))
 fi <- which(pieces$role == "fringe")
 fr <- pieces[fi, ]
 fr$Admin_ID <- vapply(seq_along(fi), function(k) { j <- hits[[fi[k]]]; own <- j[snow$Country_ID[j] %in% fr$iso[k]]
@@ -348,7 +359,7 @@ wp <- pieces[pieces$role == "water", ]; wc <- st_coordinates(st_transform(st_poi
 cat("Water gaps (lon, lat, km2, lake cover):", paste(sprintf("(%.1f, %.1f, %.0f, %.2f)", wc[, 1], wc[, 2], wp$area_km2, wp$lake_cover), collapse = " "), "\n")
 assert(all(adm0$iso[adm0$iso == "COM"] %in% nop$iso) && isTRUE(nop_area[["TZA"]] > 1000), "the Comoros and Zanzibar have no Snow polygon")
 islands <- pol[Type == "Island"]
-assert(any(grepl("Bioko", islands$AFR_Admin)) && any(grepl("Annobon", islands$AFR_Admin)), "the island polygons are Bioko and Annobon")
+assert(any(grepl("bioko", cbh_rkey(islands$AFR_Admin))) && any(grepl("annobon", cbh_rkey(islands$AFR_Admin))), "the island polygons are Bioko and Annobon")
 assert(all(pol[Country_ID == "LSO", Type] == "Malaria free"), "Lesotho is wholly malaria free")
 snow <- merge(snow[, c("Admin_ID", "geometry")], as.data.frame(pol[, .(Admin_ID, key)]), by = "Admin_ID")
 # The prepared layers, for maps drawn in the same style (the sub-region map of the subgroup analysis,
@@ -459,9 +470,13 @@ nodata_txt <- and_list(c(sprintf("%d in the %d countries that have malaria-endem
 pct_m <- 100 * mothers_merged / n_mothers
 frac_txt <- function(p) if (isTRUE(all.equal(p, 0.5))) "half" else sprintf("%s%%", 100 * p)
 src_scale <- sub("^ne_([0-9]+m)_.*$", "1:\\1", basename(paths[["lakes"]]))
+gadm <- identical(S$variant, "gadm")
+unit_txt <- if (gadm) "first-level administrative unit of GADM 4.1 (polygons below)" else "sub-national polygon of Snow et al. (2017)"
+excl_txt <- if (gadm) "the %d malaria-free polygons (malaria free in Snow et al. (2017), or without a MAP PfPR estimate) and the %d island polygons (Bioko, Annobón)" else
+  "the %d malaria-free and %d island polygons (Bioko, Annobón)"
 # Lines 1-2 are the heading (04_paper_figures.R drops them and adds its own figure label).
 caption <- c("# Figure 1 caption", "",
-  sprintf(paste0("Complete birth histories used in the primary analysis, by sub-national polygon of Snow et al. (2017). ",
+  sprintf(paste0("Complete birth histories used in the primary analysis, by ", unit_txt, ". ",
     "Fill: interviewed mothers with at least one child-band record in the analysis, summed over the %d included surveys ",
     "(%d %s and %d MICS; interviews %d–%d) in %d countries; in total %s mothers contribute %s child-band records and %s deaths. ",
     "Records are placed in the polygon holding at least %s%% of the GPW 2020 population of their reported area, otherwise in the malaria-endemic ",
@@ -474,10 +489,11 @@ caption <- c("# Figure 1 caption", "",
     nrow(used), f0(round(median(used$mothers))), f0(round(min(used$mothers))), f0(round(max(used$mothers))), f0(median(used$surveys)),
     as.integer(min(used$surveys)), as.integer(max(used$surveys))), "",
   sprintf(paste0("Light grey: the %d malaria-endemic polygons without data, %s. ",
-    "Warm grey: the %d malaria-free and %d island polygons (Bioko, Annobón), not analysed. ",
+    "Warm grey: ", excl_txt, ", not analysed. ",
     "Pale: North Africa and Western Sahara, and islands without a polygon such as the Comoros and Zanzibar. ",
     "Light blue: the %d lakes and reservoirs of at least %d km² within the map in Natural Earth (%s), drawn over the polygons and national borders. ",
-    "Slivers between the polygons and the national boundaries take the class of the adjacent polygon. ",
+    "Slivers between the polygons and the national boundaries take the class of the adjacent polygon",
+    if (nrow(big)) sprintf("; the %d larger gaps (over %d km², %s km² in all) are pale. ", nrow(big), fringe_max_km2, f0(round(sum(big$area_km2)))) else ". ",
     "White lines: polygon boundaries; black lines: national land borders of the sub-Saharan countries. Africa Albers equal-area projection (%s); the scale bar is approximate."),
     n_cls[["nodata"]], nodata_txt, sum(pol$Type == "Malaria free"), sum(pol$Type == "Island"), nrow(lakes), lake_min_km2, src_scale, crs))
 con <- file(file.path(out, "CAPTION.md"), open = "w", encoding = "UTF-8"); writeLines(caption, con); close(con)

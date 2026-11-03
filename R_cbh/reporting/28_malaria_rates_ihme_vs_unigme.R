@@ -45,7 +45,8 @@ w[, labelled := pmax(ihme, unigme) >= label_min]
 # positions were chosen by a placement search on these data (2 November 2026): each label is nearer its own point than
 # any other point and each labelled point nearer its own label than any other, and no label touches a point, another
 # label, the equality line (Liberia and Guinea were then moved to at least 0.6 mm from it), the note or the panel edge.
-# Leaders shorter than 1.5 mm are not drawn. The script stops if the labelled set changes.
+# Leaders shorter than 1.5 mm are not drawn. The script stops if the labelled set changes. The positions belong to the
+# v14 (snow_merge) estimates; another version (gadm_merge, branch gadm-admin1) has its labels placed by ggrepel.
 offsets <- fread(text = "iso3,dx,dy
 AGO,0.303,-0.110
 BDI,0.329,0.110
@@ -72,15 +73,17 @@ TCD,-0.244,0.110
 TGO,-0.226,0.110
 UGA,0.355,0.000
 ZMB,0.320,0.110")
-stopifnot(setequal(offsets$iso3, w[labelled == TRUE, iso3]))
-w[, c("dx", "dy") := 0][offsets, on = "iso3", c("dx", "dy") := .(i.dx, i.dy)]
+fixed_labels <- identical(st$version, "snow_merge")
+if (fixed_labels) stopifnot(setequal(offsets$iso3, w[labelled == TRUE, iso3]))
+w[, c("dx", "dy") := 0]
+if (fixed_labels) w[offsets, on = "iso3", c("dx", "dy") := .(i.dx, i.dy)]
 lim <- c(0, max(w$ihme, w$unigme) * 1.05)
 note <- sprintf("Spearman ρ = %.2f\nUN IGME / IHME: median %.2f\n(range %.2f–%.2f)", rho, median(w$ratio), min(w$ratio), max(w$ratio))
 p <- ggplot(w, aes(ihme, unigme)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey55", linewidth = .4) +
   geom_point(aes(colour = region), size = 2.2) +
   ggrepel::geom_text_repel(aes(label = ifelse(labelled, label, "")), size = 9 / .pt, colour = "grey20", seed = 20261027L, max.overlaps = Inf,
-    nudge_x = w$dx, nudge_y = w$dy, max.iter = 0, point.size = 2.2, min.segment.length = grid::unit(1.5, "mm"), segment.colour = "grey60", segment.size = .3, box.padding = .3, point.padding = .2) +
+    nudge_x = w$dx, nudge_y = w$dy, max.iter = if (fixed_labels) 0 else 10000, point.size = 2.2, min.segment.length = grid::unit(1.5, "mm"), segment.colour = "grey60", segment.size = .3, box.padding = .3, point.padding = .2) +
   annotate("text", x = 0, y = lim[2], label = note, hjust = 0, vjust = 1, size = 9 / .pt, lineheight = .95, colour = "grey25") +
   scale_colour_manual(values = colours, name = NULL) +
   scale_x_continuous(limits = lim, expand = expansion(mult = c(0, .02))) +

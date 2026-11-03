@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # Cross-artifact checks for the current plan-defined primary reporting bundle.
 source("R_cbh/load_pipeline.R")
-source("R_cbh/primary/settings.R")
+source("R_cbh/primary/settings.R"); source("R_cbh/snow/R/settings.R")
 st <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","snow_merge"));root <- st$out
 read <- function(p)cbh_read_csv(file.path(root,p))
 manifest <- read("fit_manifest.csv");diag <- read("fit_diagnostics.csv")
@@ -56,8 +56,9 @@ if(isTRUE(st$mics)) {
   mics_lines <- c(sprintf("PASS: %d DHS surveys (%s records, %s deaths, %d survey x unit areas) and %d MICS surveys (%s records, %s deaths).",
       nrow(dhs),format(sum(dhs$records),big.mark=","),format(sum(dhs$deaths),big.mark=","),sum(dhs$regions),n_mics,
       format(sample$records-sum(dhs$records),big.mark=","),format(sample$deaths-sum(dhs$deaths),big.mark=",")),
-    sprintf("PASS: subgroup and no-nutrition refits (%s) were fitted to this primary's prepared data (md5 %s).",
-      paste(basename(sensitivities),collapse=", "),prepared_md5))
+    if(length(sensitivities)) sprintf("PASS: subgroup and no-nutrition refits (%s) were fitted to this primary's prepared data (md5 %s).",
+      paste(basename(sensitivities),collapse=", "),prepared_md5) else
+      "NOTE: this version has no sensitivity refits (gadm_merge: primary only).")
 }
 age <- read("tables/age_band_results.csv")
 stopifnot(nrow(age)==7L,sum(age$records)==sample$records,sum(age$observed_deaths)==sample$deaths,
@@ -70,7 +71,7 @@ stopifnot(nrow(annual)==25L,identical(as.integer(annual$year),2000:2024),all(ann
 # MAP's own national estimates, and draw-based intervals that reproduce and bracket the point estimates.
 cfg <- cbh_config()
 stopifnot(any(grepl(paste0('"map_annual_', cfg$map_release, '"'), readLines("R_inputs/00_config.R"), fixed = TRUE)))
-rp <- cbh_read_csv("results/cbh/snow_units/merge/pfpr/pfpr_raster_provenance.csv")
+rp <- cbh_read_csv(file.path(snow_settings(st$snow_variant)$out,"pfpr/pfpr_raster_provenance.csv"))
 stopifnot(nrow(rp)==25L,all(rp$map_release==cfg$map_release),all(dirname(normalizePath(rp$file))==normalizePath(cfg$map_raster_dir)),
   identical(unname(vapply(rp$file,cbh_file_hash,"")),rp$md5))
 nat <- read("annual_comparison/national_pfpr_2000_2024.csv")

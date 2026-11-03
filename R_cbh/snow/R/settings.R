@@ -18,6 +18,8 @@ snow_settings <- function(variant = Sys.getenv("SNOW_VARIANT", "merge")) {
     # Fixed counts of the layer outside North Africa (01_polygons.R): all units, endemic, malaria free, island.
     counts = c(polygons = 551L, endemic = 520L, malaria_free = 29L, island = 2L),
     aliases = "R_cbh/snow/config/name_aliases.csv",
+    # Reviewed survey-regions placed wholly in the unit they name (03_feasibility.R); none for the Snow polygons.
+    region_overrides = NULL,
     whole = 0.90, link = 0.05, sliver = 0.02, malaria_free_drop = 0.5,
     north_africa = c("DZA", "EGY", "LBY", "MAR", "TUN", "ESH"),
     out = file.path("results/cbh/snow_units", variant),
@@ -27,7 +29,8 @@ snow_settings <- function(variant = Sys.getenv("SNOW_VARIANT", "merge")) {
     source = "data/Africa GADM 0-2 (040226)/Africa_GADM1_(040226).shp",   # not committed (GADM licence, size)
     shapefile = "data/external/gadm_admin1/gadm1_units.gpkg",             # written by 00_gadm_layer.R; git-ignored
     counts = c(polygons = 568L, endemic = 535L, malaria_free = 31L, island = 2L),   # 00_gadm_layer.R, 3 November 2026
-    aliases = "R_cbh/snow/config/gadm_name_aliases.csv"))
+    aliases = "R_cbh/snow/config/gadm_name_aliases.csv",
+    region_overrides = "R_cbh/snow/config/gadm_region_overrides.csv"))
   S
 }
 # The layer's polygons as read by 01_polygons.R (private; regenerated, not committed).

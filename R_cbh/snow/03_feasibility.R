@@ -63,6 +63,20 @@ reg[, class := fcase(!has_polygon | is.na(top_share), "no polygon",
                      top_share >= S$whole & top_in520, "inside one of the 520 (90-95%)",
                      top_share >= S$whole & !top_in520, "inside a malaria-free/island unit",
                      default = "split across Snow polygons")]
+# Reviewed overrides of the variant (none for the Snow polygons): a survey-region that names a unit whose boundary has
+# not changed, but is split by digitising differences between the survey's boundary file and the layer, is placed
+# wholly in that unit. The class keeps the "inside one of the 520" key that the placement matches.
+if (!is.null(S$region_overrides)) {
+  ovr <- fread(S$region_overrides); reg[, override := ""]
+  k <- match(paste(ovr$survey, ovr$regkey), paste(reg$survey, reg$regkey))
+  stopifnot(!anyNA(k), !anyDuplicated(k), all(ovr$Admin_ID %in% snow$Admin_ID[snow$in520]),
+            all(reg$class[k] == "split across Snow polygons"), all(reg$country[k] == substr(ovr$Admin_ID, 1, 3)))
+  # The named unit must hold a real share of the region (not a unit elsewhere in the country).
+  sh <- pc[, .(survey, regkey, Admin_ID, share)][ovr[, .(survey, regkey, Admin_ID)], on = c("survey", "regkey", "Admin_ID")]
+  stopifnot(all(sh$share >= 0.15))
+  reg[k, `:=`(top_admin = ovr$Admin_ID, top_name = snow$AFR_Admin[match(ovr$Admin_ID, snow$Admin_ID)], top_type = "Endemic",
+              top_in520 = TRUE, top_share = sh$share, class = "inside one of the 520 (reviewed override)", override = ovr$note)]
+}
 fwrite(reg[order(survey, regkey)], file.path(out, "region_classification.csv"))
 by_survey <- reg[, .(programme = programme[1], country = country[1], survey_regions = .N, records = sum(records),
                      pct_records_assignable = round(100 * sum(records[class %like% "^inside one of the 520"]) / sum(records), 1),

@@ -30,8 +30,8 @@ write_csv(unique(d[c("subgroup", "series", "age_band", "pfpr_min", "pfpr_p025", 
           "exposure_support.csv")
 d$age_label <- factor(d$age_band, levels = ages, labels = ifelse(ages == "<1", "<1 month", paste(ages, "months")))
 colours <- setNames(unname(st$colours), unname(st$labels))
-# Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in: the figures are saved 6.5 in wide, so printed =
-# 0.95 x size (axis titles 11.9 -> 11.3 pt; ticks and legend 9.9 -> 9.4 pt; strips 10.8 -> 10.3 pt). Lines, spacing and
+# Sizes meet the paper's printed text-size rule (CLAUDE.md): the figures are saved 6.5 in wide and printed at \linewidth
+# (6.5 in), so printed = size (axis titles 11.9 pt; ticks and legend 9.9 pt; strips 10.8 pt). Lines, spacing and
 # margins are those of the former 14-15 in versions scaled by about 6.5/15.
 paper <- theme_minimal(base_size = 9.9, base_line_size = .35) + theme(panel.grid.minor = element_blank(),
   axis.text = element_text(size = 9.9), axis.title = element_text(size = 11.92),
@@ -39,6 +39,9 @@ paper <- theme_minimal(base_size = 9.9, base_line_size = .35) + theme(panel.grid
   legend.text = element_text(size = 9.9), legend.title = element_blank(), legend.margin = margin(0, 0, 0, 0),
   legend.box.spacing = grid::unit(6, "pt"), legend.key.spacing.y = grid::unit(1, "pt"),
   panel.spacing = grid::unit(10, "pt"), plot.margin = margin(4, 10, 4, 4))
+# Figures drawn on the hazard-ratio scale (linear axis, as in Figure 2) instead of the log scale: the Sahel figure, S3
+# (user request, 3 November 2026).
+hr_scale <- "sfig_pfpr_splines_by_subgroup"
 # One spline figure per group of subsets (st$figures): Sahel, the UN M49 sub-regions and the periods.
 for (fig_name in names(st$figures)) {
 shown <- d[d$within_central_support & d$subgroup %in% c("map_full", st$figures[[fig_name]]), ]
@@ -46,10 +49,12 @@ shown$series <- droplevels(shown$series)
 # PfPR axis 0-80%, as in the other supplementary spline figures; every curve's central support lies inside it.
 stopifnot(max(shown$pfpr_pct) <= 80)
 shown$is_full <- shown$subgroup == "map_full"
-p <- ggplot(shown, aes(pfpr_pct, log_hazard_ratio, colour = series)) +
-  geom_hline(yintercept = 0, colour = "grey60", linewidth = .17) +
+on_hr <- fig_name %in% hr_scale; scale_y <- if (on_hr) exp else identity
+shown$y <- scale_y(shown$log_hazard_ratio); shown$y_lower <- scale_y(shown$lower_95); shown$y_upper <- scale_y(shown$upper_95)
+p <- ggplot(shown, aes(pfpr_pct, y, colour = series)) +
+  geom_hline(yintercept = scale_y(0), colour = "grey60", linewidth = .17) +
   geom_vline(xintercept = 20, colour = "grey80", linewidth = .17) +
-  geom_ribbon(data = shown[shown$is_full, ], aes(ymin = lower_95, ymax = upper_95),
+  geom_ribbon(data = shown[shown$is_full, ], aes(ymin = y_lower, ymax = y_upper),
               fill = "grey55", alpha = .18, colour = NA) +
   geom_line(aes(linewidth = is_full)) +
   scale_linewidth_manual(values = c(`TRUE` = .65, `FALSE` = .43), guide = "none") +
@@ -57,7 +62,8 @@ p <- ggplot(shown, aes(pfpr_pct, log_hazard_ratio, colour = series)) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
   scale_colour_manual(values = colours) +
   guides(colour = guide_legend(ncol = 2, override.aes = list(linewidth = .56))) +
-  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
+  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"),
+       y = paste(if (on_hr) "Mortality hazard ratio" else "Log hazard ratio", "relative to PfPR = 20%", sep = "\n")) + paper
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle))
 # Height grows with the legend rows (two columns), so the panels are the same size in every figure.
 ggsave(file.path(st$out, paste0(fig_name, ".png")), p, width = 6.5, height = 3.55 + .2 * ceiling(nlevels(shown$series) / 2),
@@ -98,17 +104,18 @@ subset_text <- c(sahel = "records whose survey-region boundary centroid lies at 
 not_fitted_text <- if (length(st$not_fitted)) { nf <- read("subregions_not_fitted.csv")
   sprintf(" Southern Africa (UN M49) is not refitted: it has %s deaths in %d surveys from %d countries and PfPR[2–10] never exceeds %.1f%% (95%% of records below %.1f%%), so its curve at 20%% and 40%% would be an extrapolation.",
     fmt(nf$deaths[1]), nf$surveys[1], nf$countries[1], nf$pfpr_max[1], nf$pfpr_p95[1]) } else ""
-caption_for <- function(groups) paste(
-  paste0("Sensitivity of the fitted PfPR–mortality relationship to the analysis subset. Log mortality hazard ratios relative to PfPR[2–10] = 20% by completed-month age band, from the ", cbh_paper_model_label(), " fitted to the full primary sample (black, with its pointwise 95% conditional interval shaded) and refitted separately in ",
+caption_for <- function(groups, on_hr = FALSE) paste(
+  paste0("Sensitivity of the fitted PfPR–mortality relationship to the analysis subset. ", if (on_hr) "Mortality hazard ratios" else "Log mortality hazard ratios", " relative to PfPR[2–10] = 20% by completed-month age band, from the ", cbh_paper_model_label(), " fitted to the full primary sample (black, with its pointwise 95% conditional interval shaded) and refitted separately in ",
     c("one subset", "two subsets", "three subsets", "four subsets", "five subsets", "six subsets", "seven subsets", "eight subsets")[length(groups)], ": ",
     if (length(groups) > 1) paste0(paste(subset_text[head(groups, -1)], collapse = "; "), "; and ", subset_text[[tail(groups, 1)]]) else subset_text[[groups]], ".", if (any(groups %in% c("west_africa", "central_africa", "east_africa"))) not_fitted_text else ""),
   "Each subset refit uses the same seven separate age-band models, 17 standardised covariates with the full-sample scaling, fixed HIV incidence imputation, gamma = 2 and basis dimensions as the primary analysis, with knots placed at quantiles of the subset's own predictor values. Each curve is drawn over the central 95% of its own exposure distribution.",
   paste0("Subset sizes. ", paste(vapply(groups, describe, ""), collapse = "; "), "."),
   "The subsets overlap the full sample and one another, so the curves are not independent and their differences are descriptive; the comparison does not constitute a test of effect modification. Subset intervals are omitted for legibility and are available in the saved curve table.")
-caption <- caption_for(st$figures[[1]])
+caption <- caption_for(st$figures[[1]], names(st$figures)[1] %in% hr_scale)
 writeLines(c("# Supplementary figure caption: PfPR splines by subgroup", "", caption), file.path(st$out, "CAPTION.md"))
 if (length(st$figures) > 1) for (k in 2:length(st$figures))
-  writeLines(c(paste("# Supplementary figure caption:", sub("^sfig_", "", names(st$figures)[k])), "", caption_for(st$figures[[k]])),
+  writeLines(c(paste("# Supplementary figure caption:", sub("^sfig_", "", names(st$figures)[k])), "",
+               caption_for(st$figures[[k]], names(st$figures)[k] %in% hr_scale)),
              file.path(st$out, paste0("CAPTION_", names(st$figures)[k], ".md")))
 hr <- function(x) sprintf("%.2f (%.2f–%.2f)", x$hazard_ratio, x$lower_95, x$upper_95)
 table_lines <- c(paste0("| Age (months) | ", paste(unname(st$labels), collapse = " | "), " |"),
@@ -124,7 +131,7 @@ lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
   paste0("Definitions: ", paste(defs[-1], collapse = "; "), ". Survey regions enter whole; centroids are survey-specific boundary centroids (DHS: the cached shapefile summary; MICS: the analysis-region polygons, `R_mics/11_region_centroids.R`). The period split counts each survey once."), "",
   "## Figures", "",
   unlist(lapply(names(st$figures), function(f) c(sprintf("![%s](%s.png)", c(sfig_pfpr_splines_by_subgroup = "Splines by subgroup",
-    sfig_pfpr_splines_by_subregion = "Splines by UN sub-region", sfig_pfpr_splines_by_period = "Splines by period")[[f]], f), "", caption_for(st$figures[[f]]), ""))),
+    sfig_pfpr_splines_by_subregion = "Splines by UN sub-region", sfig_pfpr_splines_by_period = "Splines by period")[[f]], f), "", caption_for(st$figures[[f]], f %in% hr_scale), ""))),
   "## Hazard ratios, PfPR 40% to 20%", "", "Values below one indicate lower mortality at 20% than at 40%. Intervals are pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   table_lines, "",
   "## Validation", "",

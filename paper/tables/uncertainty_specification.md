@@ -9,5 +9,5 @@
 - Comparators: CA-CODE and IHME malaria deaths are scaled in each draw by the drawn under-five envelope of their own source; their cause-fraction uncertainty is not included.
 - Not included: structural choices (one pooled curve, the PfPR = 0 counterfactual, gamma = 2), correlation between countries' MAP errors other than the sensitivity, and the partial cancellation of continental MAP error between the fit and the burden (so the MAP part is an upper bound).
 
-2024: 583,000 malaria-attributable deaths (95% UI 468,000-688,000) with UN IGME all-cause deaths; 551,000 (425,000-634,000) with IHME.
-Monte Carlo SD of the 2024 UN IGME bounds at 500 draws: 7,000 and 7,000 deaths.
+2024: 627,000 malaria-attributable deaths (95% UI 511,000-732,000) with UN IGME all-cause deaths; 596,000 (467,000-677,000) with IHME.
+Monte Carlo SD of the 2024 UN IGME bounds at 500 draws: 8,000 and 9,000 deaths.

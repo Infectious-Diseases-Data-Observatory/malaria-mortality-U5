@@ -9,6 +9,7 @@
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/reporting/labels.R")
+source("R_cbh/reporting/curves_vs_zero.R")
 suppressPackageStartupMessages({ library(ggplot2); library(data.table); library(mgcv) })
 stopifnot(identical(Sys.getenv("CBH_PRIMARY_VERSION", "gadm"), "gadm"))
 st <- list(id = "country_fixed_effects_gadm_merge_gamma2_v3")
@@ -50,23 +51,37 @@ paper <- theme_minimal(base_size = 9.9, base_line_size = .38) + theme(panel.grid
   legend.position = "bottom", legend.direction = "vertical", legend.title = element_blank(), legend.text = element_text(size = 9.9),
   legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(6, "pt"), legend.key.spacing.y = grid::unit(1, "pt"),
   panel.spacing = grid::unit(10, "pt"), plot.margin = margin(6, 10, 6, 6))
-central <- curves[curves$within_central_support, ]
-p <- ggplot(central, aes(pfpr_pct, log_hazard_ratio, colour = series_label, fill = series_label)) +
-  geom_hline(yintercept = 0, colour = "grey65", linewidth = .19) +
-  geom_vline(xintercept = 20, colour = "grey80", linewidth = .19) +
+# Figure: hazard ratios relative to zero prevalence on a linear axis, as in Figure 2 (author request, 3 November 2026).
+# The primary curve and interval are Figure 2's own; the fixed-effects curves are re-referenced to zero with intervals
+# from their compact PfPR bases. Solid over each curve's central 95%, dashed from zero to its 2.5th percentile.
+pcomp <- readRDS(inputs[["primary_components"]]); fcomp <- readRDS(inputs[["fe_components"]])
+stopifnot(identical(names(fcomp), paste0("countryfe_age_", seq_along(ages))),
+          all(paste0("map_full_age_", seq_along(ages)) %in% names(pcomp)))
+vz_fe <- do.call(rbind, lapply(seq_along(ages), function(i) {
+  piece <- fcomp[[paste0("countryfe_age_", i)]]; stopifnot(identical(piece$age_band, ages[i]))
+  cbh_curve_vs_zero(fc[fc$age_band == ages[i], ], piece)
+}))
+vz <- rbind(data.frame(series_label = labels[["full"]], cbh_primary_vs_zero(primary$out)),
+            data.frame(series_label = labels[["fe"]], vz_fe))
+vz <- vz[vz$segment != "outside", ]; rownames(vz) <- NULL
+vz$series_label <- factor(vz$series_label, levels = labels)
+cbh_atomic_csv(vz, file.path(st$out, "comparison_hazard_ratio_vs_zero.csv"))
+vz$age_label <- age_label(vz$age_band)
+# The dashed segment ends where the solid one starts.
+p <- ggplot(vz, aes(pfpr_pct, hazard_ratio, colour = series_label, fill = series_label)) +
+  geom_hline(yintercept = 1, colour = "grey65", linewidth = .19) +
   geom_ribbon(aes(ymin = lower_95, ymax = upper_95), alpha = .12, colour = NA) +
-  geom_line(linewidth = .46) + facet_wrap(~age_label, ncol = 4) +
+  geom_line(data = vz[vz$pfpr_pct <= vz$pfpr_p025, ], linewidth = .46, linetype = "22", show.legend = FALSE) +
+  geom_line(data = vz[vz$segment == "central", ], linewidth = .46) + facet_wrap(~age_label, ncol = 4) +
   scale_colour_manual(values = colours) + scale_fill_manual(values = colours) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
-  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
+  scale_y_continuous(breaks = seq(0, 5, .5)) +
+  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Mortality hazard ratio\nrelative to zero prevalence") + paper
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))
 figure <- file.path(st$out, "sfig_pfpr_splines_country_fixed_effects.png")
 ggsave(figure, p, width = 6.5, height = 3.95, dpi = 320, device = ragg::agg_png, bg = "white")
 
 # Hazard ratios against no transmission from the compact PfPR bases (Vp intervals, as in the primary).
-pcomp <- readRDS(inputs[["primary_components"]]); fcomp <- readRDS(inputs[["fe_components"]])
-stopifnot(identical(names(fcomp), paste0("countryfe_age_", seq_along(ages))),
-          all(paste0("map_full_age_", seq_along(ages)) %in% names(pcomp)))
 piece <- function(model, i) if (model == "primary") pcomp[[paste0("map_full_age_", i)]] else fcomp[[paste0("countryfe_age_", i)]]
 log_hr_zero <- function(pc, p) PredictMat(pc$smooth, data.frame(pfpr_pct = p)) - PredictMat(pc$smooth, data.frame(pfpr_pct = rep(0, length(p))))
 hr <- rbindlist(lapply(c("primary", "country_fe"), function(m) rbindlist(lapply(seq_along(ages), function(i) {
@@ -138,10 +153,10 @@ fe14 <- hr[model == "country_fe" & pfpr_pct == 40 & age_band %in% ages[4:7]]
 pr14 <- hr[model == "primary" & pfpr_pct == 40 & age_band %in% ages[4:7]]
 caption <- c("# Supplementary figure caption: country fixed effects", "",
   paste0("Sensitivity of the fitted PfPR-mortality relationship to replacing the country random intercept with a fixed effect for each country, so that the effect of PfPR[2-10] is estimated from variation within countries only. ",
-  "Log mortality hazard ratios relative to PfPR[2-10] = 20% by completed-month age band, with pointwise 95% conditional intervals shaded, from the ", cbh_paper_model_label(),
+  "Mortality hazard ratios relative to zero prevalence (PfPR[2-10] = 0) by completed-month age band, with pointwise 95% conditional intervals shaded, from the ", cbh_paper_model_label(),
   " with country random intercepts (the primary analysis) and from a refit of the same seven models on the identical sample with country fixed effects. ",
   "Sample, exposure, covariates, reference knots, basis dimensions, gamma = 2, offset and the survey and survey-unit random intercepts are unchanged. ",
-  "Each curve is drawn over the central 95% of its own exposure distribution. ",
+  "Each curve is solid over the central 95% of its own exposure distribution and dashed from zero to its 2.5th percentile, where the reference is reached by extrapolation into sparse data; the primary curves are those of Figure 2. ",
   sprintf("At 1 to 4 years the hazard ratio at a PfPR[2-10] of 40%%, as compared with no transmission, was %s to %s with country fixed effects (primary %s to %s). ",
     f2(min(fe14$hazard_ratio)), f2(max(fe14$hazard_ratio)), f2(min(pr14$hazard_ratio)), f2(max(pr14$hazard_ratio))),
   sprintf("Applied to 2024, the refitted curves give %s malaria-attributable deaths with UN IGME all-cause mortality (primary %s; %+.0f%% relative to the UN IGME (CA-CODE) estimate of malaria deaths) and %s with IHME (primary %s; %+.0f%% relative to IHME). ",
@@ -149,7 +164,7 @@ caption <- c("# Supplementary figure caption: country fixed effects", "",
     format(round(i24$country_fe_deaths, -3), big.mark = ","), format(round(i24$primary_deaths, -3), big.mark = ","), i24$country_fe_excess_pct),
   "The two models are fitted to the same records, so the comparison is descriptive."))
 writeLines(caption, file.path(st$out, "CAPTION.md"))
-prov <- c(unname(inputs), figure, "R_cbh/sensitivity/country_fe/02_report.R")
+prov <- c(unname(inputs), figure, "R_cbh/sensitivity/country_fe/02_report.R", "R_cbh/reporting/curves_vs_zero.R")
 cbh_atomic_csv(data.frame(file = prov, md5 = vapply(prov, cbh_file_hash, "")), file.path(st$out, "report_provenance.csv"))
 cat(md, sep = "\n")
 cat("Country fixed-effects sensitivity figure and tables saved:", figure, "\n")

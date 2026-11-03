@@ -2,10 +2,11 @@
 # Comparison of the imputed-covariate sensitivity (v16) with the complete-case GADM-unit primary (v15), including the
 # primary's declared national substitutions (national_substitutions.csv: South Sudan's pre-independence values are
 # Sudan's in both analyses, so they are not counted as imputed): overlaid PfPR splines (supplementary manuscript
-# figure), hazard ratio contrasts, sample sizes, caption and report. Reads saved aggregates only; no refitting, no TeX
-# writes.
+# figure), hazard ratio contrasts, sample sizes, caption and report. Reads saved aggregates and, for the figure's
+# intervals, the saved fits; no refitting, no TeX writes.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/reporting/labels.R")
+source("R_cbh/reporting/curves_vs_zero.R")
 source("R_cbh/sensitivity/imputation_dhsmics/settings.R")
 library(ggplot2)
 st <- cbh_imputed_dhsmics_settings(); out <- st$out; ref <- st$reference
@@ -46,15 +47,31 @@ paper <- theme_minimal(base_size = 9.9, base_line_size = .38) + theme(panel.grid
   legend.position = "bottom", legend.direction = "vertical", legend.title = element_blank(), legend.text = element_text(size = 9.9),
   legend.margin = margin(0, 0, 0, 0), legend.box.spacing = grid::unit(6, "pt"), legend.key.spacing.y = grid::unit(1, "pt"),
   panel.spacing = grid::unit(10, "pt"), plot.margin = margin(6, 10, 6, 6))
-central <- curves[curves$within_central_support, ]
-p <- ggplot(central, aes(pfpr_pct, log_hazard_ratio, colour = series_label, fill = series_label)) +
-  geom_hline(yintercept = 0, colour = "grey65", linewidth = .19) +
-  geom_vline(xintercept = 20, colour = "grey80", linewidth = .19) +
+# Figure: hazard ratios relative to zero prevalence on a linear axis, as in Figure 2 (author request, 3 November 2026).
+# The complete-case curve and interval are Figure 2's own; the imputed-covariate curves are re-referenced to zero with
+# intervals from the PfPR smooth of each saved fit (fit_manifest.csv, hashes checked). Solid over each curve's central
+# 95%, dashed from zero to its 2.5th percentile.
+manifest <- cbh_read_csv(file.path(out, "fit_manifest.csv"))
+vz_imp <- do.call(rbind, lapply(ages, function(a) {
+  m <- manifest[manifest$age_band == a, ]; stopifnot(nrow(m) == 1L, identical(cbh_file_hash(m$model_file), m$md5))
+  cbh_curve_vs_zero(nc[nc$age_band == a, ], readRDS(m$model_file)$fit)
+}))
+vz <- rbind(data.frame(series_label = paper_labels[["reference"]], cbh_primary_vs_zero(ref)),
+            data.frame(series_label = paper_labels[["imputed"]], vz_imp))
+vz <- vz[vz$segment != "outside", ]; rownames(vz) <- NULL
+vz$series_label <- factor(vz$series_label, levels = unname(paper_labels))
+cbh_atomic_csv(vz, file.path(out, "comparison_hazard_ratio_vs_zero.csv"))
+vz$age_label <- factor(vz$age_band, levels = ages, labels = ifelse(ages == "<1", "<1 month", paste(ages, "months")))
+# The dashed segment ends where the solid one starts.
+p <- ggplot(vz, aes(pfpr_pct, hazard_ratio, colour = series_label, fill = series_label)) +
+  geom_hline(yintercept = 1, colour = "grey65", linewidth = .19) +
   geom_ribbon(aes(ymin = lower_95, ymax = upper_95), alpha = .12, colour = NA) +
-  geom_line(linewidth = .46) + facet_wrap(~age_label, ncol = 4) +
+  geom_line(data = vz[vz$pfpr_pct <= vz$pfpr_p025, ], linewidth = .46, linetype = "22", show.legend = FALSE) +
+  geom_line(data = vz[vz$segment == "central", ], linewidth = .46) + facet_wrap(~age_label, ncol = 4) +
   scale_colour_manual(values = colours) + scale_fill_manual(values = colours) +
   scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 40, 60, 80)) +
-  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Log hazard ratio\nrelative to PfPR = 20%") + paper
+  scale_y_continuous(breaks = seq(0, 5, .5)) +
+  labs(x = expression(italic(Pf)*PR[2-10]~"(%)"), y = "Mortality hazard ratio\nrelative to zero prevalence") + paper
 figure <- file.path(out, "sfig_pfpr_splines_imputed_covariates.png")
 ggsave(figure, p, width = 6.5, height = 3.95, dpi = 320, device = ragg::agg_png, bg = "white")
 
@@ -89,7 +106,7 @@ subst_text <- if (nrow(subst)) paste(sprintf("%s (%s) takes %s's observed GDP pe
 ## ---- caption ---------------------------------------------------------------------------------------
 caption <- c("# Supplementary figure caption: imputed-covariate sensitivity (DHS and MICS)", "",
   paste0("Sensitivity of the fitted PfPR–mortality relationship to the treatment of missing covariates. ",
-  "Log mortality hazard ratios relative to PfPR[2–10] = 20% by completed-month age band, with pointwise 95% conditional intervals shaded, from the ", cbh_paper_model_label(), " fitted to the complete-case primary sample (",
+  "Mortality hazard ratios relative to zero prevalence (PfPR[2–10] = 0) by completed-month age band, with pointwise 95% conditional intervals shaded, from the ", cbh_paper_model_label(), " fitted to the complete-case primary sample (",
   fmt(row("Child-band records")$previous), " child–age-band records, ", fmt(row("Deaths")$previous), " deaths, ", row("Surveys")$previous, " surveys in ", row("Countries")$previous,
   " countries) and to every record placed in a GADM 4.1 admin-1 unit after imputing all remaining covariate gaps (",
   fmt(row("Child-band records")$revised), " records, ", fmt(row("Deaths")$revised), " deaths, ", row("Surveys")$revised, " surveys in ", row("Countries")$revised,
@@ -100,7 +117,7 @@ caption <- c("# Supplementary figure caption: imputed-covariate sensitivity (DHS
   "Liberia's child HIV incidence from UNAIDS counts of new infections among children (São Tomé and Príncipe, the only country without an incidence series, has no analysis unit). ",
   paste0(if (nzchar(subst_text)) paste0("In both analyses, ", subst_text, ". "), "Values used by the complete-case analysis were never replaced. "),
   "The specification, reference knots, basis dimensions and gamma = 2 are those of the primary analysis; covariates were re-standardised on the enlarged sample. ",
-  "Each curve is drawn over the central 95% of its own exposure distribution. ",
+  "Each curve is solid over the central 95% of its own exposure distribution and dashed from zero to its 2.5th percentile, where the reference is reached by extrapolation into sparse data; the complete-case curves are those of Figure 2. ",
   "Hazard ratios for PfPR 40% to 20% are ", paste(hr(labels[["reference"]], "40% to 20%"), collapse = ", "), " (complete case) and ",
   paste(hr(labels[["imputed"]], "40% to 20%"), collapse = ", "), " (imputed) for the seven bands from youngest to oldest. ",
   sprintf("Refitting the imputed version in each of the %d imputed datasets and pooling with Rubin's rules changed these hazard ratios by at most %.3f; the between-imputation share of interval variance was at most %s. ", M, mi_delta, fmt_share),
@@ -131,7 +148,8 @@ lines <- c(sprintf("# Imputed-covariate sensitivity on the DHS and MICS sample (
     a <- basename(st$imputation_results), a), "",
   "Reproduce, from the project root: `Rscript R_cbh/sensitivity/imputation_dhsmics/0N_*.R` for N = 1 to 6 in order (fits and the multiple-imputation refits are long; run them detached). Only aggregate tables and figures are published; prepared data and fitted objects stay under the ignored data directory. The primary analysis and manuscript files are unchanged.")
 writeLines(lines, file.path(out, "REPORT.md"))
-prov <- c(inputs, figure)
+prov <- c(inputs, file.path(out, "fit_manifest.csv"), file.path(ref, "hazard_ratio_by_age", "hazard_ratio_curves.csv"),
+          "R_cbh/reporting/curves_vs_zero.R", figure)
 cbh_atomic_csv(data.frame(file = prov, md5 = vapply(prov, cbh_file_hash, ""), row.names = NULL), file.path(out, "sfig_provenance.csv"))
 print(data.frame(age = ages, complete_case = w40$r$hazard_ratio, imputed = w40$i$hazard_ratio, pooled = mi40$pooled_hr))
 cat(sprintf("Largest 40%%->20%% change complete case -> imputed: %.3f; MI vs point: %.3f; max between share %s\n", delta, mi_delta, fmt_share))

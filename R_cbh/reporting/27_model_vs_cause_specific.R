@@ -59,18 +59,27 @@ d[, labelled := excess > above_min | excess < -below_min]
 d[, label := fifelse(labelled, sub("^(Central African|Republic of|Equatorial) ", "\\1\n", fcoalesce(unname(full_name[country]), country)), "")]
 # Fixed label positions: offset from the point to the label centre, in rates per 1,000, chosen on these data so that
 # no label covers a point or another label and no leader crosses another or passes through a point. The script stops
-# if the labelled set changes. The positions belong to the v14 (snow_merge) estimates; another version (gadm_merge,
-# branch gadm-admin1) has its labels placed by ggrepel.
-offsets <- fread(text = "panel,iso3,dx,dy
-A,GNQ,0.900,4.800
-A,LBR,0.900,-0.600
-B,BDI,1.100,-0.500
-B,CAF,-1.300,1.300
-B,GNQ,1.400,-0.800
-B,NER,0.700,0.600
-B,RWA,1.400,0.400
-B,TCD,-0.400,0.600")
-fixed_labels <- identical(st$version, "snow_merge")
+# if the labelled set changes. Positions are per version: gadm_merge (branch gadm-admin1) keeps the v14 positions,
+# whose points moved by less than 0.6 per 1,000, and adds South Sudan; a version without any lets ggrepel place them.
+offsets <- fread(text = "version,panel,iso3,dx,dy
+snow_merge,A,GNQ,0.900,4.800
+snow_merge,A,LBR,0.900,-0.600
+snow_merge,B,BDI,1.100,-0.500
+snow_merge,B,CAF,-1.300,1.300
+snow_merge,B,GNQ,1.400,-0.800
+snow_merge,B,NER,0.700,0.600
+snow_merge,B,RWA,1.400,0.400
+snow_merge,B,TCD,-0.400,0.600
+gadm_merge,A,GNQ,0.900,4.800
+gadm_merge,A,LBR,0.900,-0.600
+gadm_merge,B,BDI,1.100,-0.500
+gadm_merge,B,CAF,-1.300,1.300
+gadm_merge,B,GNQ,1.400,-0.800
+gadm_merge,B,NER,0.700,0.600
+gadm_merge,B,RWA,1.400,0.400
+gadm_merge,B,TCD,-0.400,0.600
+gadm_merge,B,SSD,-1.900,-0.400")[version == st$version, !"version"]
+fixed_labels <- nrow(offsets) > 0
 if (fixed_labels) stopifnot(setequal(paste(offsets$panel, offsets$iso3), d[labelled == TRUE, paste(panel, iso3)]))
 d[, c("dx", "dy") := 0]
 if (fixed_labels) d[offsets, on = c("panel", "iso3"), c("dx", "dy") := .(i.dx, i.dy)]

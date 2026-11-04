@@ -3,6 +3,8 @@
 # Subsets of the fitted 17-variable sample, each refitted separately by age band:
 #   sahel           records whose source survey-region centroid is >= 12N, < 36E, outside ETH/ERI/SOM/DJI (as in the
 #                   survey-region primary v9)
+#   sahel_10n       the same with the latitude bound lowered to 10N, so that northern Nigeria (whose North West zone
+#                   centroid is at 11.8N) is included (user request, 4 November 2026)
 #   west_africa, central_africa, east_africa   UN M49 Western, Middle and Eastern Africa countries
 #   early, late     surveys with survey year <= / > the median survey year (one vote per survey)
 #   records_early, records_late   child-band records with calendar year <= / > the records' median calendar year
@@ -20,6 +22,7 @@ cbh_subgroup_settings <- function() {
     centroids = c("data/derived_dhs/dhs_region_centroids.csv", "data/derived_mics/mics_region_centroids.csv"),
     registry = c("data/derived_dhs/survey_registry.csv", "data/derived_mics/survey_registry_mics.csv"),
     sahel = list(latitude_min = 12, longitude_max = 36, exclude_countries = c("ETH", "ERI", "SOM", "DJI")),
+    sahel_10n = list(latitude_min = 10, longitude_max = 36, exclude_countries = c("ETH", "ERI", "SOM", "DJI")),
     # UN M49 Eastern Africa (https://unstats.un.org/unsd/methodology/m49/), restricted to
     # countries that can appear in the DHS/MIS/MICS sample.
     east_africa = c("BDI", "COM", "DJI", "ERI", "ETH", "KEN", "MDG", "MOZ", "MWI", "RWA",
@@ -28,15 +31,16 @@ cbh_subgroup_settings <- function() {
     west_africa = c("BEN", "BFA", "CIV", "CPV", "GHA", "GIN", "GMB", "GNB", "LBR", "MLI", "MRT", "NER", "NGA", "SEN", "SLE", "TGO"),
     central_africa = c("AGO", "CAF", "CMR", "COD", "COG", "GAB", "GNQ", "STP", "TCD"),
     southern_africa = c("BWA", "LSO", "NAM", "SWZ", "ZAF"),
-    subgroups = c("sahel", "west_africa", "central_africa", "east_africa", "early", "late", "records_early", "records_late"),
-    labels = c(map_full = "Full analysis", sahel = "Sahel (≥12°N)", west_africa = "West Africa",
+    subgroups = c("sahel", "sahel_10n", "west_africa", "central_africa", "east_africa", "early", "late", "records_early", "records_late"),
+    labels = c(map_full = "Full analysis", sahel = "Sahel (≥12°N)", sahel_10n = "Sahel (≥10°N)",
+               west_africa = "West Africa",
                central_africa = "Central Africa", east_africa = "East Africa",
                early = "Surveys up to median survey year", late = "Surveys after median survey year",
                records_early = "Records up to median calendar year", records_late = "Records after median calendar year"),
-    colours = c(map_full = "#222222", sahel = "#C34D26", west_africa = "#0072B2", central_africa = "#CC79A7",
+    colours = c(map_full = "#222222", sahel = "#C34D26", sahel_10n = "#E8A33D", west_africa = "#0072B2", central_africa = "#CC79A7",
                 east_africa = "#009E73", early = "#7B4FA3", late = "#E69F00", records_early = "#56B4E9", records_late = "#8C8C2A"),
     record_subsets = c("records_early", "records_late"),
-    figures = list(sfig_pfpr_splines_by_subgroup = c("sahel"),
+    figures = list(sfig_pfpr_splines_by_subgroup = c("sahel", "sahel_10n"),
                    sfig_pfpr_splines_by_subregion = c("west_africa", "central_africa", "east_africa"),
                    sfig_pfpr_splines_by_period = c("early", "late", "records_early", "records_late")),
     not_fitted = c("southern_africa"))

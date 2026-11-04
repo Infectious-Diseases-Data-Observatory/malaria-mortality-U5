@@ -104,6 +104,7 @@ describe <- function(s) sprintf("%s: %s children, %s records, %s deaths, %d surv
   st$labels[[s]], fmt(row(s)$distinct_children), fmt(row(s)$records), fmt(row(s)$deaths),
   row(s)$survey_regions, row(s)$surveys, row(s)$countries)
 subset_text <- c(sahel = "records whose survey-region boundary centroid lies at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel)",
+  sahel_10n = "the same with the latitude bound at 10°N, which adds northern Nigeria (its North West and North East zones), most of Guinea, and parts of Benin, Burkina Faso, Cameroon, Chad, Ghana, Guinea-Bissau, Mali and Togo (Sahel, ≥10°N)",
   east_africa = "UN M49 Eastern Africa countries", west_africa = "UN M49 Western Africa countries",
   central_africa = "UN M49 Middle (Central) Africa countries",
   early = paste0("surveys conducted up to the median survey year (", cutoff, ")"), late = "surveys conducted after it",
@@ -114,7 +115,7 @@ not_fitted_text <- if (length(st$not_fitted)) { nf <- read("subregions_not_fitte
     fmt(nf$deaths[1]), nf$surveys[1], nf$countries[1], nf$pfpr_max[1], nf$pfpr_p95[1]) } else ""
 caption_for <- function(groups) paste(
   paste0("Sensitivity of the fitted PfPR–mortality relationship to the analysis subset. Mortality hazard ratios relative to zero prevalence (PfPR[2–10] = 0) by completed-month age band, from the ", cbh_paper_model_label(), " fitted to the full primary sample (black, with its pointwise 95% conditional interval shaded; the curves of Figure 2) and refitted separately in ",
-    c("one subset", "two subsets", "three subsets", "four subsets", "five subsets", "six subsets", "seven subsets", "eight subsets")[length(groups)], ": ",
+    c("one subset", "two subsets", "three subsets", "four subsets", "five subsets", "six subsets", "seven subsets", "eight subsets", "nine subsets")[length(groups)], ": ",
     if (length(groups) > 1) paste0(paste(subset_text[head(groups, -1)], collapse = "; "), "; and ", subset_text[[tail(groups, 1)]]) else subset_text[[groups]], ".", if (any(groups %in% c("west_africa", "central_africa", "east_africa"))) not_fitted_text else ""),
   "Each subset refit uses the same seven separate age-band models, 17 standardised covariates with the full-sample scaling, fixed HIV incidence imputation, gamma = 2 and basis dimensions as the primary analysis, with knots placed at quantiles of the subset's own predictor values. Each curve is solid over the central 95% of its own exposure distribution and dashed from zero to its 2.5th percentile, where the reference is reached by extrapolation into sparse data.",
   paste0("Subset sizes. ", paste(vapply(groups, describe, ""), collapse = "; "), "."),
@@ -133,7 +134,7 @@ for (age in ages) {
     paste(vapply(names(st$labels), function(s) hr(a[a$subgroup == s, ]), ""), collapse = " | "), " |"))
 }
 lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
-  paste0("Seven separate MAP gamma=2 age-band models refitted in ", c("one subset", "two subsets", "three subsets", "four subsets", "five subsets", "six subsets", "seven subsets", "eight subsets")[length(subgroups)], " of the fitted 17-variable sample (`", primary$id, "`). Reference: the full primary fits in `", primary$out, "`.", not_fitted_text), "",
+  paste0("Seven separate MAP gamma=2 age-band models refitted in ", c("one subset", "two subsets", "three subsets", "four subsets", "five subsets", "six subsets", "seven subsets", "eight subsets", "nine subsets")[length(subgroups)], " of the fitted 17-variable sample (`", primary$id, "`). Reference: the full primary fits in `", primary$out, "`.", not_fitted_text), "",
   "## Subsets", "", paste0("- ", vapply(subgroups, describe, "")), "",
   paste0("Definitions: ", paste(defs[-1], collapse = "; "), ". Survey regions enter whole; centroids are survey-specific boundary centroids (DHS: the cached shapefile summary; MICS: the analysis-region polygons, `R_mics/11_region_centroids.R`). The period split counts each survey once."), "",
   "## Figures", "",

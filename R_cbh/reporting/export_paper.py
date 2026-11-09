@@ -30,8 +30,8 @@ nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9")
 imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v16")
 # Country fixed effects (31 October 2026).
 country_fe = Path("results/cbh/country_fixed_effects_gadm_merge_gamma2_v3")
-# Sahel refits with the calendar month at risk (9 November 2026).
-sahel_season = Path("results/cbh/sahel_season_gadm_v1")
+# Sahel (and southern Africa) refits with the calendar month at risk (9 November 2026).
+seasonality = Path("results/cbh/seasonality_gadm_v1")
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -79,8 +79,8 @@ assets.extend([
     (subgroups / "table_sahel_countries.latex.txt", Path("tables/table_sahel_countries.latex.txt")),
     (subgroups / "table_sahel_countries.csv", Path("tables/table_sahel_countries.csv")),
     # Sahel refits with the calendar month at risk, <1 to 11 months (user request, 9 November 2026).
-    (sahel_season / "sfig_sahel_season.png", Path("Supplementary Figures/sfig_sahel_season.png")),
-    (sahel_season / "CAPTION.md", Path("Supplementary Figures/sfig_sahel_season_caption.md")),
+    (seasonality / "sfig_sahel_season.png", Path("Supplementary Figures/sfig_sahel_season.png")),
+    (seasonality / "CAPTION_sfig_sahel_season.md", Path("Supplementary Figures/sfig_sahel_season_caption.md")),
     # Country fixed effects in place of the country random intercept (author request, 31 October 2026).
     (country_fe / "sfig_pfpr_splines_country_fixed_effects.png", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects.png")),
     (country_fe / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects_caption.md")),
@@ -129,7 +129,7 @@ for source, rel in assets:
     check(source, rel)
 # A sensitivity figure is current only if its report was rerun after the last change to its inputs or code
 # (for example R_cbh/sensitivity/subgroups/02_report.R after an axis change).
-for sensitivity in (subgroups, nutrition, country_fe, sahel_season):
+for sensitivity in (subgroups, nutrition, country_fe, seasonality):
     stale = [row["file"] for row in read_csv(sensitivity / "report_provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale report provenance in {sensitivity}: {', '.join(stale)}; rerun its report script"

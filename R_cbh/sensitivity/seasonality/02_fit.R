@@ -1,25 +1,24 @@
 #!/usr/bin/env Rscript
-# Sahel seasonality sensitivity, step 2: for each band (<1, 1-5, 6-11 months), the Sahel model of the subgroup suite
-# refitted on the children whose birth month was reported (01_prepare.R), (A) as it is and (B) with a cyclic cubic
-# spline of the calendar month at risk (1-12). The 1-5 and 6-11 month fits use child-month records with the month of
-# age as a factor in both A and B (A on these records is the band model with hazards free to vary within the band).
-# Same specification as the subgroup refits otherwise (formula, gamma = 2, the Sahel knots of PfPR and calendar time).
+# Seasonality sensitivity, step 2: for each region and band (<1, 1-5, 6-11 months), three fits of the primary
+# specification (formula, gamma = 2, knots at quantiles of the distinct PfPR and calendar-time values of the region's
+# band, as in the subgroup refits): (ref) the band model on all the region's children; on the children whose birth month
+# was reported (01_prepare.R), (A) without and (B) with a cyclic cubic spline of the calendar month at risk (1-12).
+# The 1-5 and 6-11 month A and B fits use child-month records with the month of age as a factor.
 # Outputs: <out>/fit_diagnostics.csv, pfpr_curves.csv (hazard ratios relative to zero, with 95% intervals),
 # month_curves.csv (B: hazard ratio by calendar month relative to the average month), month_tests.csv, sample.csv,
 # fit_input_provenance.csv; private: the fits.
 suppressPackageStartupMessages({ library(data.table); library(mgcv) })
 source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_cbh/primary/specification.R")
-source("R_cbh/sensitivity/model.R"); source("R_cbh/sensitivity/subgroups/settings.R"); source("R_cbh/sensitivity/sahel_season/settings.R")
+source("R_cbh/sensitivity/model.R"); source("R_cbh/sensitivity/seasonality/settings.R")
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--force"))
-S <- cbh_sahel_season_settings(); P <- cbh_primary_settings(S$primary_version); st <- cbh_subgroup_settings()
-data_path <- file.path(S$private, "model_data.rds"); knots_path <- file.path(st$out, "knots.csv")
-code <- c("R_cbh/sensitivity/sahel_season/02_fit.R", "R_cbh/sensitivity/sahel_season/settings.R", "R_cbh/sensitivity/model.R",
+S <- cbh_seasonality_settings(); P <- cbh_primary_settings(S$primary_version)
+data_path <- file.path(S$private, "model_data.rds")
+code <- c("R_cbh/sensitivity/seasonality/02_fit.R", "R_cbh/sensitivity/seasonality/settings.R", "R_cbh/sensitivity/model.R",
           "R_cbh/primary/specification.R", "R_cbh/primary/settings.R")
-files <- c(data_path, knots_path, code)
+files <- c(data_path, code)
 provenance <- data.frame(file = files, md5 = vapply(files, cbh_file_hash, ""))
 cbh_atomic_csv(provenance, file.path(S$out, "fit_input_provenance.csv"))
 md <- readRDS(data_path)
-kn <- fread(knots_path)[subgroup == "sahel"]
 form0 <- cbh_primary_regional_formula(P)
 
 run <- function(form, d, knots, initial = NULL, strict = FALSE) {
@@ -34,7 +33,8 @@ run <- function(form, d, knots, initial = NULL, strict = FALSE) {
 ok <- function(g) isTRUE(g$converged) && g$finite_coefficients && g$finite_covariance && g$rank == g$coefficients &&
   is.finite(g$min_smoothing_hessian_eigenvalue) && g$min_smoothing_hessian_eigenvalue > 0
 smooth_of <- function(f, label) f$smooth[[match(label, vapply(f$smooth, `[[`, "", "label"))]]
-# Hazard ratio relative to zero prevalence, from the PfPR smooth (pointwise 95% conditional intervals).
+# Hazard ratio relative to zero prevalence, from the PfPR smooth (pointwise 95% conditional intervals), up to the
+# 97.5th percentile of the fit's PfPR values.
 pf_curve <- function(f, d) {
   s <- smooth_of(f, "s(pfpr_pct)"); ix <- s$first.para:s$last.para
   q <- quantile(d$pfpr_pct, c(.025, .975), names = FALSE); grid <- sort(unique(c(seq(0, 80, by = .5), q)))
@@ -51,41 +51,52 @@ month_curve <- function(f) {
   X <- PredictMat(s, data.frame(month = grid)); est <- drop(X %*% coef(f)[ix]); se <- sqrt(pmax(rowSums((X %*% f$Vp[ix, ix]) * X), 0))
   data.table(month = grid, hazard_ratio = exp(est), lower_95 = exp(est - 1.96 * se), upper_95 = exp(est + 1.96 * se))
 }
+as_model_frame <- function(z, infant_month = FALSE) {
+  d <- as.data.frame(z)
+  for (v in c("survey", "country", "region")) d[[v]] <- droplevels(factor(d[[v]]))
+  if (infant_month) d$age_month <- factor(d$age_month)
+  d
+}
 
 diags <- pf <- mo <- tests <- samples <- list()
-for (b in S$bands) {
-  d <- as.data.frame(md[[b]][(month_reported)])
-  for (v in c("survey", "country", "region")) d[[v]] <- droplevels(factor(d[[v]]))
+for (r in names(S$regions)) for (b in S$bands) {
+  all_children <- as_model_frame(md[[r]][[b]]$band)
+  stopifnot(nlevels(all_children$region) > 50L)   # the survey x unit areas, not the seasonality region
   infant <- b != "<1"
-  if (infant) d$age_month <- factor(d$age_month)
-  knots <- list(pfpr_pct = kn[age_band == b & variable == "pfpr_pct", value], calendar_year = kn[age_band == b & variable == "calendar_year", value],
-                month = S$month_knots)
-  stopifnot(length(knots$pfpr_pct) == 5L, length(knots$calendar_year) == 6L)
+  reported <- as_model_frame(md[[r]][[b]]$month[(month_reported)], infant)
+  # Knots as in the subgroup refits: quantiles of the distinct values of the region's band (all children).
+  knots <- list(pfpr_pct = as.numeric(quantile(unique(all_children$pfpr_pct), seq(0, 1, length.out = 5))),
+                calendar_year = as.numeric(quantile(unique(all_children$calendar_year), seq(0, 1, length.out = 6))), month = S$month_knots)
+  stopifnot(all(diff(knots$pfpr_pct) > 0), all(diff(knots$calendar_year) > 0))
   fA <- if (infant) update(form0, . ~ . + age_month) else form0
   fB <- update(fA, as.formula(sprintf(". ~ . + s(month, bs = 'cc', k = %d)", S$month_k)))
-  samples[[b]] <- data.table(age_band = b, rows = nrow(d), children = uniqueN(d$child_id), deaths = sum(d$death),
-    surveys = nlevels(d$survey), survey_units = nlevels(d$region),
-    dropped_children = uniqueN(md[[b]][!(month_reported), child_id]), dropped_deaths = md[[b]][!(month_reported), sum(death)])
-  for (m in c("A", "B")) {
-    id <- sprintf("%s_%s", c(`<1` = "neonatal", `1-5` = "m1_5", `6-11` = "m6_11")[[b]], m)
+  allm <- md[[r]][[b]]$month
+  samples[[paste(r, b)]] <- data.table(region = r, age_band = b, children_all = nrow(all_children), deaths_all = sum(all_children$death),
+    surveys = nlevels(all_children$survey), countries = nlevels(all_children$country), survey_units = nlevels(all_children$region),
+    rows = nrow(reported), children = uniqueN(reported$child_id), deaths = sum(reported$death),
+    dropped_children = uniqueN(allm[!(month_reported), child_id]), dropped_deaths = allm[!(month_reported), sum(death)])
+  for (m in c("ref", "A", "B")) {
+    d <- if (m == "ref") all_children else reported
+    form <- switch(m, ref = form0, A = fA, B = fB)
+    id <- sprintf("%s_%s_%s", r, c(`<1` = "neonatal", `1-5` = "m1_5", `6-11` = "m6_11")[[b]], m)
     path <- file.path(S$private, paste0(id, ".rds"))
-    sig <- cbh_hash(list(provenance, S, if (m == "A") deparse(fA) else deparse(fB), knots, as.character(packageVersion("mgcv"))))
+    sig <- cbh_hash(list(provenance, S[c("bands", "month_k", "month_knots")], r, deparse(form), knots, as.character(packageVersion("mgcv"))))
     saved <- if (file.exists(path) && !"--force" %in% args) readRDS(path) else NULL
     if (is.null(saved) || !identical(saved$signature, sig)) {
       message("Fitting ", id, ": ", nrow(d), " rows, ", sum(d$death), " deaths")
-      saved <- run(if (m == "A") fA else fB, d, knots); saved$signature <- sig
+      saved <- run(form, d, knots); saved$signature <- sig
       g <- cbh_sensitivity_diagnostics(saved, d, id)
-      if (!ok(g)) { message("Strict restart for ", id); r <- run(if (m == "A") fA else fB, d, knots, coef(saved$fit), TRUE)
-        r$signature <- sig; gr <- cbh_sensitivity_diagnostics(r, d, id); if (ok(gr)) saved <- r }
+      if (!ok(g)) { message("Strict restart for ", id); s2 <- run(form, d, knots, coef(saved$fit), TRUE)
+        s2$signature <- sig; if (ok(cbh_sensitivity_diagnostics(s2, d, id))) saved <- s2 }
       cbh_atomic_rds(saved, path)
     }
-    f <- saved$fit; g <- cbh_sensitivity_diagnostics(saved, d, id); g$age_band <- b; g$model <- m
+    f <- saved$fit; g <- cbh_sensitivity_diagnostics(saved, d, id); g$region <- r; g$age_band <- b; g$model <- m
     stopifnot(ok(g)); diags[[id]] <- g
-    pf[[id]] <- pf_curve(f, d)[, `:=`(age_band = b, model = m)]
+    pf[[id]] <- pf_curve(f, d)[, `:=`(region = r, age_band = b, model = m)]
     if (m == "B") {
-      mo[[id]] <- month_curve(f)[, age_band := b]
-      sm <- summary(f)$s.table; r <- match("s(month)", rownames(sm))
-      tests[[id]] <- data.table(age_band = b, edf = sm[r, "edf"], chi_sq = sm[r, "Chi.sq"], p_value = sm[r, "p-value"])
+      mo[[id]] <- month_curve(f)[, `:=`(region = r, age_band = b)]
+      sm <- summary(f)$s.table; i <- match("s(month)", rownames(sm))
+      tests[[id]] <- data.table(region = r, age_band = b, edf = sm[i, "edf"], chi_sq = sm[i, "Chi.sq"], p_value = sm[i, "p-value"])
     }
     rm(saved, f); gc(FALSE)
   }
@@ -95,4 +106,4 @@ cbh_atomic_csv(as.data.frame(rbindlist(pf)), file.path(S$out, "pfpr_curves.csv")
 cbh_atomic_csv(as.data.frame(rbindlist(mo)), file.path(S$out, "month_curves.csv"))
 cbh_atomic_csv(as.data.frame(rbindlist(tests)), file.path(S$out, "month_tests.csv"))
 cbh_atomic_csv(as.data.frame(rbindlist(samples)), file.path(S$out, "sample.csv"))
-message("Sahel seasonality fits complete: ", S$out)
+message("Seasonality fits complete: ", S$out)

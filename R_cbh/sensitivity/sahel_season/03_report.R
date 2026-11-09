@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Sahel seasonality sensitivity, step 3: figure, tables, caption and report.
-# A: hazard ratios relative to zero prevalence by band: the Sahel refit of the subgroup suite (all children; Figure S3),
+# A: hazard ratios relative to zero prevalence by band: the Sahel refit of the subgroup suite (all children),
 #    and the refits on the children whose birth month was reported without (A) and with (B) the calendar month at risk.
 # B: model B's hazard ratio by calendar month relative to the average month, with the crude death rate by calendar
 #    month relative to the band's average (children with a reported birth month).
@@ -24,7 +24,7 @@ ref <- rbindlist(lapply(S$bands, function(b) { x <- as.data.frame(cur[age_band =
   v <- as.data.table(cbh_curve_vs_zero(x, readRDS(man[age_band == b, model_file])$fit))
   v[segment != "outside", .(pfpr_pct, hazard_ratio, lower_95, upper_95, pfpr_p025, pfpr_p975, age_band = b, model = "ref")] }))
 curves <- rbind(ref, pf, use.names = TRUE)
-series <- c(ref = "Sahel, all children (Figure S3)", A = "Birth month reported: without month",
+series <- c(ref = "Sahel, all children", A = "Birth month reported: without month",
             B = "Birth month reported: with calendar month")
 curves[, series := factor(series[model], levels = series)][, band := factor(band_lab[age_band], levels = band_lab)]
 
@@ -70,9 +70,9 @@ ggsave(file.path(S$out, "sfig_sahel_season.png"), p, width = 6.5, height = 6.3, 
 ## ---- Caption and report -----------------------------------------------------------------------------------
 f0 <- function(v) format(v, big.mark = ",", trim = TRUE, scientific = FALSE)
 h <- function(b, m, x) { z <- hr[age_band == b & model == m & pfpr_pct == x]; sprintf("%.2f (%.2f-%.2f)", z$hazard_ratio, z$lower_95, z$upper_95) }
-caption <- paste0("Sahel sub-analysis (records whose analysis unit has its centroid at or north of 10°N; Figure S3) with the calendar month ",
+caption <- paste0("Sahel sub-analysis (records whose analysis unit has its centroid at or north of 10°N) with the calendar month ",
   "at risk added. (A) Mortality hazard ratios relative to zero prevalence (PfPR[2-10] = 0) at <1, 1-5 and 6-11 months: the Sahel refit of ",
-  "Figure S3 (all children; grey) and refits on the children whose birth month was reported (DHS b10 and MICS BH4F: month given), ",
+  "the subgroup analysis (all children; grey) and refits on the children whose birth month was reported (DHS b10 and MICS BH4F: month given), ",
   "without (black) and with (orange, with its pointwise 95% conditional interval) a cyclic cubic spline of the calendar month at risk; ",
   "the two refits give the same curves, so the black line lies under the orange one. ",
   "Neonates are at risk in their birth month; at 1-5 and 6-11 months each child contributes one record per month of age, with the month of ",
@@ -80,7 +80,7 @@ caption <- paste0("Sahel sub-analysis (records whose analysis unit has its centr
   "relative to the average month from the refits with month (orange line and interval) and the crude death rate in each calendar month ",
   "relative to the band's average (circles). Children with a reported birth month: ",
   paste(sprintf("%s %s children and %s deaths", band_lab[smp$age_band], f0(smp$children), f0(smp$deaths)), collapse = "; "),
-  " (", paste(sprintf("%s fewer deaths", f0(smp$dropped_deaths)), collapse = ", "), " than in Figure S3).")
+  " (", paste(sprintf("%s fewer deaths", f0(smp$dropped_deaths)), collapse = ", "), " than in the Sahel subgroup analysis).")
 writeLines(c("# Supplementary figure caption: Sahel sub-analysis with the calendar month", "", caption), file.path(S$out, "CAPTION.md"))
 lines <- c("# Sahel sub-analysis with the calendar month at risk", "",
   "## Reliability of the dates (Sahel records, bands <1, 1-5, 6-11 months)", "",

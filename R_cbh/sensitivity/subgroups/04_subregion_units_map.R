@@ -3,11 +3,11 @@
 # of the subgroup refits: A Sahel, B West Africa, C Central Africa, D East Africa. Drawn in the style of Figure 1, from
 # the map layers that R_cbh/reporting/23_analysis_units_map.R saves (projection, frame, slivers, lakes, borders; the
 # polygons under the list element "layer").
-# Membership: a record belongs to a sub-analysis by its source survey-region (region_selection.csv of
-# R_cbh/sensitivity/subgroups/01_fit.R: the Sahel by survey-region centroid, the sub-regions by country), and a polygon
-# holds the record if it is in the record's analysis unit (a polygon or a union of polygons). A polygon is in the
-# sub-analysis when all its records are, and partly in it when only some are (possible in the Sahel only, whose
-# boundary follows survey regions, not polygons). Polygon counts are checked against the primary's Figure 1 table and
+# Membership (R_cbh/sensitivity/subgroups/01_fit.R): the Sahel by the centroid of the record's analysis unit
+# (sahel_units.csv), the sub-regions by the record's source survey-region and its country (region_selection.csv); a
+# polygon holds the record if it is in the record's analysis unit (a polygon or a union of polygons). A polygon is in
+# the sub-analysis when all its records are, and partly in it when only some are (possible in the Sahel only, for a
+# polygon whose records were placed both alone and in a union on the other side of the bound). Polygon counts are checked against the primary's Figure 1 table and
 # the subgroup sample sizes against sample_summary.csv.
 # Outputs (<subgroups out>/): sfig_subregion_units_map.png (165 mm wide, 400 dpi), CAPTION_sfig_subregion_units_map.md,
 # subregion_units_by_polygon.csv, subregion_units_map_provenance.csv. Aggregates only.
@@ -20,7 +20,7 @@ if (!identical(P$unit, "gadm")) stop("The sub-region map needs the GADM-unit pri
 panels <- c(sahel = "A", west_africa = "B", central_africa = "C", east_africa = "D")
 stopifnot(all(names(panels) %in% st$subgroups))
 paths <- c(dataset = P$data, regions = file.path(st$out, "region_selection.csv"), samples = file.path(st$out, "sample_summary.csv"),
-  definitions = file.path(st$out, "subgroup_definitions.csv"), layers = file.path(P$out, "analysis_units_map/map_layers.rds"),
+  definitions = file.path(st$out, "subgroup_definitions.csv"), sahel_units = file.path(st$out, "sahel_units.csv"), layers = file.path(P$out, "analysis_units_map/map_layers.rds"),
   figure1 = file.path(P$out, "analysis_units_map/analysis_units_by_polygon.csv"),
   script = "R_cbh/sensitivity/subgroups/04_subregion_units_map.R", settings = "R_cbh/sensitivity/subgroups/settings.R")
 stopifnot(all(file.exists(paths)))
@@ -42,16 +42,17 @@ samples <- as.data.table(cbh_read_csv(paths[["samples"]]))
 
 L <- readRDS(paths[["layers"]])
 poly <- as.data.table(L$polygons)
+sahel_set <- as.data.table(cbh_read_csv(paths[["sahel_units"]]))[as.logical(sahel), unit]
+in_sub <- function(s, z) if (s == "sahel") z$unit %in% sahel_set else z$src_region %in% reg$region[as.logical(reg[[s]])]
 tab <- rbindlist(lapply(names(panels), function(s) {
-  inside <- reg$region[as.logical(reg[[s]])]
-  k <- rp[src_region %in% inside, .(records_in = sum(records)), by = Admin_ID]
+  k <- rp[in_sub(s, rp), .(records_in = sum(records)), by = Admin_ID]
   z <- merge(poly, total, by = "Admin_ID", all.x = TRUE)[k, on = "Admin_ID", records_in := i.records_in]
   z[is.na(records_all), records_all := 0][is.na(records_in), records_in := 0]
   z[, `:=`(subgroup = s, share_in = fifelse(records_all > 0, records_in / records_all, 0))]
   z[, class := fcase(Type != "Endemic", "not_analysed", records_all == 0, "not_analysed", share_in >= 1 - 1e-12, "in",
                      share_in > 0, "partly", default = "other")]
   # Records of the sub-analysis = sample_summary.csv (counted once per record, not per polygon).
-  stopifnot(d[src_region %in% inside, .N] == samples[subgroup == s, records], d[src_region %in% inside, sum(death)] == samples[subgroup == s, deaths])
+  stopifnot(d[in_sub(s, d), .N] == samples[subgroup == s, records], d[in_sub(s, d), sum(death)] == samples[subgroup == s, deaths])
   z
 }))
 stopifnot(all(tab[subgroup != "sahel", class] != "partly"))
@@ -95,11 +96,13 @@ draw <- function(s) {
   p
 }
 # One legend for the four panels: the neutral classes and, as examples, the Sahel's two tints.
-keys <- c("in", "partly", "other", "not_analysed", "lake")
+has_partly <- any(tab$class == "partly")   # the paler Sahel tint is shown only when a polygon is partly in
+keys <- c("in", if (has_partly) "partly", "other", "not_analysed", "lake")
 key_lab <- c(`in` = "Polygon in the sub-analysis (colour of the panel)", partly = "Some of the polygon's records (Sahel only)",
              other = "Other polygons in the primary analysis", not_analysed = "Not analysed (no data, malaria free or island)",
              lake = "Lake or reservoir")
-key_fill <- c(`in` = st$colours[["sahel"]], partly = tint(st$colours[["sahel"]], 0.4), neutral[c("other", "not_analysed", "lake")])
+key_fill <- c(`in` = st$colours[["sahel"]], partly = tint(st$colours[["sahel"]], 0.4), neutral[c("other", "not_analysed", "lake")])[keys]
+key_lab <- key_lab[keys]
 legend <- ggplot(data.frame(k = factor(keys, keys), x = seq_along(keys), y = 1)) +
   geom_tile(aes(x, y, fill = k), width = 0, height = 0) +
   scale_fill_manual(values = key_fill, labels = key_lab, name = NULL, drop = FALSE,
@@ -127,11 +130,12 @@ panel_text <- vapply(names(panels), function(s) {
 }, "")
 caption <- c("# Supplementary figure caption: polygons of the regional sub-analyses", "",
   paste0("GADM 4.1 admin-1 polygons in each regional sub-analysis of the subgroup refits, in the style of Figure 1. ",
-    "A record belongs to a sub-analysis by its source survey-region: the Sahel holds survey regions whose boundary centroid lies at or north of ",
+    "The Sahel holds the records whose analysis unit (an admin-1 unit or a union of units) has its centroid at or north of ",
     sahel_def$latitude_min, "°N (dashed line) and west of ", sahel_def$longitude_max, "°E, outside ", and_list(countrycode::countrycode(sahel_def$exclude_countries, "iso3c", "country.name")),
     "; West, Central and East Africa hold the surveys of the UN M49 sub-regions of Figure 1 (Middle Africa as Central Africa). ",
-    "A polygon is coloured when all of its records are in the sub-analysis and in a paler tint when only some are, which happens only in the Sahel, ",
-    "because survey regions and polygons do not coincide; mid grey marks the other polygons of the primary analysis. ",
+    if (has_partly) "A polygon is coloured when all of its records are in the sub-analysis and in a paler tint when only some are (records placed in a union of polygons on the other side of the Sahel bound); " else
+      "A polygon is coloured when its records are in the sub-analysis; ",
+    "mid grey marks the other polygons of the primary analysis. ",
     paste(panel_text, collapse = " "),
     " Southern Africa is not refitted (too few deaths and too little prevalence), so it has no panel."))
 con <- file(file.path(st$out, "CAPTION_sfig_subregion_units_map.md"), open = "w", encoding = "UTF-8"); writeLines(caption, con); close(con)

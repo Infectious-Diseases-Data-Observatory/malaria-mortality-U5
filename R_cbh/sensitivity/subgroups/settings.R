@@ -1,9 +1,11 @@
 # Subgroup refits of the GADM-unit primary (CBH_PRIMARY_VERSION=gadm; v9 on primary v15; the Snow-unit v5-v8 on
 # primary v11-v14 were replaced with it, author decision 3 November 2026; code in git history up to f2db98e).
 # Subsets of the fitted 17-variable sample, each refitted separately by age band:
-#   sahel           records whose source survey-region centroid is >= 10N, < 36E, outside ETH/ERI/SOM/DJI; the bound
-#                   was 12N until 9 November 2026, when it was lowered so that northern Nigeria (whose North West zone
-#                   centroid is at 11.8N) is included (author decision)
+#   sahel           records whose analysis unit (an admin-1 unit or a union of units) has its centroid at or north of
+#                   10N and west of 36E, outside ETH/ERI/SOM/DJI (01_fit.R, sahel_units.csv). Author decisions of
+#                   9 November 2026: the bound was 12N, lowered to include northern Nigeria; and the Sahel was selected
+#                   by survey-region centroid, which put Nigeria's whole North East zone (with Adamawa and Taraba,
+#                   south of 10N) in it
 #   west_africa, central_africa, east_africa   UN M49 Western, Middle and Eastern Africa countries
 #   early, late     surveys with survey year <= / > the median survey year (one vote per survey)
 #   records_early, records_late   child-band records with calendar year <= / > the records' median calendar year

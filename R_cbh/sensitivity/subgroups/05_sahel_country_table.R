@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# Table of the countries in the Sahel subset (survey regions >= 10N; user request, 4 November 2026), one
+# Table of the countries in the Sahel subset (analysis units with centroid >= 10N; user request, 4 November 2026), one
 # row per country: surveys, survey-units, deaths, and the median (interquartile range) across survey-units of PfPR2-10
 # and of crude mortality by age band (deaths per 1,000 child-years). Rows for the whole subset and for the full primary
 # sample follow, for comparison. A survey-unit is the model's survey x unit area; only its records in the subset count.
@@ -13,7 +13,7 @@ source("R_cbh/load_pipeline.R"); source("R_cbh/primary/settings.R"); source("R_c
 st <- cbh_subgroup_settings(); P <- cbh_primary_settings(st$primary_version)
 s <- "sahel"; stopifnot(s %in% st$subgroups)
 bound <- sprintf("%g\u00b0N", st$sahel$latitude_min)
-paths <- c(data = P$data, regions = file.path(st$out, "region_selection.csv"), samples = file.path(st$out, "sample_summary.csv"),
+paths <- c(data = P$data, sahel_units = file.path(st$out, "sahel_units.csv"), samples = file.path(st$out, "sample_summary.csv"),
   names = file.path(P$out, "analysis_units_map/analysis_units_by_polygon.csv"),
   script = "R_cbh/sensitivity/subgroups/05_sahel_country_table.R", settings = "R_cbh/sensitivity/subgroups/settings.R")
 stopifnot(all(file.exists(paths)))
@@ -24,9 +24,9 @@ d <- data.table(src = paste(as.character(x$country), as.character(x$survey), as.
   unit = as.character(x$unit), age_band = as.character(x$age_band), death = as.integer(x$death), cy = x$band_years,
   pfpr = x$pfpr_pct)
 rm(x); invisible(gc())
-reg <- as.data.table(cbh_read_csv(paths[["regions"]]))
-stopifnot(!anyDuplicated(reg$region), all(d$src %in% reg$region))
-d[, inside := src %in% reg$region[as.logical(reg[[s]])]]
+su <- as.data.table(cbh_read_csv(paths[["sahel_units"]]))
+stopifnot(!anyDuplicated(su$unit), all(d$unit %in% su$unit))
+d[, inside := unit %in% su[as.logical(sahel), unit]]
 samp <- as.data.table(cbh_read_csv(paths[["samples"]]))[subgroup == s]
 stopifnot(nrow(samp) == 1L, d[(inside), .N] == samp$records, d[(inside), sum(death)] == samp$deaths,
   d[(inside), uniqueN(area)] == samp$survey_regions, d[(inside), uniqueN(country)] == samp$countries)
@@ -84,12 +84,13 @@ for (i in seq_len(nrow(rows))) { r <- rows[i]
   md <- c(md, paste0("| ", r$row, " | ", r$surveys, " | ", f(r$survey_units, 0), " | ", f(r$deaths, 0), " | ",
     cell(r, "pfpr", 0, c(" ", "–")), " | ", paste(vapply(ages, function(b) cell(r, paste0("rate_", b), digits[[b]], c(" ", "–")), ""), collapse = " | "),
     " | ", if (is.na(r$units_included)) "" else r$units_included, " |")) }
-caption <- paste0("Countries in the Sahel sub-analysis (survey regions whose boundary centroid lies at or north of ", bound, " and west of ", st$sahel$longitude_max, "\u00b0E, excluding the Horn of Africa): ",
+caption <- paste0("Countries in the Sahel sub-analysis (records whose analysis unit, an admin-1 unit or a union of units, has its centroid at or north of ", bound, " and west of ", st$sahel$longitude_max, "\u00b0E, excluding the Horn of Africa): ",
   "numbers of surveys, survey-units (a survey's records in one analysis unit) and deaths, and the median (interquartile range) across survey-units of ",
   "PfPR2-10 (MAP, the child-year-weighted mean over each survey-unit's records) and of crude mortality by age band (deaths per 1,000 child-years; ",
   "for the first month, 1,000 child-years correspond to about 12,000 births). Medians and quartiles are unweighted. The last two rows give the whole subset and the full primary sample.")
 writeLines(c("# Table: countries in the Sahel sub-analysis", "", caption, "", md, "",
-  "Units included: the GADM admin-1 units with records in the subset; \"All\" where these are all the country's units in the primary sample, \"All except\" where fewer are left out than included, and \"(part)\" where only some of a unit's records are in the subset (its other records belong to survey regions south of ", bound, ")."),
+  paste0("Units included: the GADM admin-1 units with records in the subset; \"All\" where these are all the country's units in the primary sample, and \"All except\" where fewer are left out than included",
+    if (any(grepl("(part)", rows$units_included, fixed = TRUE))) paste0("; \"(part)\" where only some of a unit's records are in the subset (its other records were placed in a union of units whose centroid lies south of ", bound, ")") else "", ".")),
   file.path(st$out, "table_sahel_countries.md"))
 
 tex_escape <- function(z) gsub("&", "\\\\&", z)
@@ -104,7 +105,8 @@ for (i in seq_len(nrow(rows))) { r <- rows[i]
   body <- c(body, paste0(tex_escape(lab), " & ", r$surveys, " & ", f(r$survey_units, 0), " & ", f(r$deaths, 0), " & ", tcell(r, "pfpr", 0), " & ",
     paste(vapply(ages, function(b) tcell(r, paste0("rate_", b), digits[[b]]), ""), collapse = " & "), " \\\\[1pt]")) }
 partial <- rows[iso3 %in% countries & units_included != "All"]
-notes <- paste0("Units included where not all of a country's units are (``part'': only some of the unit's records are in the subset, the others belonging to survey regions south of ", st$sahel$latitude_min, "\\textdegree N): ",
+any_part <- any(grepl("(part)", partial$units_included, fixed = TRUE))
+notes <- paste0("Units included where not all of a country's units are", if (any_part) paste0(" (``part'': only some of the unit's records are in the subset, the others placed in a union of units whose centroid lies south of ", st$sahel$latitude_min, "\\textdegree N)") else "", ": ",
   paste(sprintf("%s: %s", partial$row, tex_escape(sub("^All except", "all except", partial$units_included))), collapse = "; "), ". Every unit is included for the other countries.")
 tex <- c("% Replacement table source; saved as plain text. No manuscript file is edited.",
   "% Generated by R_cbh/sensitivity/subgroups/05_sahel_country_table.R.",

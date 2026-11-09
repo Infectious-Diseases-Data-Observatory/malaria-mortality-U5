@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Refit the seven primary age-band models in four subgroups of the fitted
-# 17-variable sample: Sahel (>=10N), the UN sub-regions, and surveys before/after
+# 17-variable sample: Sahel (analysis units >= 10N), the UN sub-regions, and surveys before/after
 # the median survey year. Subsets the saved prepared data; no data/HIV rebuild.
 # The GADM-unit primary (CBH_PRIMARY_VERSION=gadm).
 source("R_cbh/load_pipeline.R")
@@ -9,6 +9,7 @@ source("R_cbh/sensitivity/model.R")
 source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 source("R_cbh/sensitivity/subgroups/settings.R")
+source("R_cbh/units/R/settings.R")
 library(mgcv)
 library(data.table)
 args <- commandArgs(trailingOnly = TRUE)
@@ -19,8 +20,9 @@ for (p in c(st$out, st$private)) dir.create(p, recursive = TRUE, showWarnings = 
 write_csv <- function(d, name) cbh_atomic_csv(d, file.path(st$out, name))
 code <- c("R_cbh/sensitivity/subgroups/01_fit.R", "R_cbh/sensitivity/subgroups/settings.R",
           "R_cbh/sensitivity/model.R", "R_cbh/analysis/model.R", "R_cbh/primary/settings.R",
-          "R_cbh/primary/specification.R")
-files <- c(primary$data, st$centroids, st$registry, code)
+          "R_cbh/primary/specification.R", "R_cbh/units/R/settings.R")
+unit_layer <- units_settings()$shapefile   # the GADM unit layer (git-ignored), for the Sahel unit centroids
+files <- c(primary$data, st$centroids, st$registry, unit_layer, code)
 provenance <- data.frame(file = files, md5 = vapply(files, cbh_file_hash, ""))
 reference <- cbh_read_csv(file.path(primary$out, "fit_manifest.csv"))
 stopifnot(nrow(reference) == 7L, all(reference$prepared_data_md5 == provenance$md5[1]))
@@ -37,6 +39,26 @@ stopifnot(uniqueN(input, by = c("child_id", "age_band")) == nrow(input))
 # Subgroup membership is assigned by the record's source survey-region (country:survey:regkey); the random effect is
 # the survey x unit.
 input[, src_region := paste(as.character(country), as.character(survey), regkey, sep = ":")]
+
+## ---- Sahel: records whose analysis unit has its centroid at or north of the bound ----------------------------
+# Centroids in Africa Albers equal area (ESRI:102022); a union of units takes the area-weighted mean of its units'
+# centroids, which is the centroid of the union. Written to sahel_units.csv, which 04 and 05 read.
+layer <- sf::st_transform(sf::st_read(unit_layer, quiet = TRUE), "ESRI:102022")
+xy <- sf::st_coordinates(sf::st_centroid(sf::st_geometry(layer)))
+cen <- data.table(Admin_ID = layer$Admin_ID, Country_ID = layer$Country_ID, area = as.numeric(sf::st_area(layer)), x = xy[, 1], y = xy[, 2])
+su <- input[, .(records = .N, deaths = sum(death)), by = .(unit = as.character(unit), country = as.character(country))]
+stopifnot(!anyDuplicated(su$unit))
+sp <- su[, .(Admin_ID = strsplit(unit, "+", fixed = TRUE)[[1]]), by = .(unit, country)][cen, on = "Admin_ID", nomatch = 0]
+stopifnot(all(sp$country == sp$Country_ID))
+sc <- sp[, .(units = .N, x = weighted.mean(x, area), y = weighted.mean(y, area)), by = .(unit, country)]
+stopifnot(setequal(sc$unit, su$unit), all(sc$units == lengths(strsplit(sc$unit, "+", fixed = TRUE))))
+ll <- sf::st_coordinates(sf::st_transform(sf::st_as_sf(as.data.frame(sc), coords = c("x", "y"), crs = "ESRI:102022"), 4326))
+sc[, `:=`(lon = ll[, 1], lat = ll[, 2], x = NULL, y = NULL)]
+sc[, sahel := lat >= st$sahel$latitude_min & lon < st$sahel$longitude_max & !country %in% st$sahel$exclude_countries]
+sc[su, on = c("unit", "country"), `:=`(records = i.records, deaths = i.deaths)]
+write_csv(as.data.frame(sc[order(country, unit)]), "sahel_units.csv")
+input[, sahel_unit := as.character(unit) %in% sc[(sahel), unit]]
+rm(layer, xy, cen, su, sp, ll)
 
 ## ---- survey and region attributes ------------------------------------------------
 surveys <- unique(as.data.frame(input[, .(survey = as.character(survey), country = as.character(country), survey_year)]))
@@ -66,15 +88,13 @@ regions$lat <- centroids$lat[j]; regions$lon <- centroids$lon[j]
 stopifnot(all(is.finite(regions$lat)), all(is.finite(regions$lon)))
 k <- match(regions$survey, surveys$survey)
 regions$survey_year <- surveys$survey_year[k]
-regions$sahel <- regions$lat >= st$sahel$latitude_min & regions$lon < st$sahel$longitude_max &
-  !regions$country %in% st$sahel$exclude_countries
 regions$east_africa <- surveys$east_africa[k]
 regions$west_africa <- regions$country %in% st$west_africa
 regions$central_africa <- regions$country %in% st$central_africa
 regions$southern_africa <- regions$country %in% st$southern_africa
 # Record-level period split (st$record_subsets): child-band calendar year up to / after the records' median.
 calendar_cutoff <- median(input$calendar_year)
-in_subset <- function(z, s) if (s == "records_early") z$calendar_year <= calendar_cutoff else if (s == "records_late")
+in_subset <- function(z, s) if (s == "sahel") z$sahel_unit else if (s == "records_early") z$calendar_year <= calendar_cutoff else if (s == "records_late")
   z$calendar_year > calendar_cutoff else z$src_region %in% regions$region[regions[[s]]]
 regions$early <- surveys$period[k] == "early"
 regions$late <- surveys$period[k] == "late"
@@ -99,7 +119,7 @@ print(sample[, setdiff(names(sample), "countries_list")])
 writeLines(c(sprintf("median_survey_year,%d", as.integer(cutoff)),
   sprintf("early_definition,survey_year <= %d", as.integer(cutoff)),
   sprintf("late_definition,survey_year > %d", as.integer(cutoff)),
-  sprintf("sahel_definition,centroid latitude >= %s and longitude < %s and country not in %s",
+  sprintf("sahel_definition,analysis-unit centroid latitude >= %s and longitude < %s and country not in %s (a union of units: its area-weighted centroid; sahel_units.csv)",
     st$sahel$latitude_min, st$sahel$longitude_max, paste(st$sahel$exclude_countries, collapse = "/")),
   sprintf("east_africa_definition,UN M49 Eastern Africa: %s", paste(st$east_africa, collapse = " ")),
   if ("west_africa" %in% subgroups) sprintf("west_africa_definition,UN M49 Western Africa: %s", paste(st$west_africa, collapse = " ")),
@@ -110,7 +130,7 @@ writeLines(c(sprintf("median_survey_year,%d", as.integer(cutoff)),
 
 ## ---- fits ---------------------------------------------------------------------------
 form <- cbh_primary_regional_formula(primary)
-input <- as.data.frame(input[, unique(c(all.vars(form), "age_band", "region", "src_region", "calendar_year")), with = FALSE])
+input <- as.data.frame(input[, unique(c(all.vars(form), "age_band", "region", "src_region", "calendar_year", "sahel_unit")), with = FALSE])
 stopifnot(!anyNA(input))
 writeLines(deparse(form), file.path(st$out, "model_formula.txt"))
 run <- function(d, knots, initial = NULL, strict = FALSE) {

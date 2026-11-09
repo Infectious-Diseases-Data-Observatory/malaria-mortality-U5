@@ -98,10 +98,35 @@ section <- function(r) { R <- S$regions[[r]]; rl <- rel[region == r]
       month.name[z[which.min(hazard_ratio), month]], min(z$hazard_ratio), z[which.min(hazard_ratio), lower_95], z[which.min(hazard_ratio), upper_95],
       t$edf, format.pval(t$p_value, digits = 2)) })), "",
   sprintf("![%s](%s.png)", R$label, R$figure), "", caption_for(r), "") }
+## ---- Comparison with another run (variant mwi_districts: the main run, with Malawi's 3 regions) ------------------
+comparison <- character(); cmp_src <- character()
+if (!is.null(S$compare_with)) {
+  C <- S$compare_with; cmp_src <- file.path(C$out, c("hazard_ratios.csv", "month_hazard_ratios.csv", "month_tests.csv", "sample.csv"))
+  rc <- function(f) fread(file.path(C$out, f))[region %in% names(S$regions)]
+  fmt <- function(z) z[, .(region, age_band, model, pfpr_pct, hr = sprintf("%.2f (%.2f-%.2f)", hazard_ratio, lower_95, upper_95))]
+  cmp <- merge(fmt(rc("hazard_ratios.csv")), fmt(hr), by = c("region", "age_band", "model", "pfpr_pct"), suffixes = c("_compared", "_this"))
+  stopifnot(nrow(cmp) == nrow(hr))
+  cmp <- cmp[order(match(region, names(S$regions)), match(age_band, S$bands), match(model, names(series)), pfpr_pct)]
+  cbh_atomic_csv(as.data.frame(cmp), file.path(S$out, "comparison_hazard_ratios.csv"))
+  mh0 <- rc("month_hazard_ratios.csv"); t0 <- rc("month_tests.csv"); s0 <- rc("sample.csv")
+  stopifnot(identical(s0[, .(region, age_band, children_all, deaths_all, children, deaths)], smp[, .(region, age_band, children_all, deaths_all, children, deaths)]))
+  peak <- function(z, t) sprintf("high %s %.2f, low %s %.2f; edf %.1f, p = %s", month.abb[z[which.max(hazard_ratio), month]], max(z$hazard_ratio),
+    month.abb[z[which.min(hazard_ratio), month]], min(z$hazard_ratio), t$edf, format.pval(t$p_value, digits = 2))
+  comparison <- c(sprintf("## Comparison: %s against %s", C$this, C$label), "",
+    sprintf("The same children and deaths; survey x unit areas in the band models: %s against %s.",
+      paste(sprintf("%s %d", band_lab[smp$age_band], smp$survey_units), collapse = ", "), paste(s0$survey_units, collapse = ", ")), "",
+    sprintf("| Band | Model | PfPR | %s | %s |", C$label, C$this), "|---|---|---:|---:|---:|",
+    cmp[, sprintf("| %s | %s | %d%% | %s | %s |", band_lab[age_band], series[model], as.integer(pfpr_pct), hr_compared, hr_this)], "",
+    "Calendar month (refits with month):", "",
+    unlist(lapply(names(S$regions), function(r) lapply(S$bands, function(b) {
+      z1 <- mh[region == r & age_band == b]; z0 <- mh0[region == r & age_band == b]; stopifnot(identical(z1$month, z0$month))
+      sprintf("- %s. %s: %s; %s: %s. Largest difference in a monthly hazard ratio: %.3f.", band_lab[[b]], C$this,
+        peak(z1, tests[region == r & age_band == b]), C$label, peak(z0, t0[region == r & age_band == b]), max(abs(z1$hazard_ratio - z0$hazard_ratio))) }))), "")
+}
 writeLines(c("# Seasonality: the calendar month at risk in the first year of life", "",
   "Heaping: deaths at 6 months of age divided by the mean of the deaths at 5 and 7 months. Neonatal deaths are put in the birth month (no day of birth).", "",
-  unlist(lapply(names(S$regions), section))), file.path(S$out, "REPORT.md"))
+  comparison, unlist(lapply(names(S$regions), section))), file.path(S$out, "REPORT.md"))
 src <- c(file.path(S$out, c("pfpr_curves.csv", "month_curves.csv", "deaths_by_month.csv", "sample.csv", "month_tests.csv", "reliability_by_band.csv", "fit_diagnostics.csv")),
-  "R_cbh/sensitivity/seasonality/03_report.R", "R_cbh/sensitivity/seasonality/settings.R")
+  cmp_src, "R_cbh/sensitivity/seasonality/03_report.R", "R_cbh/sensitivity/seasonality/settings.R")
 cbh_atomic_csv(data.frame(file = src, md5 = vapply(src, cbh_file_hash, "")), file.path(S$out, "report_provenance.csv"))
 message("Seasonality report: ", file.path(S$out, "REPORT.md"))

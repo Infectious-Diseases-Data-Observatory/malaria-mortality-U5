@@ -13,6 +13,8 @@
 #   carries the calendar month of the death (offset log(1/12)).
 # - Birth months count as reported when the survey's date flag says the month was given (DHS b10 and MICS BH4F codes
 #   1, 2 and 7); the month models use only those children (02_fit.R), and the reliability of every step is tabulated.
+# - Records: the primary's (v15), or those of S$data (variant mwi_districts: the finer-units data) for the same
+#   children, selected by their unit in the primary's units.
 # Outputs: <out>/reliability_by_band.csv, reliability_by_survey.csv, deaths_by_age_month.csv, deaths_by_month.csv,
 # preparation_provenance.csv; private: <private>/model_data.rds (region -> band -> all-children band records and the
 # month records).
@@ -24,15 +26,22 @@ for (p in c(S$out, S$private)) dir.create(p, recursive = TRUE, showWarnings = FA
 units_file <- file.path(st$out, "sahel_units.csv")
 su <- fread(units_file)
 region_units <- lapply(setNames(names(S$regions), names(S$regions)), function(r) cbh_seasonality_units(su, r, S))
-stopifnot(!length(Reduce(intersect, region_units)))
+stopifnot(!anyDuplicated(unlist(region_units)))   # regions do not overlap
 
-x <- as.data.table(readRDS(P$data)$data)[as.character(age_band) %in% S$bands]
-# zone = the seasonality region (column region is the model's survey x unit area).
-x[, zone := NA_character_]
-for (r in names(region_units)) x[as.character(unit) %in% region_units[[r]], zone := r]
-x <- x[!is.na(zone)]
+data_file <- if (is.null(S$data)) P$data else S$data
+x <- as.data.table(readRDS(data_file)$data)[as.character(age_band) %in% S$bands]
 x[, `:=`(child_id = as.character(child_id), age_band = as.character(age_band))]
 stopifnot(!anyDuplicated(x, by = c("child_id", "age_band")))
+# zone = the seasonality region (column region is the model's survey x unit area), from the child's analysis unit in
+# the primary's units, so that a variant on finer units (S$data) keeps the same children.
+v15 <- if (identical(data_file, P$data)) x else as.data.table(readRDS(P$data)$data)[as.character(age_band) %in% S$bands][, child_id := as.character(child_id)]
+zones <- unique(v15[, .(child_id, unit = as.character(unit))]); stopifnot(!anyDuplicated(zones$child_id))
+zones[, zone := NA_character_]
+for (r in names(region_units)) zones[unit %in% region_units[[r]], zone := r]
+x[zones, on = "child_id", zone := i.zone]
+v15_records <- v15[child_id %in% zones[!is.na(zone), child_id], .N]; rm(v15, zones); gc(FALSE)
+x <- x[!is.na(zone)]
+stopifnot(nrow(x) == v15_records)
 surveys <- sort(unique(as.character(x$survey)))
 print(x[, .(surveys = uniqueN(survey), records = .N, deaths = sum(death)), by = zone])
 
@@ -107,7 +116,7 @@ dm <- rbindlist(lapply(names(model_data), function(r) rbindlist(lapply(S$bands, 
 dm[, deaths_per_1000_child_years := 1000 * deaths / child_years]
 cbh_atomic_csv(as.data.frame(dm[order(match(region, names(S$regions)), match(age_band, S$bands), month)]), file.path(S$out, "deaths_by_month.csv"))
 cbh_atomic_rds(model_data, file.path(S$private, "model_data.rds"))
-files <- c(P$data, units_file, dates_file, "R_cbh/sensitivity/seasonality/01_prepare.R", "R_cbh/sensitivity/seasonality/settings.R",
+files <- c(unique(c(data_file, P$data)), units_file, dates_file, "R_cbh/sensitivity/seasonality/01_prepare.R", "R_cbh/sensitivity/seasonality/settings.R",
   "R_cbh/sensitivity/subgroups/settings.R", "R_cbh/R/child_bands.R")
 cbh_atomic_csv(data.frame(file = files, md5 = vapply(files, cbh_file_hash, "")), file.path(S$out, "preparation_provenance.csv"))
 for (r in names(model_data)) message(r, ": ", paste(sprintf("%s %s month rows, %d deaths", S$bands,

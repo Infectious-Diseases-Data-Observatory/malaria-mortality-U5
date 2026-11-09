@@ -103,8 +103,8 @@ row <- function(s) sample[sample$subgroup == s, ]
 describe <- function(s) sprintf("%s: %s children, %s records, %s deaths, %d survey × unit areas, %d surveys, %d countries",
   st$labels[[s]], fmt(row(s)$distinct_children), fmt(row(s)$records), fmt(row(s)$deaths),
   row(s)$survey_regions, row(s)$surveys, row(s)$countries)
-subset_text <- c(sahel = "records whose survey-region boundary centroid lies at or north of 12°N and west of 36°E, excluding the Horn of Africa (Sahel)",
-  sahel_10n = "the same with the latitude bound at 10°N, which adds northern Nigeria (its North West and North East zones), most of Guinea, and parts of Benin, Burkina Faso, Cameroon, Chad, Ghana, Guinea-Bissau, Mali and Togo (Sahel, ≥10°N)",
+subset_text <- c(sahel = sprintf("records whose survey-region boundary centroid lies at or north of %g°N and west of %g°E, excluding the Horn of Africa (Sahel)",
+    st$sahel$latitude_min, st$sahel$longitude_max),
   east_africa = "UN M49 Eastern Africa countries", west_africa = "UN M49 Western Africa countries",
   central_africa = "UN M49 Middle (Central) Africa countries",
   early = paste0("surveys conducted up to the median survey year (", cutoff, ")"), late = "surveys conducted after it",

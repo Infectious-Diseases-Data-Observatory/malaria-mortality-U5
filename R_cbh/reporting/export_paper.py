@@ -73,9 +73,9 @@ assets.extend([
     # Raw survival against PfPR by UN sub-region with unadjusted spline fits (user request, 15 October 2026).
     (subgroups / "sfig_survival_vs_pfpr_by_subregion.png", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion.png")),
     (subgroups / "CAPTION_sfig_survival_vs_pfpr_by_subregion.md", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion_caption.md")),
-    # Countries of the Sahel subset with the 10N bound: PfPR and crude mortality by age band (user request, 4 November 2026).
-    (subgroups / "table_sahel_10n_countries.latex.txt", Path("tables/table_sahel_10n_countries.latex.txt")),
-    (subgroups / "table_sahel_10n_countries.csv", Path("tables/table_sahel_10n_countries.csv")),
+    # Countries of the Sahel subset (>= 10N): PfPR and crude mortality by age band (user request, 4 November 2026).
+    (subgroups / "table_sahel_countries.latex.txt", Path("tables/table_sahel_countries.latex.txt")),
+    (subgroups / "table_sahel_countries.csv", Path("tables/table_sahel_countries.csv")),
     # Country fixed effects in place of the country random intercept (author request, 31 October 2026).
     (country_fe / "sfig_pfpr_splines_country_fixed_effects.png", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects.png")),
     (country_fe / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects_caption.md")),

@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # Refit the seven primary age-band models in four subgroups of the fitted
-# 17-variable sample: Sahel (>=12N, and >=10N), the UN sub-regions, and surveys before/after
+# 17-variable sample: Sahel (>=10N), the UN sub-regions, and surveys before/after
 # the median survey year. Subsets the saved prepared data; no data/HIV rebuild.
 # The GADM-unit primary (CBH_PRIMARY_VERSION=gadm).
 source("R_cbh/load_pipeline.R")
@@ -68,8 +68,6 @@ k <- match(regions$survey, surveys$survey)
 regions$survey_year <- surveys$survey_year[k]
 regions$sahel <- regions$lat >= st$sahel$latitude_min & regions$lon < st$sahel$longitude_max &
   !regions$country %in% st$sahel$exclude_countries
-regions$sahel_10n <- regions$lat >= st$sahel_10n$latitude_min & regions$lon < st$sahel_10n$longitude_max &
-  !regions$country %in% st$sahel_10n$exclude_countries
 regions$east_africa <- surveys$east_africa[k]
 regions$west_africa <- regions$country %in% st$west_africa
 regions$central_africa <- regions$country %in% st$central_africa
@@ -103,8 +101,6 @@ writeLines(c(sprintf("median_survey_year,%d", as.integer(cutoff)),
   sprintf("late_definition,survey_year > %d", as.integer(cutoff)),
   sprintf("sahel_definition,centroid latitude >= %s and longitude < %s and country not in %s",
     st$sahel$latitude_min, st$sahel$longitude_max, paste(st$sahel$exclude_countries, collapse = "/")),
-  sprintf("sahel_10n_definition,centroid latitude >= %s and longitude < %s and country not in %s",
-    st$sahel_10n$latitude_min, st$sahel_10n$longitude_max, paste(st$sahel_10n$exclude_countries, collapse = "/")),
   sprintf("east_africa_definition,UN M49 Eastern Africa: %s", paste(st$east_africa, collapse = " ")),
   if ("west_africa" %in% subgroups) sprintf("west_africa_definition,UN M49 Western Africa: %s", paste(st$west_africa, collapse = " ")),
   if ("central_africa" %in% subgroups) sprintf("central_africa_definition,UN M49 Middle Africa: %s", paste(st$central_africa, collapse = " ")),

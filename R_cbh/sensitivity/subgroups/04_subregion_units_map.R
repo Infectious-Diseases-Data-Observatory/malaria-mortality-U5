@@ -67,8 +67,8 @@ neutral <- c(other = "#BDBDBD", not_analysed = "#E4E4E4", outside = "#F4F4F2", l
 label <- c(sahel = paste0(st$labels[["sahel"]]), west_africa = st$labels[["west_africa"]], central_africa = st$labels[["central_africa"]],
            east_africa = st$labels[["east_africa"]])
 fig_w <- 165; W <- diff(L$xr); H <- diff(L$yr); panel_w <- (fig_w - 4) / 2; panel_h <- panel_w * H / W
-# The 12th parallel north from 18 W to 36 E: the latitude bound of the Sahel definition (survey-region centroids).
-lat12 <- st_transform(st_sfc(st_linestring(cbind(seq(-18, 36, by = 0.5), 12)), crs = 4326), L$crs)
+# The latitude bound of the Sahel definition (st$sahel, survey-region centroids) from 18 W to its eastern bound.
+lat_bound <- st_transform(st_sfc(st_linestring(cbind(seq(-18, st$sahel$longitude_max, by = 0.5), st$sahel$latitude_min)), crs = 4326), L$crs)
 draw <- function(s) {
   z <- tab[subgroup == s]; key <- setNames(z$class, z$Admin_ID)
   fills <- c(neutral, `in` = st$colours[[s]], partly = tint(st$colours[[s]], 0.4))
@@ -83,7 +83,7 @@ draw <- function(s) {
     geom_sf(data = L$isles, fill = NA, colour = L$grey_line, linewidth = 0.1) +
     geom_sf(data = L$land_lines, colour = "#1A1A1A", linewidth = 0.16, lineend = "round", linejoin = "round") +
     geom_sf(data = L$water, fill = neutral[["lake"]], colour = "#7FB3DD", linewidth = 0.08) +
-    (if (s == "sahel") geom_sf(data = lat12, colour = "#1A1A1A", linewidth = 0.3, linetype = "22") else list()) +
+    (if (s == "sahel") geom_sf(data = lat_bound, colour = "#1A1A1A", linewidth = 0.3, linetype = "22") else list()) +
     annotate("text", x = L$xr[1] + 0.03 * W, y = L$yr[1] + 0.30 * H, label = label[[s]], hjust = 0, vjust = 1, size = 9.5 / .pt,
              colour = st$colours[[s]], fontface = "bold") +
     scale_fill_manual(values = fills, drop = FALSE, na.value = NA) +

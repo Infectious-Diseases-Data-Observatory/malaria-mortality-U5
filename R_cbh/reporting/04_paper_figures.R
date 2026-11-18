@@ -9,7 +9,7 @@ dir.create(out,recursive=TRUE,showWarnings=FALSE)
 # Main figures (28 October 2026, author request): 1 the map of complete birth histories by analysis unit
 # (R_cbh/reporting/23_analysis_units_map.R), 2 the hazard ratio by age relative to zero prevalence (26), 3 the
 # attributable fraction by age (06), 4 the malaria-attributable mortality rates with UN IGME all-cause mortality (24)
-# and 5 PfPR-ACM by UN IGME age group against UN IGME malaria deaths (27). The main figures use UN IGME only; the IHME
+# and 5 PfPR-ACM against UN IGME malaria deaths under 5 (27). The main figures use UN IGME only; the IHME
 # versions are supplementary (author request, 18 November 2026). Supplementary captions are exported from their own folders.
 fig1 <- c(file="fig1_analysis_units_map.png",source="analysis_units_map/analysis_units_map.png")
 figures <- data.frame(figure=1:5,
@@ -36,7 +36,7 @@ writeLines(c("# Main-paper figures and draft captions","",
   "## Figure 4 — national malaria-attributable under-five mortality with UN IGME all-cause mortality, 2000–2024","",
   "File: `fig4_malaria_mortality_rates_unigme.png` (source `mortality_rates/fig_malaria_mortality_rates_unigme.png`).","",
   readLines(file.path(root,"mortality_rates/CAPTION_unigme.md"))[-c(1,2)],"",
-  "## Figure 5 — PfPR-ACM by age group against UN IGME malaria mortality by country, 2024","",
+  "## Figure 5 — PfPR-ACM against UN IGME malaria mortality by country, 2024","",
   "File: `fig5_model_vs_cause_specific_2024.png` (source `model_vs_cause_specific/fig5_model_vs_cause_specific_2024.png`; values in `model_vs_cause_specific/figure_data.csv`).","",
   readLines(file.path(root,"model_vs_cause_specific/CAPTION.md"))[-c(1,2)],"",
   "[Source paths and hashes](manifest.csv). Copy the five main images into the manuscript's `figures/` folder and the supplementary images into `Supplementary Figures/`. No TeX edits are needed to prepare or copy the images; TeX references/captions are managed separately."),file.path(out,"CAPTIONS.md"))

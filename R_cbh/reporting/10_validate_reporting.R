@@ -85,7 +85,7 @@ stopifnot(nrow(um)==50L,all(um$attributable_deaths_lower<=um$attributable_deaths
   max(abs(um$attributable_deaths-src$attributable_deaths[match(paste(um$source,um$year),paste(src$source,src$year))]))<1e-6,
   as.numeric(uc$value[grepl("^zero-noise",uc$item)])<1e-6,uc$value[uc$item=="draws"]=="500",
   nrow(read("uncertainty/country_year_intervals_2000_2024.csv"))==2L*42L*25L)
-# Intervals by UN IGME age group (Figure 5; 18 November 2026): complete, and the groups sum to the annual point estimates.
+# Intervals by UN IGME age group (18 November 2026): complete, and the groups sum to the annual point estimates.
 ug <- read("uncertainty/annual_age_group_intervals_2000_2024.csv")
 stopifnot(nrow(ug)==2L*25L*3L,nrow(read("uncertainty/country_year_age_group_intervals_2000_2024.csv"))==2L*42L*25L*3L,
   max(abs(tapply(ug$attributable_deaths,paste(ug$source,ug$year),sum)[paste(um$source,um$year)]-um$attributable_deaths))<1e-6,

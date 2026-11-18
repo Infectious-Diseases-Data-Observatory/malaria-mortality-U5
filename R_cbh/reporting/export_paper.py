@@ -93,7 +93,7 @@ assets.extend([
     (root / "mortality_rates/CAPTION_unigme.md", Path("figures/fig4_malaria_mortality_rates_unigme_caption.md")),
     (root / "hazard_ratio_by_age/CAPTION.md", Path("figures/fig2_hazard_ratio_by_age_caption.md")),
     (root / "model_vs_cause_specific/CAPTION.md", Path("figures/fig5_model_vs_cause_specific_2024_caption.md")),
-    # Figure 5 is UN IGME only, by age group; its IHME panel is a supplementary figure (author request, 18 November 2026).
+    # Figure 5 is UN IGME only; its IHME panel is a supplementary figure (author request, 18 November 2026).
     (root / "model_vs_cause_specific/sfig_model_vs_cause_specific_ihme_2024.png", Path("Supplementary Figures/sfig_model_vs_cause_specific_ihme_2024.png")),
     (root / "model_vs_cause_specific/CAPTION_ihme.md", Path("Supplementary Figures/sfig_model_vs_cause_specific_ihme_2024_caption.md")),
     (root / "mortality_rates/sfig_malaria_mortality_rates_ihme.png", Path("Supplementary Figures/sfig_malaria_mortality_rates_ihme.png")),
@@ -110,7 +110,7 @@ assets.extend([
     (root / "uncertainty/annual_intervals_2000_2024.csv", Path("tables/uncertainty_annual_intervals_2000_2024.csv")),
     (root / "uncertainty/country_year_intervals_2000_2024.csv", Path("tables/uncertainty_country_year_intervals_2000_2024.csv")),
     (root / "uncertainty/contrasts.csv", Path("tables/uncertainty_contrasts.csv")),
-    # Attributable deaths by UN IGME age group, with intervals (number source of Figure 5; 18 November 2026).
+    # Attributable deaths by UN IGME age group, with intervals (18 November 2026).
     (root / "uncertainty/annual_age_group_intervals_2000_2024.csv", Path("tables/uncertainty_annual_age_group_intervals_2000_2024.csv")),
     (root / "uncertainty/SPEC.md", Path("tables/uncertainty_specification.md")),
 ])

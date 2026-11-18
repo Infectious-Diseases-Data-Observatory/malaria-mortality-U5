@@ -194,8 +194,9 @@ check <- rbindlist(lapply(c("UN IGME", "IHME"), function(src) {
 }))
 stopifnot(all(check$max_abs_attributable < 1e-6), all(check$max_abs_allcause < 1e-6), all(check$max_abs_reported < 1e-6),
   max(abs(zero$P[1, , ] - P0)) < 1e-9)
-# Age groups (user request, 18 November 2026): attributable deaths in UN IGME's three age groups, the groups in which
-# Figure 5 compares the model with UN IGME's malaria deaths. Point values are 04's band values summed within the group.
+# Age groups (18 November 2026): attributable deaths in the three age groups in which UN IGME reports all-cause deaths.
+# Point values are 04's band values summed within the group. No figure reads them (UN IGME publishes no malaria deaths
+# by these groups to compare with); they give the age split of the attributable deaths for the text.
 group_label <- c(CME_TMM0 = "<1 month", CME_TMM1T11 = "1-11 months", CME_TMY1T4 = "1-4 years")
 age_pt[, age_group := group_label[split$igme_indicator[match(age_band, split$age_band)]]]
 pt_AG <- lapply(c(`UN IGME` = "UN IGME", IHME = "IHME"), function(src) lapply(unname(group_label[G]), function(k)

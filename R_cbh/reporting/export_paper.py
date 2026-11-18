@@ -96,6 +96,9 @@ assets.extend([
     # Figure 5 is UN IGME only; its IHME panel is a supplementary figure (author request, 18 November 2026).
     (root / "model_vs_cause_specific/sfig_model_vs_cause_specific_ihme_2024.png", Path("Supplementary Figures/sfig_model_vs_cause_specific_ihme_2024.png")),
     (root / "model_vs_cause_specific/CAPTION_ihme.md", Path("Supplementary Figures/sfig_model_vs_cause_specific_ihme_2024_caption.md")),
+    # Figure 5 on log scales, with every country named (author request, 18 November 2026).
+    (root / "model_vs_cause_specific/sfig_model_vs_cause_specific_log_2024.png", Path("Supplementary Figures/sfig_model_vs_cause_specific_log_2024.png")),
+    (root / "model_vs_cause_specific/CAPTION_log.md", Path("Supplementary Figures/sfig_model_vs_cause_specific_log_2024_caption.md")),
     (root / "mortality_rates/sfig_malaria_mortality_rates_ihme.png", Path("Supplementary Figures/sfig_malaria_mortality_rates_ihme.png")),
     (root / "mortality_rates/CAPTION_ihme.md", Path("Supplementary Figures/sfig_malaria_mortality_rates_ihme_caption.md")),
     # Country rates from IHME against UN IGME all-cause deaths, 2024 (R_cbh/reporting/28_malaria_rates_ihme_vs_unigme.R,

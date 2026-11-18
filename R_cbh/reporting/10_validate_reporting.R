@@ -89,7 +89,7 @@ stopifnot(nrow(um)==50L,all(um$attributable_deaths_lower<=um$attributable_deaths
 ug <- read("uncertainty/annual_age_group_intervals_2000_2024.csv")
 stopifnot(nrow(ug)==2L*25L*3L,nrow(read("uncertainty/country_year_age_group_intervals_2000_2024.csv"))==2L*42L*25L*3L,
   max(abs(tapply(ug$attributable_deaths,paste(ug$source,ug$year),sum)[paste(um$source,um$year)]-um$attributable_deaths))<1e-6,
-  file.exists(file.path(root,"model_vs_cause_specific/sfig_model_vs_cause_specific_ihme_2024.png")))
+  all(file.exists(file.path(root,"model_vs_cause_specific",c("sfig_model_vs_cause_specific_ihme_2024.png","sfig_model_vs_cause_specific_log_2024.png")))))
 # Check producer/data hashes, not just whether expected filenames exist.
 provenances <- list.files(root,pattern="provenance[.]csv$",recursive=TRUE,full.names=TRUE)
 provenances <- provenances[!grepl("previous_overleaf",provenances)]

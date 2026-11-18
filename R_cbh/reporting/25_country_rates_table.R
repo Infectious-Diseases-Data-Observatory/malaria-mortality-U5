@@ -82,19 +82,17 @@ avg$m_g_lo <- ua[source == "UN IGME"]$malaria_rate_per1000_lower; avg$m_g_hi <- 
 avg$m_i_lo <- ua[source == "IHME"]$malaria_rate_per1000_lower; avg$m_i_hi <- ua[source == "IHME"]$malaria_rate_per1000_upper
 stopifnot(all(w$who_cacode_deaths[w$cacode_share == 0] == 0), all(is.finite(unlist(avg))))
 
-f1 <- function(x) formatC(x, format = "f", digits = 1)
-f2 <- function(x) formatC(x, format = "f", digits = 2)
+# Every rate per 1,000 child-years and its interval to one decimal (author request, 18 November 2026; two decimals
+# before); a value that rounds to -0.0 prints as 0.0.
+f1 <- function(x) sub("^-(0[.]0)$", "\\1", formatC(x, format = "f", digits = 1))
 # Shares of all-cause deaths to the nearest whole percent (user request, 28 October 2026).
 pct <- function(share) formatC(100 * share, format = "f", digits = 0)
-# Interval bounds to one decimal, and to two below 1 per 1,000 so that small rates keep their own interval; a bound
-# that rounds to -0.00 prints as 0.00.
-fb <- function(x) sub("^-(0[.]0+)$", "\\1", ifelse(abs(x) < 1, f2(x), f1(x)))
-rate_ui <- function(rate, lo, hi) sprintf("%s (%s--%s)", f2(rate), fb(lo), fb(hi))
+rate_ui <- function(rate, lo, hi) sprintf("%s (%s--%s)", f1(rate), f1(lo), f1(hi))
 stopifnot(!any(w$crisis_year_unigme))
 # The LaTeX table (simplified on 18 November 2026, author request): UN IGME and CA-CODE only, one value per cell.
 # The IHME-based columns were removed from the table; they stay in the CSV, which the IHME supplementary figure reads.
 row <- function(name, pfpr, allcause, m, lo, hi, share, cc, cc_share)
-  sprintf("%s & %s & %s & %s & %s & %s & %s \\\\", name, f1(pfpr), f1(allcause), rate_ui(m, lo, hi), pct(share), f2(cc), pct(cc_share))
+  sprintf("%s & %s & %s & %s & %s & %s & %s \\\\", name, f1(pfpr), f1(allcause), rate_ui(m, lo, hi), pct(share), f1(cc), pct(cc_share))
 rows <- w[, row(country, pfpr_pct, allcause_rate_per1000_unigme, malaria_rate_per1000_unigme, malaria_rate_per1000_lower_unigme,
   malaria_rate_per1000_upper_unigme, malaria_fraction_unigme, cacode_malaria_rate, cacode_share)]
 two <- function(a, b) paste0("\\begin{tabular}[b]{@{}c@{}}", a, "\\\\", b, "\\end{tabular}")   # a two-line column header

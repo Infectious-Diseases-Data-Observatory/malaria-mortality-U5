@@ -29,7 +29,8 @@ subgroups = Path("results/cbh/subgroups_gadm_merge_gamma2_v9")
 nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9")
 imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v16")
 # No longer exported, because main.tex does not use them and the author had them removed from Overleaf (18 November
-# 2026): the Sahel seasonality figure, the country fixed-effects figure and summary, and the table of Sahel countries.
+# 2026): the Sahel seasonality figure, the country fixed-effects figure and summary, the table of Sahel countries, and
+# the Sahel refit figure (sfig_pfpr_splines_by_subgroup; the Sahel is not in the paper in this round).
 # Their stages still produce them in results/.
 
 def digest(path):
@@ -51,8 +52,6 @@ assets.extend([
     (root / "paper_figures/CAPTIONS.md", Path("figures/primary_figure_captions.md")),
     # Supplementary figures and tables: those main.tex uses (cut to main.tex, 1 November 2026), plus the survival
     # against PfPR by sub-region (kept by the author).
-    (subgroups / "sfig_pfpr_splines_by_subgroup.png", Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup.png")),
-    (subgroups / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup_caption.md")),
     (root / "study_flow/study_flow_diagram.png", Path("Supplementary Figures/sfig_study_flow.png")),
     (nutrition / "sfig_pfpr_splines_without_nutrition.png", Path("Supplementary Figures/sfig_pfpr_splines_without_nutrition.png")),
     (nutrition / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_without_nutrition_caption.md")),

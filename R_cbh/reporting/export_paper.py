@@ -30,8 +30,8 @@ nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9")
 imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v16")
 # Country fixed effects (31 October 2026).
 country_fe = Path("results/cbh/country_fixed_effects_gadm_merge_gamma2_v3")
-# Sahel (and southern Africa) refits with the calendar month at risk (9 November 2026).
-seasonality = Path("results/cbh/seasonality_gadm_v1")
+# The Sahel seasonality figure and the country fixed-effects figure are no longer exported: main.tex does not use
+# them and the author had them removed from Overleaf (18 November 2026). The stages still produce them in results/.
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -51,7 +51,7 @@ for row in figures:
 assets.extend([
     (root / "paper_figures/CAPTIONS.md", Path("figures/primary_figure_captions.md")),
     # Supplementary figures and tables: those main.tex uses (cut to main.tex, 1 November 2026), plus the survival
-    # against PfPR by sub-region and the country fixed effects (both kept by the author).
+    # against PfPR by sub-region (kept by the author).
     (subgroups / "sfig_pfpr_splines_by_subgroup.png", Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup.png")),
     (subgroups / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_by_subgroup_caption.md")),
     (root / "study_flow/study_flow_diagram.png", Path("Supplementary Figures/sfig_study_flow.png")),
@@ -78,12 +78,7 @@ assets.extend([
     # Countries of the Sahel subset (>= 10N): PfPR and crude mortality by age band (user request, 4 November 2026).
     (subgroups / "table_sahel_countries.latex.txt", Path("tables/table_sahel_countries.latex.txt")),
     (subgroups / "table_sahel_countries.csv", Path("tables/table_sahel_countries.csv")),
-    # Sahel refits with the calendar month at risk, <1 to 11 months (user request, 9 November 2026).
-    (seasonality / "sfig_sahel_season.png", Path("Supplementary Figures/sfig_sahel_season.png")),
-    (seasonality / "CAPTION_sfig_sahel_season.md", Path("Supplementary Figures/sfig_sahel_season_caption.md")),
     # Country fixed effects in place of the country random intercept (author request, 31 October 2026).
-    (country_fe / "sfig_pfpr_splines_country_fixed_effects.png", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects.png")),
-    (country_fe / "CAPTION.md", Path("Supplementary Figures/sfig_pfpr_splines_country_fixed_effects_caption.md")),
     (country_fe / "SUMMARY.md", Path("tables/country_fixed_effects_summary.md")),
     # Figure 1 is the map of complete birth histories by analysis unit (author request, 12 October 2026).
     (root / "analysis_units_map/CAPTION.md", Path("figures/fig1_analysis_units_map_caption.md")),
@@ -137,7 +132,7 @@ for source, rel in assets:
     check(source, rel)
 # A sensitivity figure is current only if its report was rerun after the last change to its inputs or code
 # (for example R_cbh/sensitivity/subgroups/02_report.R after an axis change).
-for sensitivity in (subgroups, nutrition, country_fe, seasonality):
+for sensitivity in (subgroups, nutrition, country_fe):
     stale = [row["file"] for row in read_csv(sensitivity / "report_provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale report provenance in {sensitivity}: {', '.join(stale)}; rerun its report script"

@@ -10,7 +10,8 @@
 # Supplementary figure, IHME (panel B of Figure 5 until 18 November 2026): PfPR-ACM with IHME all-cause mortality
 #   against IHME malaria deaths under 5, both over IHME person-years, on the axis limits of Figure 5.
 # One point per country in a single colour (the UN sub-region colours were removed on 18 November 2026, author
-# request); dashed line: equality. Vertical lines: 95% uncertainty intervals of the PfPR-ACM estimates
+# request), its size proportional to the square root of the UN WPP population under 5, so its area to the population
+# (author request, 18 November 2026); dashed line: equality. Vertical lines: 95% uncertainty intervals of the PfPR-ACM estimates
 # (R_cbh/burden/06_uncertainty_draws.R; 1 November 2026); horizontal lines: the published intervals of the
 # cause-specific estimates (2 November 2026). Reads the rates of R_cbh/reporting/25_country_rates_table.R.
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.5 in; no title or caption in the figures.
@@ -26,6 +27,7 @@ out <- file.path(root, "model_vs_cause_specific"); dir.create(out, recursive = T
 fig_year <- 2024L
 paths <- c(rates = file.path(root, sprintf("tables/country_rates_%d.csv", fig_year)),
   country = file.path(root, "annual_comparison/country_estimates_2000_2024.csv"),
+  population = file.path(root, "annual_comparison/source_country_rates_2000_2024.csv"),
   ihme_malaria = "data/ihme_malaria_u5_deaths_by_age_country_year.csv")
 stopifnot(all(file.exists(paths)))
 w <- fread(paths[["rates"]])
@@ -39,14 +41,24 @@ im <- fread(paths[["ihme_malaria"]])[Year == fig_year & Sex == "Both" & Conditio
 stopifnot(!anyDuplicated(im$iso3), all(w$iso3 %in% im$iso3),
   max(abs(im$Value[match(ce$iso3, im$iso3)] - ce$ihme_malaria_deaths)) < 1e-6)
 ratio <- function(b, v) fifelse(v > 0, b / v, 0)
-# Linear figures name the countries with an estimate of at least 1 per 1,000 from either source (author request,
-# 18 November 2026: as many as fit); those below it crowd the origin and are named in the log-scale figure.
-label_min <- 1
+# Linear figures name only the higher-burden countries, those with an estimate of at least 4 per 1,000 from either
+# source, so that the names stay readable (author request, 18 November 2026; naming every country at 1 or more was too
+# busy). Every country is named in the log-scale figure.
+label_min <- 4
+# Point size: proportional to the square root of the UN WPP population under 5 (the same population in all three
+# figures), the largest country at size_max.
+size_max <- 8
+pop <- fread(paths[["population"]])[source == "UN IGME" & year == fig_year, .(iso3, under5_population = under5_person_years)]
+stopifnot(setequal(pop$iso3, w$iso3), all(pop$under5_population > 0))
+point_size <- function(n) size_max * sqrt(n / max(pop$under5_population))
 prepare <- function(z, bounds) {
   z <- merge(z, bounds, by = "iso3", sort = FALSE)
   z[, `:=`(cause_specific_lower = cause_specific * lo, cause_specific_upper = cause_specific * hi)][, c("lo", "hi") := NULL]
   stopifnot(nrow(z) == 42L, !anyNA(z), all(z$cause_specific_lower <= z$cause_specific & z$cause_specific <= z$cause_specific_upper))
   z[, labelled := pmax(model, cause_specific) >= label_min]
+  z <- merge(z, pop, by = "iso3", sort = FALSE)[, psize := point_size(under5_population)]
+  setorder(z, -psize)   # the largest points are drawn first, so that a small country is not hidden under a large one
+  stopifnot(nrow(z) == 42L, !anyNA(z$psize))
   z[]
 }
 d <- prepare(w[, .(iso3, country, model = malaria_rate_per1000_unigme, model_lower = malaria_rate_per1000_lower_unigme,
@@ -70,20 +82,29 @@ point_colour <- "#0072B2"; interval_colour <- "grey70"
 # Country names: placed by ggrepel from a fixed seed, with the iteration limit (not the time limit) ending the search,
 # so the layout is the same on every run. Each label starts on the far side of its point from the equality line
 # (nudges nx, ny, in axis units); the limits keep the names inside the panel.
-name_labels <- function(lab, xlim, ylim) ggrepel::geom_text_repel(data = lab, aes(label = label), size = 9 / .pt, colour = "grey15",
-  seed = 20261118L, max.overlaps = Inf, nudge_x = lab$nx, nudge_y = lab$ny, max.iter = 100000, max.time = 600, force = 2.5, force_pull = .8,
-  point.size = 1.7, box.padding = .3, point.padding = .15, min.segment.length = 0, segment.colour = "grey35", segment.size = .25,
-  xlim = xlim, ylim = ylim)
+# The names keep clear of the points (point.size: each point's own size) and have a white halo, so that they stay
+# readable where they cross an interval line.
+name_labels <- function(lab, xlim, ylim, points) ggrepel::geom_text_repel(data = lab, aes(label = label), size = points / .pt, colour = "grey10",
+  bg.color = "white", bg.r = .13, seed = 20261118L, max.overlaps = Inf, nudge_x = lab$nx, nudge_y = lab$ny, max.iter = 100000, max.time = 600,
+  force = 2.5, force_pull = .8, point.size = lab$psize, box.padding = .3, point.padding = .15, min.segment.length = 0, segment.colour = "grey35",
+  segment.size = .25, xlim = xlim, ylim = ylim)
+# Points: filled circles with a white edge; the legend shows the size of 1, 5 and 20 million children under 5.
+size_keys <- c(1, 5, 20)
+size_legend <- list(scale_size_identity(name = "Children under 5\n(millions)", guide = "legend", breaks = point_size(size_keys * 1e6), labels = as.character(size_keys)),
+  guides(size = guide_legend(override.aes = list(shape = 21, fill = "#0072B2", colour = "white", stroke = .3, alpha = .8))))
 # Paper terms (author decision, 30 October 2026): "malaria deaths" for the cause-specific estimates (x),
 # "malaria-attributable deaths" for the PfPR-ACM estimates, which include indirect effects (y).
 axis_titles <- function(source_label) labs(x = sprintf("Malaria deaths per 1,000 child-years (%s)", source_label),
   y = "Malaria-attributable deaths per 1,000 child-years (PfPR-ACM)")
 figure_theme <- theme_minimal(base_size = 9, base_line_size = .3) +
-  theme(axis.title = element_text(size = 11), axis.text = element_text(size = 9), panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 4, 4))
+  theme(axis.title = element_text(size = 11), axis.text = element_text(size = 9), panel.grid.minor = element_blank(), plot.margin = margin(4, 8, 4, 4),
+    # The size legend sits inside the panel's lower right corner, which is empty in all three figures.
+    legend.position = "inside", legend.position.inside = c(.98, .02), legend.justification = c(1, 0), legend.title = element_text(size = 11),
+    legend.text = element_text(size = 9), legend.background = element_rect(fill = "white", colour = NA), legend.key.spacing.y = grid::unit(1, "pt"))
 # PfPR-ACM on the y-axis, the cause-specific estimate on the x-axis (user request, 28 October 2026).
 scatter <- function(z, source_label) {
   # Unnamed countries are passed with an empty label, so that the names keep clear of their points too.
-  lab <- z[, .(cause_specific, model, label = fifelse(labelled, country, ""), above = model >= cause_specific)]
+  lab <- z[, .(cause_specific, model, psize, label = fifelse(labelled, country, ""), above = model >= cause_specific)]
   # A start outside the panel would drop the label, so the nudge stops short of the edges.
   inside <- function(v, step) pmin(pmax(v + step, lim[1] + .05), lim[2] - .05) - v
   lab[, `:=`(nx = inside(cause_specific, fifelse(above, -.45, .45)), ny = inside(model, fifelse(above, .4, -.4)))]
@@ -93,8 +114,8 @@ scatter <- function(z, source_label) {
     geom_linerange(aes(xmin = cause_specific_lower, xmax = cause_specific_upper), linewidth = .3, colour = interval_colour) +
     geom_segment(data = z[truncated == TRUE], aes(x = cause_specific, xend = cause_specific, y = model, yend = lim[2]),
       linewidth = .3, colour = interval_colour, arrow = grid::arrow(length = grid::unit(1.4, "mm"))) +
-    geom_point(size = 1.7, colour = point_colour) +
-    name_labels(lab, lim, lim) +
+    geom_point(aes(size = psize), shape = 21, fill = point_colour, colour = "white", stroke = .3, alpha = .8) +
+    name_labels(lab, lim, lim, 10) + size_legend +
     scale_x_continuous(limits = lim, breaks = axis_breaks, expand = expansion(mult = c(0, .02))) +
     scale_y_continuous(limits = lim, breaks = axis_breaks, expand = expansion(mult = c(0, .02))) +
     coord_equal() + axis_titles(source_label) + figure_theme
@@ -111,7 +132,7 @@ scatter_log <- function(z, source_label) {
   # One label for countries drawn at the same place (both values below the floor). Nudges are in log10 units: into the
   # panel for points at the left or bottom edge, and to the right for four countries in the densest part, where the
   # space is between the cluster and the line.
-  lab <- z[, .(label = paste(country, collapse = ", "), iso3 = iso3[1], above = model[1] >= cause_specific[1]), by = .(x, y)]
+  lab <- z[, .(label = paste(country, collapse = ", "), iso3 = iso3[1], psize = max(psize), above = model[1] >= cause_specific[1]), by = .(x, y)]
   lab[, `:=`(nx = fifelse(x <= floor_at * 1.1, .07, fifelse(above, -.07, .07)), ny = fifelse(y <= floor_at * 1.1, .06, fifelse(above, .05, -.05)))]
   lab[data.table(iso3 = c("MOZ", "BDI", "UGA", "TCD"), nx = c(.11, .11, .07, .08), ny = c(.01, -.03, -.07, -.05)), on = "iso3", `:=`(nx = i.nx, ny = i.ny)]
   grid_at <- function(top) { g <- as.vector(outer(1:9, 10^(-1:1))); g[g >= floor_at & g <= top] }
@@ -125,9 +146,9 @@ scatter_log <- function(z, source_label) {
     geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey50", linewidth = .35) +
     geom_linerange(aes(ymin = ylo, ymax = yhi), linewidth = .3, colour = interval_colour) +
     geom_linerange(aes(xmin = xlo, xmax = xhi), linewidth = .3, colour = interval_colour) +
-    geom_point(aes(shape = below), size = 1.7, colour = point_colour, fill = "white", stroke = .6, show.legend = FALSE) +
-    name_labels(lab, log10(c(floor_at * .9, top_x * 1.08)), log10(c(floor_at * .9, top_y))) +   # ggrepel's limits are on the log scale
-    scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 21)) +
+    geom_point(data = z[below == FALSE], aes(size = psize), shape = 21, fill = point_colour, colour = "white", stroke = .3, alpha = .8) +
+    geom_point(data = z[below == TRUE], aes(size = psize), shape = 21, fill = "white", colour = point_colour, stroke = .6, show.legend = FALSE) +
+    name_labels(lab, log10(c(floor_at * .9, top_x * 1.08)), log10(c(floor_at * .9, top_y)), 9) + size_legend +   # ggrepel's limits are on the log scale
     scale_x_log10(limits = c(floor_at, top_x), breaks = grid_at(top_x), labels = tick, expand = expansion(mult = .03)) +
     scale_y_log10(limits = c(floor_at, top_y), breaks = grid_at(top_y), labels = tick, expand = expansion(mult = .03)) +
     coord_fixed() + axis_titles(source_label) + figure_theme + theme(panel.grid = element_blank())
@@ -145,7 +166,7 @@ caption <- function(z, heading, title, axes, cause, cause_interval, names_text, 
   paste0(sprintf("**Figure. Malaria-attributable under-five mortality in %d: %s.** ", fig_year, title),
     "Each point is a country; rates are deaths per 1,000 child-years under 5. ", axes,
     sprintf("The PfPR-ACM estimate counts all deaths averted if prevalence fell to zero (direct and indirect); %s counts deaths assigned to malaria as the underlying cause. ", cause),
-    "The dashed line is equality. ", names_text,
+    "The dashed line is equality. Point area is proportional to the population under 5 (UN WPP). ", names_text,
     sprintf("Spearman correlation: %.2f; the PfPR-ACM estimate is higher in %d of %d countries. ", s$rho, s$above, nrow(z)),
     sprintf("Vertical lines are 95%% uncertainty intervals of the PfPR-ACM estimates, from 500 joint draws of MAP's national PfPR[2–10], the all-cause deaths and the PfPR–death curves (Supplementary Methods); horizontal lines are %s. ", cause_interval),
     sprintf("The lower bound exceeds the %s estimate in %d countries, and the upper bound is below it in %d. ", cause, s$lower_above, s$upper_below),

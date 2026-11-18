@@ -1,17 +1,16 @@
 #!/usr/bin/env Rscript
-# Supplementary table (user request, 28 October 2026): one row per burden country in 2024 with national MAP
-# PfPR[2-10]; all-cause under-five deaths per 1,000 child-years from UN IGME and IHME; PfPR-ACM malaria-attributable
-# deaths per 1,000 child-years from each all-cause source; and the cause-specific malaria estimates of UN IGME
-# (CA-CODE) and of IHME, each with its share of all under-five deaths in brackets. Child-years are each source's own:
-# UN WPP population under 5 for UN IGME and CA-CODE, IHME-implied person-years for IHME. All-cause rates and PfPR-ACM
-# estimates are the crisis-free values of R_cbh/burden/04_annual_comparison.R. The IHME malaria share is IHME malaria
-# over IHME all-cause deaths; the CA-CODE share is CA-CODE's published fraction (its denominator is its own sum over
-# causes, as in R_cbh/reporting/20_malaria_share_vs_pfpr.R). The last row is the 42-country population-weighted
-# average (PfPR weighted by the WPP population under 5; rates as total deaths over total child-years).
-# Every pair of columns runs UN IGME then IHME; the table has no notes (user request, 31 October 2026), so the IHME
-# crisis year and the WHO-based CA-CODE countries are flagged in the CSV only. Caption as edited by the author.
-# From 1 November 2026 (author request): national PfPR is MAP's own national estimate, and the PfPR-ACM cells carry the
-# 95% uncertainty interval of R_cbh/burden/06_uncertainty_draws.R in parentheses, so every share is in square brackets.
+# Supplementary table (user request, 28 October 2026; simplified to UN IGME and CA-CODE on 18 November 2026): one row
+# per burden country in 2024 with national MAP PfPR[2-10]; all-cause under-five deaths per 1,000 child-years (UN IGME);
+# PfPR-ACM malaria-attributable deaths per 1,000 child-years with their 95% uncertainty interval
+# (R_cbh/burden/06_uncertainty_draws.R) and share of all under-five deaths; and CA-CODE malaria deaths per 1,000
+# child-years with their share. Child-years are the UN WPP population under 5. All-cause rates and PfPR-ACM estimates
+# are the crisis-free values of R_cbh/burden/04_annual_comparison.R. The CA-CODE share is CA-CODE's published fraction
+# (its denominator is its own sum over causes, as in R_cbh/reporting/20_malaria_share_vs_pfpr.R). The last row is the
+# 42-country population-weighted average (PfPR weighted by the WPP population under 5; rates as total deaths over
+# total child-years). Rows run from highest to lowest national PfPR; the table has no notes (user request, 31 October
+# 2026), so the WHO-based CA-CODE countries are flagged in the CSV only.
+# The CSV keeps the IHME-based columns (all-cause, PfPR-ACM and IHME malaria deaths over IHME person-years), which
+# the IHME supplementary figure reads (R_cbh/reporting/27_model_vs_cause_specific.R); the LaTeX table has none.
 # Outputs (<out>/tables/): country_rates_2024.csv, country_rates_2024.latex.txt (LaTeX source saved as text, like
 # the other paper tables; no manuscript file is edited), provenance_country_rates.csv.
 source("R_cbh/load_pipeline.R")
@@ -86,32 +85,32 @@ stopifnot(all(w$who_cacode_deaths[w$cacode_share == 0] == 0), all(is.finite(unli
 f1 <- function(x) formatC(x, format = "f", digits = 1)
 f2 <- function(x) formatC(x, format = "f", digits = 2)
 # Shares of all-cause deaths to the nearest whole percent (user request, 28 October 2026).
-cell <- function(rate, share) sprintf("%s [%s]", f2(rate), formatC(100 * share, format = "f", digits = 0))
-# Interval bounds to one decimal so that the table keeps to the page width (checked by compiling it), and to two below 1
-# per 1,000 so that small rates keep their own interval; a bound that rounds to -0.00 prints as 0.00.
+pct <- function(share) formatC(100 * share, format = "f", digits = 0)
+# Interval bounds to one decimal, and to two below 1 per 1,000 so that small rates keep their own interval; a bound
+# that rounds to -0.00 prints as 0.00.
 fb <- function(x) sub("^-(0[.]0+)$", "\\1", ifelse(abs(x) < 1, f2(x), f1(x)))
-cell_ui <- function(rate, lo, hi, share) sprintf("%s (%s--%s) [%s]", f2(rate), fb(lo), fb(hi), formatC(100 * share, format = "f", digits = 0))
+rate_ui <- function(rate, lo, hi) sprintf("%s (%s--%s)", f2(rate), fb(lo), fb(hi))
 stopifnot(!any(w$crisis_year_unigme))
-rows <- w[, sprintf("%s & %s & %s & %s & %s & %s & %s & %s \\\\", country, f1(pfpr_pct), f1(allcause_rate_per1000_unigme),
-  f1(allcause_rate_per1000_ihme), cell_ui(malaria_rate_per1000_unigme, malaria_rate_per1000_lower_unigme, malaria_rate_per1000_upper_unigme, malaria_fraction_unigme),
-  cell_ui(malaria_rate_per1000_ihme, malaria_rate_per1000_lower_ihme, malaria_rate_per1000_upper_ihme, malaria_fraction_ihme), cell(cacode_malaria_rate, cacode_share),
-  cell(ihme_malaria_rate, ihme_malaria_share))]
+# The LaTeX table (simplified on 18 November 2026, author request): UN IGME and CA-CODE only, one value per cell.
+# The IHME-based columns were removed from the table; they stay in the CSV, which the IHME supplementary figure reads.
+row <- function(name, pfpr, allcause, m, lo, hi, share, cc, cc_share)
+  sprintf("%s & %s & %s & %s & %s & %s & %s \\\\", name, f1(pfpr), f1(allcause), rate_ui(m, lo, hi), pct(share), f2(cc), pct(cc_share))
+rows <- w[, row(country, pfpr_pct, allcause_rate_per1000_unigme, malaria_rate_per1000_unigme, malaria_rate_per1000_lower_unigme,
+  malaria_rate_per1000_upper_unigme, malaria_fraction_unigme, cacode_malaria_rate, cacode_share)]
+two <- function(a, b) paste0("\\begin{tabular}[b]{@{}c@{}}", a, "\\\\", b, "\\end{tabular}")   # a two-line column header
 tex <- c("% Replacement table source; saved as plain text. No manuscript file is edited.",
   "% Generated by R_cbh/reporting/25_country_rates_table.R.",
   # Fits one page of the paper (12 pt article, 1 in margins: 6.5 x 9 in) with 42 rows at \footnotesize.
-  "\\begin{table}[p]", "\\centering", "\\footnotesize", "\\setlength{\\tabcolsep}{1.75pt}", "\\renewcommand{\\arraystretch}{0.77}",
-  sprintf("\\caption{National malaria prevalence (\\textit{Pf}PR$_{2-10}$, the Malaria Atlas Project's national estimates) and under-five mortality in %d, by country: all-cause deaths, \\textit{Pf}PR-ACM malaria-attributable deaths and cause-specific malaria deaths per 1,000 child-years (cy), with the share of all under-five deaths (\\%%) shown in square brackets and, for \\textit{Pf}PR-ACM, the 95\\%% uncertainty interval in parentheses.}", table_year),
+  "\\begin{table}[p]", "\\centering", "\\footnotesize", "\\setlength{\\tabcolsep}{5pt}", "\\renewcommand{\\arraystretch}{0.85}",
+  sprintf("\\caption{National malaria prevalence (\\textit{Pf}PR$_{2-10}$, MAP national estimates) and under-five mortality in %d, by country: all-cause deaths (UN IGME), \\textit{Pf}PR-ACM malaria-attributable deaths with 95\\%% uncertainty intervals, and CA-CODE malaria deaths, per 1,000 child-years, each with its share of all under-five deaths.}", table_year),
   "\\label{stab:country_rates}",
-  "\\begin{tabular}{lrrrrrrr}", "\\toprule",
-  # Group headers on two lines each, so that none is wider than its two columns.
-  paste(" & & \\multicolumn{2}{c}{\\begin{tabular}[b]{@{}c@{}}All-cause\\\\per 1000 cy\\end{tabular}}",
-    "\\multicolumn{2}{c}{\\begin{tabular}[b]{@{}c@{}}\\textit{Pf}PR-ACM\\\\model (\\%)\\end{tabular}}",
-    "\\multicolumn{2}{c}{\\begin{tabular}[b]{@{}c@{}}Malaria mortality\\\\models (\\%)\\end{tabular}} \\\\", sep = " & "),
-  "\\cmidrule(lr){3-4} \\cmidrule(lr){5-6} \\cmidrule(lr){7-8}",
-  "Country & \\begin{tabular}[b]{@{}c@{}}\\textit{Pf}PR$_{2-10}$\\\\(\\%)\\end{tabular} & UN IGME & IHME & \\begin{tabular}[b]{@{}c@{}}UN IGME-\\\\based\\end{tabular} & \\begin{tabular}[b]{@{}c@{}}IHME-\\\\based\\end{tabular} & UN IGME & IHME \\\\",
+  "\\begin{tabular}{lrrrrrr}", "\\toprule",
+  " & & & \\multicolumn{2}{c}{\\textit{Pf}PR-ACM model} & \\multicolumn{2}{c}{CA-CODE} \\\\",
+  "\\cmidrule(lr){4-5} \\cmidrule(lr){6-7}",
+  paste0(paste("Country", two("\\textit{Pf}PR$_{2-10}$", "(\\%)"), two("All-cause deaths", "per 1,000"), two("Deaths per 1,000", "(95\\% UI)"),
+    two("\\% of", "deaths"), two("Deaths", "per 1,000"), two("\\% of", "deaths"), sep = " & "), " \\\\"),
   "\\midrule", rows, "\\midrule",
-  sprintf("All %d countries & %s & %s & %s & %s & %s & %s & %s \\\\", nrow(w), f1(avg$pfpr), f1(avg$ac_g), f1(avg$ac_i),
-    cell_ui(avg$m_g, avg$m_g_lo, avg$m_g_hi, avg$f_g), cell_ui(avg$m_i, avg$m_i_lo, avg$m_i_hi, avg$f_i), cell(avg$cc, avg$cc_f), cell(avg$ih, avg$ih_f)),
+  row(sprintf("All %d countries", nrow(w)), avg$pfpr, avg$ac_g, avg$m_g, avg$m_g_lo, avg$m_g_hi, avg$f_g, avg$cc, avg$cc_f),
   "\\bottomrule", "\\end{tabular}", "\\end{table}")
 writeLines(tex, file.path(out, sprintf("country_rates_%d.latex.txt", table_year)))
 provenance <- c(unname(paths), "R_cbh/reporting/25_country_rates_table.R", "R_cbh/primary/settings.R")

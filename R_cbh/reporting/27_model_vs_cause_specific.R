@@ -157,8 +157,9 @@ save_figure <- function(p, file, height) {
   stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))
   ggsave(file.path(out, file), p, device = ragg::agg_png, width = 6.5, height = height, dpi = 400, bg = "white")
 }
-save_figure(scatter(d, "UN IGME"), sprintf("fig5_model_vs_cause_specific_%d.png", fig_year), 6.3)
-save_figure(scatter_log(d, "UN IGME"), sprintf("sfig_model_vs_cause_specific_log_%d.png", fig_year), 6.9)
+# The cause-specific series is labelled CA-CODE, the name the paper uses for it (author request, 18 November 2026).
+save_figure(scatter(d, "CA-CODE"), sprintf("fig5_model_vs_cause_specific_%d.png", fig_year), 6.3)
+save_figure(scatter_log(d, "CA-CODE"), sprintf("sfig_model_vs_cause_specific_log_%d.png", fig_year), 6.9)
 save_figure(scatter(h, "IHME"), sprintf("sfig_model_vs_cause_specific_ihme_%d.png", fig_year), 6.3)
 summarise <- function(z) z[, .(rho = cor(model, cause_specific, method = "spearman"), above = sum(model > cause_specific),
   lower_above = sum(model_lower > cause_specific), upper_below = sum(model_upper < cause_specific))]
@@ -174,23 +175,23 @@ caption <- function(z, heading, title, axes, cause, cause_interval, names_text, 
 linear_names <- function(z) sprintf("Countries with an estimate of at least %g per 1,000 from either source are named (%d of %d). ", label_min, sum(z$labelled), nrow(z))
 linear_cut <- function(z) if (any(z$truncated)) paste0("Intervals beyond the axes are truncated with an arrow: ",
   paste(z[truncated == TRUE, sprintf("%s (upper bound %.1f)", country, model_upper)], collapse = "; "), ". ") else ""
-unigme_axes <- "PfPR-ACM estimates using UN IGME all-cause mortality (y) against UN IGME (CA-CODE) malaria deaths (x), both over the UN WPP population under 5. "
+unigme_axes <- "PfPR-ACM estimates using UN IGME all-cause mortality (y) against CA-CODE malaria deaths (x), both over the UN WPP population under 5. "
 unigme_last <- "CA-CODE assigns malaria deaths to ages 1–59 months as a whole and none under 1 month, and takes malaria from WHO estimates in 13 low-burden countries."
-writeLines(caption(d, "# Figure 5 caption — PfPR-ACM against UN IGME malaria mortality, by country",
-  "PfPR-ACM model against UN IGME malaria deaths", unigme_axes, "UN IGME", "the 90% bounds of the UN IGME (CA-CODE) malaria deaths",
+writeLines(caption(d, "# Figure 5 caption — PfPR-ACM against CA-CODE malaria mortality, by country",
+  "PfPR-ACM model against CA-CODE malaria deaths", unigme_axes, "CA-CODE", "the 90% bounds of the CA-CODE malaria deaths",
   linear_names(d), linear_cut(d), unigme_last), file.path(out, "CAPTION.md"))
 low <- d[cause_specific < floor_at | model < floor_at]
-writeLines(caption(d, "# Supplementary figure caption — PfPR-ACM against UN IGME malaria mortality, by country, log scale",
-  "PfPR-ACM model against UN IGME malaria deaths, on log scales", unigme_axes, "UN IGME", "the 90% bounds of the UN IGME (CA-CODE) malaria deaths",
+writeLines(caption(d, "# Supplementary figure caption — PfPR-ACM against CA-CODE malaria mortality, by country, log scale",
+  "PfPR-ACM model against CA-CODE malaria deaths, on log scales", unigme_axes, "CA-CODE", "the 90% bounds of the CA-CODE malaria deaths",
   "The data are those of the main-text figure; every country is named. ",
   sprintf("Both axes are logarithmic and start at %g per 1,000: a value below that is drawn at %g with an open circle (%s), and intervals are cut there. ",
-    floor_at, floor_at, paste(sprintf("%s: UN IGME %.2f, PfPR-ACM %.2f", low$country, low$cause_specific, low$model), collapse = "; ")),
+    floor_at, floor_at, paste(sprintf("%s: CA-CODE %.2f, PfPR-ACM %.2f", low$country, low$cause_specific, low$model), collapse = "; ")),
   unigme_last), file.path(out, "CAPTION_log.md"))
 writeLines(caption(h, "# Supplementary figure caption — PfPR-ACM against IHME malaria mortality, by country",
   "PfPR-ACM model with IHME all-cause mortality against IHME malaria deaths",
   "PfPR-ACM estimates using IHME all-cause mortality (y) against IHME malaria deaths (x), both over IHME person-years. ",
   "IHME", "IHME's 95% uncertainty intervals", linear_names(h), linear_cut(h),
-  "The axes are those of the main-text figure (UN IGME). South Sudan's IHME all-cause mortality is its crisis-free value."),
+  "The axes are those of the main-text figure. South Sudan's IHME all-cause mortality is its crisis-free value."),
   file.path(out, "CAPTION_ihme.md"))
 provenance <- c(unname(paths), "R_cbh/reporting/27_model_vs_cause_specific.R", "R_cbh/reporting/labels.R")
 cbh_atomic_csv(data.frame(file = provenance, md5 = vapply(provenance, cbh_file_hash, "")), file.path(out, "provenance.csv"))

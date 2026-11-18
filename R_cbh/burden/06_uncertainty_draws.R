@@ -15,7 +15,8 @@
 # Crisis years stay at 04's classification; in each draw their band rates are the log-linear interpolation of that
 # draw's rates in the neighbouring non-crisis years, as in 04. Comparators: in each draw CA-CODE (UN IGME) and IHME
 # malaria deaths are scaled by the drawn under-five envelope of their own source; their cause-fraction uncertainty is
-# not included. Outputs: <out>/uncertainty/ (intervals, contrasts, checks, SPEC.md) and <private>/uncertainty_draws.rds.
+# not included. Outputs: <out>/uncertainty/ (intervals, also by UN IGME age group; contrasts, checks, SPEC.md) and
+# <private>/uncertainty_draws.rds.
 source("R_cbh/load_pipeline.R")
 source("R_cbh/primary/settings.R")
 suppressPackageStartupMessages({ library(data.table); library(mgcv) })
@@ -160,7 +161,7 @@ run <- function(on = c("spline", "map", "allcause"), map_shared = FALSE, nd = D)
   Gd <- draw_groups(igme_M, igme, Zig_u, Zig_e, ac_on, nd); Hd <- draw_groups(ihme_M, ihme, Zih_u, Zih_e, ac_on, nd)
   res <- list()
   for (src in c("UN IGME", "IHME")) {
-    A <- AC <- AR <- array(0, c(nd, nC, nY))
+    A <- AC <- AR <- array(0, c(nd, nC, nY)); AG <- lapply(G, function(k) array(0, c(nd, nC, nY)))
     for (c in seq_len(nC)) {
       Db <- if (src == "UN IGME") lapply(seq_along(ages), function(g) Gd[[gi[g]]][, c, ] * split$within_group_share[g]) else {
         h <- lapply(Hd, function(x) x[, c, , drop = FALSE][, 1, ])
@@ -170,9 +171,12 @@ run <- function(on = c("spline", "map", "allcause"), map_shared = FALSE, nd = D)
       AR[, c, ] <- Reduce(`+`, Db)
       if (any(crisis[[src]][c, ])) Db <- lapply(seq_along(ages), function(g) crisis_fill(Db[[g]], denom[[src]][[g]][c, ], crisis[[src]][c, ]))
       AC[, c, ] <- Reduce(`+`, Db)
-      A[, c, ] <- Reduce(`+`, lapply(seq_along(ages), function(g) Db[[g]] * AF[, c, , g]))
+      Ab <- lapply(seq_along(ages), function(g) Db[[g]] * AF[, c, , g])
+      A[, c, ] <- Reduce(`+`, Ab)
+      # Attributable deaths by UN IGME age group (<1 month, 1-11 months, 1-4 years), for both sources.
+      for (k in seq_along(G)) AG[[k]][, c, ] <- Reduce(`+`, Ab[gi == k])
     }
-    res[[src]] <- list(A = A, AC = AC, AR = AR)
+    res[[src]] <- list(A = A, AC = AC, AR = AR, AG = AG)
   }
   res$P <- P; res$neg_af_share <- mean(AF < 0); res$min_af <- min(AF)
   res
@@ -190,6 +194,15 @@ check <- rbindlist(lapply(c("UN IGME", "IHME"), function(src) {
 }))
 stopifnot(all(check$max_abs_attributable < 1e-6), all(check$max_abs_allcause < 1e-6), all(check$max_abs_reported < 1e-6),
   max(abs(zero$P[1, , ] - P0)) < 1e-9)
+# Age groups (user request, 18 November 2026): attributable deaths in UN IGME's three age groups, the groups in which
+# Figure 5 compares the model with UN IGME's malaria deaths. Point values are 04's band values summed within the group.
+group_label <- c(CME_TMM0 = "<1 month", CME_TMM1T11 = "1-11 months", CME_TMY1T4 = "1-4 years")
+age_pt[, age_group := group_label[split$igme_indicator[match(age_band, split$age_band)]]]
+pt_AG <- lapply(c(`UN IGME` = "UN IGME", IHME = "IHME"), function(src) lapply(unname(group_label[G]), function(k)
+  cy(age_pt[source == src & age_group == k, .(a = sum(attributable_deaths)), by = .(iso3, year)], "a")))
+stopifnot(!anyNA(age_pt$age_group), all(vapply(c("UN IGME", "IHME"), function(src)
+  max(abs(Reduce(`+`, lapply(zero[[src]]$AG, function(x) x[1, , ])) - zero[[src]]$A[1, , ])) < 1e-6 &&
+  max(vapply(seq_along(G), function(k) max(abs(zero[[src]]$AG[[k]][1, , ] - pt_AG[[src]][[k]])), 0)) < 1e-6, NA)))
 
 ## ---- runs ---------------------------------------------------------------------------------------------------------
 scen <- list(main = run(), map_countries_correlated = run(map_shared = TRUE), spline_only = run("spline"),
@@ -226,6 +239,28 @@ country <- rbindlist(lapply(c("UN IGME", "IHME"), function(src) {
       allcause_deaths = pt_AC[[src]][c, t], allcause_deaths_lower = q(acd, cfg$ui[1]), allcause_deaths_upper = q(acd, cfg$ui[2]))
   }))))
 }))
+# By UN IGME age group (main scenario): country-years, and the 42 countries together with each group's share of the
+# attributable deaths. Rates are per 1,000 child-years under 5 (the source's under-five person-years), so the three
+# groups sum to the under-five rate.
+country_group <- rbindlist(lapply(c("UN IGME", "IHME"), function(src) rbindlist(lapply(seq_along(G), function(k) {
+  a <- main[[src]]$AG[[k]]; pt <- pt_AG[[src]][[k]]
+  lo <- apply(a, c(2, 3), q, p = cfg$ui[1]); hi <- apply(a, c(2, 3), q, p = cfg$ui[2])
+  data.table(source = src, iso3 = rep(iso, nY), country = rep(countries$country, nY), year = rep(years, each = nC),
+    age_group = unname(group_label[G[k]]), attributable_deaths = as.vector(pt), attributable_deaths_lower = as.vector(lo),
+    attributable_deaths_upper = as.vector(hi), malaria_rate_per1000 = 1000 * as.vector(pt / py[[src]]),
+    malaria_rate_per1000_lower = 1000 * as.vector(lo / py[[src]]), malaria_rate_per1000_upper = 1000 * as.vector(hi / py[[src]]))
+}))))
+annual_group <- rbindlist(lapply(c("UN IGME", "IHME"), function(src) rbindlist(lapply(seq_along(G), function(k) {
+  a <- apply(main[[src]]$AG[[k]], c(1, 3), sum); total <- apply(main[[src]]$A, c(1, 3), sum)   # draws x years
+  pt <- colSums(pt_AG[[src]][[k]]); PY <- colSums(py[[src]]); qs <- function(x, p) apply(x, 2, q, p = p)
+  data.table(source = src, year = years, age_group = unname(group_label[G[k]]), attributable_deaths = pt,
+    attributable_deaths_lower = qs(a, cfg$ui[1]), attributable_deaths_upper = qs(a, cfg$ui[2]),
+    malaria_rate_per1000 = 1000 * pt / PY, malaria_rate_per1000_lower = 1000 * qs(a, cfg$ui[1]) / PY,
+    malaria_rate_per1000_upper = 1000 * qs(a, cfg$ui[2]) / PY, share_of_attributable_deaths = pt / colSums(pt_A[[src]]),
+    share_of_attributable_deaths_lower = qs(a / total, cfg$ui[1]), share_of_attributable_deaths_upper = qs(a / total, cfg$ui[2]))
+}))))
+stopifnot(nrow(country_group) == 2L * nC * nY * length(G), nrow(annual_group) == 2L * nY * length(G), !anyNA(country_group), !anyNA(annual_group),
+  max(abs(country_group[, .(a = sum(attributable_deaths)), by = .(source, iso3, year)][country, on = c("source", "iso3", "year"), a - i.attributable_deaths])) < 1e-6)
 # Contrasts inside each draw: change in the 42-country rate, and the excess over the source's cause-specific estimate
 # (the comparator scaled by the drawn envelope of its own source).
 contrast <- rbindlist(lapply(names(scen), function(sn) rbindlist(lapply(c("UN IGME", "IHME"), function(src) {
@@ -273,6 +308,8 @@ checks <- rbind(
   data.table(item = "country-years with the common factor floored at 0 (UN IGME, IHME): published under-five bounds narrower than independent ages", value = paste(sum(igme$rho == 0), sum(ihme$rho == 0), sep = ", ")))
 fwrite(country, file.path(out, "country_year_intervals_2000_2024.csv"))
 fwrite(annual, file.path(out, "annual_intervals_2000_2024.csv"))
+fwrite(country_group, file.path(out, "country_year_age_group_intervals_2000_2024.csv"))
+fwrite(annual_group, file.path(out, "annual_age_group_intervals_2000_2024.csv"))
 fwrite(contrast, file.path(out, "contrasts.csv"))
 fwrite(mc, file.path(out, "monte_carlo_error_2024.csv"))
 fwrite(bounds, file.path(out, "input_bound_reproduction.csv"))

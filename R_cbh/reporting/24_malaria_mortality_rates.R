@@ -45,9 +45,12 @@ colours <- c(`West Africa` = "#0072B2", `Central Africa` = "#CC79A7", `East Afri
 total_label <- "Population-weighted average"; ui_label <- "95% uncertainty interval of the average"
 cbh_atomic_csv(x[order(x$source, x$region, x$iso3, x$year), c("source", "iso3", "country", "region", "year", "pfpr_pct", "crisis_year",
   "allcause_rate_per1000_reported", "allcause_rate_per1000", "malaria_rate_per1000", "malaria_fraction")], file.path(out, "figure_data.csv"))
-# Common y-axis limits in both figures, so the two sources can be compared panel by panel.
-limits <- list(allcause_rate_per1000 = c(0, max(x$allcause_rate_per1000)), malaria_rate_per1000 = c(0, max(x$malaria_rate_per1000)),
-  pfpr_pct = c(0, max(x$pfpr_pct)))
+# Axis limits from the UN IGME series alone, so that the main-text figure does not depend on IHME (author request,
+# 18 November 2026); the IHME supplementary figure uses the same limits, so the two can be compared panel by panel.
+main_rows <- x$source == sources[["unigme"]]
+limits <- list(allcause_rate_per1000 = c(0, max(x$allcause_rate_per1000[main_rows])), malaria_rate_per1000 = c(0, max(x$malaria_rate_per1000[main_rows])),
+  pfpr_pct = c(0, max(x$pfpr_pct[main_rows])))
+stopifnot(all(vapply(names(limits), function(v) max(x[[v]]) <= limits[[v]][2], NA)))   # the IHME series fit within them
 # Drawn at the printed width (6.5 in), so text sizes are printed sizes and meet the paper's text-size rule (CLAUDE.md);
 # lines and margins are those of the earlier 16 in drawing scaled by 6.5/16. The small panels A and B have fewer year ticks.
 panel <- function(d, total, y, total_y, ylab, tag, breaks = c(2000, 2005, 2010, 2015, 2020, 2024), band = FALSE) ggplot() +
@@ -105,7 +108,8 @@ for (k in names(sources)) {
     paste("All-cause deaths are IHME GBD estimates by age (0–6 days and 7–27 days combined for the <1 month band; 1–5 months, 6–11 months and 12–23 months directly; 2–4 years divided equally across the three annual bands), and child-years those implied by IHME's under-five deaths and rates.")
   caption <- c(paste0("# Figure caption — national malaria-attributable under-five mortality, ", s), "",
     paste(sprintf("**Figure. Malaria prevalence and under-five mortality in %d sub-Saharan African countries, 2000–2024, with all-cause mortality from %s.**", nrow(d) / length(years), s),
-      sprintf("(A) National PfPR[2–10]: the Malaria Atlas Project's national estimates (release %s; the same in both versions of this figure).", cbh_config()$map_release),
+      sprintf("(A) National PfPR[2–10]: the Malaria Atlas Project's national estimates (release %s%s).", cbh_config()$map_release,
+        if (k == "unigme") "" else "; the same as in the main-text figure"),
       "(B) All-cause under-five deaths per 1,000 child-years, with crisis years replaced (below).",
       paste0("(C) Malaria-attributable under-five deaths per 1,000 child-years: for each of the seven age bands of the ", model_label,
         ", the band's attributable fraction 1 − exp[f_g(0) − f_g(P)] at the national PfPR[2–10] times the band's all-cause deaths, summed over bands and divided by the same child-years."),
@@ -117,7 +121,8 @@ for (k in names(sources)) {
         fmt1(last$malaria_rate_per1000), fmt1(last$malaria_rate_per1000_lower), fmt1(last$malaria_rate_per1000_upper), min(years), max(years),
         pct(first$malaria_fraction), pct(last$malaria_fraction), fmt0(ch$point), fmt0(ch$lower), fmt0(ch$upper)),
       "The grey band in C is the 95% uncertainty interval of the average, from 500 joint draws of MAP's national PfPR[2–10], the all-cause deaths and the PfPR–death curves (Supplementary Methods); the change is computed within each draw.",
-      "Panels B and C use the same axis limits in both versions. Zero prevalence lies below the observed exposure support, so the counterfactual requires extrapolation."))
+      paste0(if (k == "unigme") "" else "Panels B and C use the axis limits of the main-text figure (UN IGME). ",
+        "Zero prevalence lies below the observed exposure support, so the counterfactual requires extrapolation.")))
   writeLines(caption, file.path(out, if (k == "unigme") "CAPTION_unigme.md" else "CAPTION_ihme.md"))
 }
 provenance <- c(unname(paths), "R_cbh/reporting/24_malaria_mortality_rates.R", "R_cbh/reporting/labels.R", "R_cbh/00_config.R")

@@ -51,7 +51,7 @@ vz <- vz[vz$segment != "outside", ]; rownames(vz) <- NULL
 vz$series <- factor(st$labels[vz$subgroup], levels = unname(st$labels))
 write_csv(vz, "hazard_ratio_vs_zero.csv")
 vz$age_label <- factor(vz$age_band, levels = ages, labels = ifelse(ages == "<1", "<1 month", paste(ages, "months")))
-# One spline figure per group of subsets (st$figures): Sahel, the UN M49 sub-regions and the periods.
+# One spline figure per group of subsets (st$figures): the UN M49 sub-regions and the periods.
 for (fig_name in names(st$figures)) {
 shown <- vz[vz$subgroup %in% c("map_full", st$figures[[fig_name]]), ]
 shown$series <- droplevels(shown$series)
@@ -103,9 +103,7 @@ row <- function(s) sample[sample$subgroup == s, ]
 describe <- function(s) sprintf("%s: %s children, %s records, %s deaths, %d survey × unit areas, %d surveys, %d countries",
   st$labels[[s]], fmt(row(s)$distinct_children), fmt(row(s)$records), fmt(row(s)$deaths),
   row(s)$survey_regions, row(s)$surveys, row(s)$countries)
-subset_text <- c(sahel = sprintf("records whose analysis unit (an admin-1 unit or a union of units) has its centroid at or north of %g°N and west of %g°E, excluding the Horn of Africa (Sahel)",
-    st$sahel$latitude_min, st$sahel$longitude_max),
-  east_africa = "UN M49 Eastern Africa countries", west_africa = "UN M49 Western Africa countries",
+subset_text <- c(east_africa = "UN M49 Eastern Africa countries", west_africa = "UN M49 Western Africa countries",
   central_africa = "UN M49 Middle (Central) Africa countries",
   early = paste0("surveys conducted up to the median survey year (", cutoff, ")"), late = "surveys conducted after it",
   records_early = sprintf("child-band records with calendar year up to the median calendar year of the records (%.1f)", calendar_cutoff),
@@ -120,9 +118,8 @@ caption_for <- function(groups) paste(
   "Each subset refit uses the same seven separate age-band models, 17 standardised covariates with the full-sample scaling, fixed HIV incidence imputation, gamma = 2 and basis dimensions as the primary analysis, with knots placed at quantiles of the subset's own predictor values. Each curve is solid over the central 95% of its own exposure distribution and dashed from zero to its 2.5th percentile, where the reference is reached by extrapolation into sparse data.",
   paste0("Subset sizes. ", paste(vapply(groups, describe, ""), collapse = "; "), "."),
   "The subsets overlap the full sample and one another, so the curves are not independent and their differences are descriptive; the comparison does not constitute a test of effect modification. Subset intervals are omitted for legibility and are available in the saved curve table.")
-caption <- caption_for(st$figures[[1]])
-writeLines(c("# Supplementary figure caption: PfPR splines by subgroup", "", caption), file.path(st$out, "CAPTION.md"))
-if (length(st$figures) > 1) for (k in 2:length(st$figures))
+# One caption file per figure, named after it.
+for (k in seq_along(st$figures))
   writeLines(c(paste("# Supplementary figure caption:", sub("^sfig_", "", names(st$figures)[k])), "", caption_for(st$figures[[k]])),
              file.path(st$out, paste0("CAPTION_", names(st$figures)[k], ".md")))
 hr <- function(x) sprintf("%.2f (%.2f–%.2f)", x$hazard_ratio, x$lower_95, x$upper_95)
@@ -136,10 +133,9 @@ for (age in ages) {
 lines <- c("# Subgroup sensitivity of the primary PfPR models", "",
   paste0("Seven separate MAP gamma=2 age-band models refitted in ", c("one subset", "two subsets", "three subsets", "four subsets", "five subsets", "six subsets", "seven subsets", "eight subsets", "nine subsets")[length(subgroups)], " of the fitted 17-variable sample (`", primary$id, "`). Reference: the full primary fits in `", primary$out, "`.", not_fitted_text), "",
   "## Subsets", "", paste0("- ", vapply(subgroups, describe, "")), "",
-  paste0("Definitions: ", paste(defs[-1], collapse = "; "), ". Survey regions enter whole; centroids are survey-specific boundary centroids (DHS: the cached shapefile summary; MICS: the analysis-region polygons, `R_mics/11_region_centroids.R`). The period split counts each survey once."), "",
+  paste0("Definitions: ", paste(defs[-1], collapse = "; "), ". Survey regions enter whole. The period split counts each survey once."), "",
   "## Figures", "",
-  unlist(lapply(names(st$figures), function(f) c(sprintf("![%s](%s.png)", c(sfig_pfpr_splines_by_subgroup = "Splines by subgroup",
-    sfig_pfpr_splines_by_subregion = "Splines by UN sub-region", sfig_pfpr_splines_by_period = "Splines by period")[[f]], f), "", caption_for(st$figures[[f]]), ""))),
+  unlist(lapply(names(st$figures), function(f) c(sprintf("![%s](%s.png)", c(sfig_pfpr_splines_by_subregion = "Splines by UN sub-region", sfig_pfpr_splines_by_period = "Splines by period")[[f]], f), "", caption_for(st$figures[[f]]), ""))),
   "## Hazard ratios, PfPR 40% to 20%", "", "Values below one indicate lower mortality at 20% than at 40%. Intervals are pointwise conditional 95% intervals; the samples are nested, so compare descriptively.", "",
   table_lines, "",
   "## Validation", "",

@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # Supplementary figure (author request, 1 November 2026): the GADM 4.1 admin-1 polygons in each regional sub-analysis
-# of the subgroup refits: A West Africa, B Central Africa, C East Africa. The Sahel panel was removed on 18 November
-# 2026 (author request: the Sahel is not in the paper in this round; its refit still runs in 01_fit.R). Drawn in the
+# of the subgroup refits: A West Africa, B Central Africa, C East Africa (the Sahel subset and its panel were removed
+# on 18 November 2026, author request: not in the paper). Drawn in the
 # style of Figure 1, from the map layers that R_cbh/reporting/23_analysis_units_map.R saves (projection, frame,
 # slivers, lakes, borders; the polygons under the list element "layer").
 # Membership (R_cbh/sensitivity/subgroups/01_fit.R): by the record's source survey-region and its country

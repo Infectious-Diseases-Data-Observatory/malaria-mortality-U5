@@ -29,7 +29,6 @@ stages <- c(prepare=settings$prepare,fit="R_cbh/primary/01_fit.R",
   rates_figures="R_cbh/reporting/24_malaria_mortality_rates.R",rates_table="R_cbh/reporting/25_country_rates_table.R",
   model_vs_cause="R_cbh/reporting/27_model_vs_cause_specific.R",
   ihme_vs_unigme="R_cbh/reporting/28_malaria_rates_ihme_vs_unigme.R",
-  source_table="R_cbh/reporting/12_source_comparison_table.R",
   malaria_share="R_cbh/reporting/20_malaria_share_vs_pfpr.R",
   paper_manifest="R_cbh/reporting/04_paper_figures.R")
 if("--report-only" %in% args) stages <- stages[!names(stages) %in% c("prepare","fit")]

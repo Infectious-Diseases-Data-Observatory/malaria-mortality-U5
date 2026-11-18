@@ -28,10 +28,9 @@ assert destination.is_dir()
 subgroups = Path("results/cbh/subgroups_gadm_merge_gamma2_v9")
 nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9")
 imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v16")
-# No longer exported, because main.tex does not use them and the author had them removed from Overleaf (18 November
-# 2026): the Sahel seasonality figure, the country fixed-effects figure and summary, the table of Sahel countries, and
-# the Sahel refit figure (sfig_pfpr_splines_by_subgroup; the Sahel is not in the paper in this round).
-# Their stages still produce them in results/.
+# The analyses that main.tex does not present were removed from the repository on 18 November 2026 (author request;
+# git tag pre-cleanup-20261118 keeps them): the Sahel refit and its seasonality analysis, the country fixed-effects
+# refit, and the comparator table of 12_source_comparison_table.R.
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -109,9 +108,8 @@ assets.extend([
     (root / "uncertainty/SPEC.md", Path("tables/uncertainty_specification.md")),
 ])
 assets.extend([
-    # Number sources of the text: age-band deaths and the comparator declines (under-five rows only).
+    # Number sources of the text: age-band deaths and the annual totals.
     (root / "tables/age_band_results.csv", Path("tables/age_band_results.csv")),
-    (root / "burden_comparison/source_comparison_2000_2024.csv", Path("tables/source_comparison_2000_2024.csv")),
     (root / "annual_comparison/annual_totals_2000_2024.csv", Path("tables/annual_totals_2000_2024.csv")),
 ])
 

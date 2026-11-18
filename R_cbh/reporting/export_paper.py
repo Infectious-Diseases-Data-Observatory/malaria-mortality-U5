@@ -28,10 +28,9 @@ assert destination.is_dir()
 subgroups = Path("results/cbh/subgroups_gadm_merge_gamma2_v9")
 nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9")
 imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v16")
-# Country fixed effects (31 October 2026).
-country_fe = Path("results/cbh/country_fixed_effects_gadm_merge_gamma2_v3")
-# The Sahel seasonality figure and the country fixed-effects figure are no longer exported: main.tex does not use
-# them and the author had them removed from Overleaf (18 November 2026). The stages still produce them in results/.
+# No longer exported, because main.tex does not use them and the author had them removed from Overleaf (18 November
+# 2026): the Sahel seasonality figure, the country fixed-effects figure and summary, and the table of Sahel countries.
+# Their stages still produce them in results/.
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -75,11 +74,6 @@ assets.extend([
     # Raw survival against PfPR by UN sub-region with unadjusted spline fits (user request, 15 October 2026).
     (subgroups / "sfig_survival_vs_pfpr_by_subregion.png", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion.png")),
     (subgroups / "CAPTION_sfig_survival_vs_pfpr_by_subregion.md", Path("Supplementary Figures/sfig_survival_vs_pfpr_by_subregion_caption.md")),
-    # Countries of the Sahel subset (>= 10N): PfPR and crude mortality by age band (user request, 4 November 2026).
-    (subgroups / "table_sahel_countries.latex.txt", Path("tables/table_sahel_countries.latex.txt")),
-    (subgroups / "table_sahel_countries.csv", Path("tables/table_sahel_countries.csv")),
-    # Country fixed effects in place of the country random intercept (author request, 31 October 2026).
-    (country_fe / "SUMMARY.md", Path("tables/country_fixed_effects_summary.md")),
     # Figure 1 is the map of complete birth histories by analysis unit (author request, 12 October 2026).
     (root / "analysis_units_map/CAPTION.md", Path("figures/fig1_analysis_units_map_caption.md")),
     # National malaria-attributable mortality per 1,000 child-years by all-cause source (user request, 27 October
@@ -132,7 +126,7 @@ for source, rel in assets:
     check(source, rel)
 # A sensitivity figure is current only if its report was rerun after the last change to its inputs or code
 # (for example R_cbh/sensitivity/subgroups/02_report.R after an axis change).
-for sensitivity in (subgroups, nutrition, country_fe):
+for sensitivity in (subgroups, nutrition):
     stale = [row["file"] for row in read_csv(sensitivity / "report_provenance.csv")
              if not Path(row["file"]).is_file() or hashlib.md5(Path(row["file"]).read_bytes()).hexdigest() != row["md5"]]
     assert not stale, f"Stale report provenance in {sensitivity}: {', '.join(stale)}; rerun its report script"

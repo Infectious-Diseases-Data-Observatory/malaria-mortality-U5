@@ -97,6 +97,9 @@ assets.extend([
     # Supplementary table of 2024 country rates by source (user request, 28 October 2026).
     (root / "tables/country_rates_2024.latex.txt", Path("tables/country_rates_2024.latex.txt")),
     (root / "tables/country_rates_2024.csv", Path("tables/country_rates_2024.csv")),
+    # Records excluded for a missing covariate, by survey (co-author comment, 18 November 2026).
+    (root / "tables/excluded_records_by_survey.latex.txt", Path("tables/excluded_records_by_survey.latex.txt")),
+    (root / "tables/excluded_records_by_survey.csv", Path("tables/excluded_records_by_survey.csv")),
     # Draw-based 95% uncertainty intervals (R_cbh/burden/06_uncertainty_draws.R; 1 November 2026).
     (root / "uncertainty/annual_intervals_2000_2024.csv", Path("tables/uncertainty_annual_intervals_2000_2024.csv")),
     (root / "uncertainty/country_year_intervals_2000_2024.csv", Path("tables/uncertainty_country_year_intervals_2000_2024.csv")),

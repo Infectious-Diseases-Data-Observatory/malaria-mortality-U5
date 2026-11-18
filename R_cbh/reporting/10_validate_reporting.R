@@ -101,6 +101,10 @@ checks <- lapply(provenances,function(p) {
 })
 cbh_atomic_csv(do.call(rbind,checks),file.path(root,"paper_refresh/provenance_checks.csv"))
 stopifnot(!length(list.files(root,pattern="[.]tex$",recursive=TRUE)))
+# Excluded-records table (R_cbh/reporting/29_excluded_records_table.R): its totals are the flow's.
+ex <- read("tables/excluded_records_by_survey.csv")
+stopifnot(sum(ex$records_excluded)==counts[["missing_covariates"]],sum(ex$records_kept==0)==counts[["excluded_no_covariate"]],
+  file.exists(file.path(root,"tables/excluded_records_by_survey.latex.txt")))
 # Table S1 source (R_cbh/reporting/25_country_rates_table.R).
 lines <- readLines(file.path(root,"tables/country_rates_2024.latex.txt"));rows <- lines[grepl(" & ",lines,fixed=TRUE)]
 stopifnot(length(rows)>7L,all(endsWith(rows,strrep(intToUtf8(92),2))))

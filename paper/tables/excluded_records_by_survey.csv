@@ -1,0 +1,28 @@
+"survey","iso3","country","type","year","survey_label","covariate_unavailable","records_excluded","deaths_excluded","records_kept","share_of_survey_records"
+"AO62FL","AGO","Angola","MIS",2011,"MIS 2011","Place of delivery",44181,600,0,1
+"BJ41FL","BEN","Benin","DHS",2001,"DHS 2001","Household wealth",1588,38,0,1
+"BJ51FL","BEN","Benin","DHS",2006,"DHS 2006","Electricity",88834,1708,0,1
+"TD41FL","TCD","Chad","DHS",2004,"DHS 2004","Wasting and stunting",29949,787,0,1
+"ET41FL","ETH","Ethiopia","DHS",2000,"DHS 2000","Household wealth",442,23,0,1
+"GA41FL","GAB","Gabon","DHS",2000,"DHS 2000","Household wealth",1508,34,0,1
+"LB5AFL","LBR","Liberia","MIS",2009,"MIS 2009","Place of delivery",22879,429,0,1
+"MD51FL","MDG","Madagascar","DHS",2008,"DHS 2008","Wasting and stunting",73129,777,0,1
+"MC_MDG2012S","MDG","Madagascar","MICS",2012,"MICS 2012","Wasting and stunting",16676,225,0,1
+"MW41FL","MWI","Malawi","DHS",2000,"DHS 2000","Household wealth",3157,125,0,1
+"ML41FL","MLI","Mali","DHS",2001,"DHS 2001","Household wealth",8987,340,0,1
+"NM41FL","NAM","Namibia","DHS",2000,"DHS 2000","Household wealth",1169,21,0,1
+"NG61FL","NGA","Nigeria","MIS",2010,"MIS 2010","Place of delivery",32266,668,0,1
+"MC_NGA2021","NGA","Nigeria","MICS",2021,"MICS 2021","Wasting and stunting",162146,2454,0,1
+"RW41FL","RWA","Rwanda","DHS",2000,"DHS 2000","Household wealth",2196,72,0,1
+"RW5AFL","RWA","Rwanda","DHS",2008,"DHS 2008","Wasting and stunting",30365,468,0,1
+"SN5AFL","SEN","Senegal","MIS",2008,"MIS 2008","Place of delivery",87342,1301,0,1
+"MC_SOM2006","SOM","Somalia","MICS",2006,"MICS 2006","Health expenditure",35871,705,0,1
+"MC_SOM2011NE","SOM","Somalia","MICS",2011,"MICS 2011 (Northeast Zone)","Health expenditure",29796,218,0,1
+"MC_SOM2011SL","SOM","Somalia","MICS",2011,"MICS 2011 (Somaliland)","Health expenditure",28324,410,0,1
+"UG41FL","UGA","Uganda","DHS",2000,"DHS 2000","Household wealth",3417,91,0,1
+"UG5AFL","UGA","Uganda","MIS",2009,"MIS 2009","Place of delivery",20657,263,0,1
+"ZM42FL","ZMB","Zambia","DHS",2002,"DHS 2002","Household wealth",13278,383,0,1
+"ZW52FL","ZWE","Zimbabwe","DHS",2005,"DHS 2005","Health expenditure",24393,330,0,1
+"MC_ZWE2009","ZWE","Zimbabwe","MICS",2009,"MICS 2009","Health expenditure",31091,462,0,1
+"ZW62FL","ZWE","Zimbabwe","DHS",2010,"DHS 2010","Health expenditure",21964,270,2601,0.8941
+"MC_ZWE2014","ZWE","Zimbabwe","MICS",2014,"MICS 2014","Health expenditure",6829,94,34969,0.1634

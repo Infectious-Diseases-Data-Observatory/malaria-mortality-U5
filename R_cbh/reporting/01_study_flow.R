@@ -6,9 +6,12 @@
 # child-age bands -> placed in a unit -> primary analysis sample, with exclusions for surveys not processed (no MAP
 # geography) or without a complete birth history; band eligibility; not placed (survey-region not matched; no unit;
 # malaria-free or island unit; unit more than half malaria-free); required covariate unavailable (first missing
-# input). The diagram (simplified 27 October 2026, user request, to match the Results text) shows the survey steps all
+# input). The diagram (simplified 27 October 2026, user request, to match the Results text) shows the survey steps
 # surveys -> complete birth history -> included (at least one primary record), with the excluded surveys by reason,
-# then the records excluded within the included surveys. The declared national substitutions of the preparation
+# then the records excluded within the included surveys. Since 19 November 2026 (author request, to match the Results
+# text) it starts from the surveys of the malaria endemic countries of mainland sub-Saharan Africa and Madagascar: the
+# surveys of Lesotho (malaria free) and of the island countries outside the units are not counted in the diagram and
+# are given in the caption; the full ledger still covers every survey. The declared national substitutions of the preparation
 # (national_substitutions.csv: South Sudan before independence takes Sudan's values) are stated in the caption and
 # counted (national_substituted).
 # Writes <out>/study_flow/: study_flow_diagram.png, CAPTION.md, flow_counts.csv, survey_selection.csv (the layout
@@ -109,6 +112,18 @@ stopifnot(!anyNA(kind(c(cbh$survey, m$survey))), all(kind(cbh$survey) %in% c("DH
 n$cbh_surveys <- nrow(cbh); n$cbh_countries <- length(unique(cbh$country))
 n$excluded_surveys <- n$omitted + length(no_polygon_surveys) + length(no_covariate_surveys)
 n$excluded_no_polygon <- length(no_polygon_surveys); n$excluded_no_covariate <- length(no_covariate_surveys)
+# Scope of the diagram: the malaria endemic countries of mainland sub-Saharan Africa and Madagascar. Out of scope are
+# the countries whose surveys were not processed (no MAP geography: malaria free) or place no record in a unit
+# (islands); every survey of such a country is out, with or without a complete birth history.
+out_scope <- sort(unique(c(omitted$country, sel$country[sel$survey %in% no_polygon_surveys])))
+dhs_all <- m[!startsWith(m$survey, "MC_"), ]; dhs_in <- dhs_all[!dhs_all$country %in% out_scope, ]
+mics_in <- mics_inv[!mics_inv$iso3 %in% out_scope, ]; cbh_in <- cbh[!cbh$country %in% out_scope, ]
+stopifnot(all(sel$placed_rows[sel$country %in% out_scope] == 0), !any(inc$country %in% out_scope), !anyNA(mics_inv$iso3))
+n$scope_surveys <- nrow(dhs_in) + nrow(mics_in); n$scope_countries <- length(unique(c(dhs_in$country, mics_in$iso3)))
+n$scope_mics_no_cbh <- sum(!mics_in$has_bh); n$scope_cbh_surveys <- nrow(cbh_in); n$scope_cbh_countries <- length(unique(cbh_in$country))
+n$out_of_scope_surveys <- n$registry_all - n$scope_surveys; n$out_of_scope_cbh <- n$cbh_surveys - n$scope_cbh_surveys
+stopifnot(n$scope_surveys - n$scope_mics_no_cbh == n$scope_cbh_surveys, n$scope_cbh_surveys - n$excluded_no_covariate == n$surveys,
+  n$out_of_scope_cbh == n$omitted + n$excluded_no_polygon)
 # Record steps within the included surveys only (the excluded surveys' records are in the full ledger above).
 ei <- e[e$survey %in% inc$survey, ]; rci <- rc[rc$survey %in% inc$survey, ]; losti <- lost[lost$survey %in% inc$survey, ]
 n$included_entered <- sum(ei$entered_in_lookback)
@@ -155,22 +170,22 @@ omitted_names <- country_names(omitted$country); no_polygon_names <- country_nam
 # Survey counts by type, e.g. "119 DHS, 5 MIS, 93 MICS".
 by_type <- function(s) { k <- table(factor(kind(s), levels = c("DHS", "MIS", "MICS"))); k <- k[k > 0]; paste(fmt(k), names(k), collapse = ", ") }
 all_types <- sprintf("%s, %s MICS", by_type(m$survey[!startsWith(m$survey, "MC_")]), fmt(n$mics_registry))
+scope_types <- sprintf("%s, %s MICS", by_type(dhs_in$survey), fmt(nrow(mics_in)))
 nodes <- data.frame(
   id = c("registry", "cbh", "included", "sample", "omit_cbh", "omit_surveys", "omit_records"),
-  x = c(rep(3.425, 4), rep(9.65, 3)), y = c(14.025, 11.475, 8.575, 5.3, 12.75, 10.125, 7.025),
-  w = c(rep(6.65, 4), rep(5.3, 3)), h = c(1.55, 1.55, 1.95, 2.3, 1.15, 2.6, 2.6), role = c(rep("main", 4), rep("excluded", 3)),
-  heading = c("Surveys in sub-Saharan Africa since 2000", "Recorded complete birth histories", "Surveys included", "Primary analysis sample",
-    paste(fmt(n$mics_no_cbh), "MICS surveys excluded"), paste(fmt(n$excluded_surveys), "surveys excluded"),
+  x = c(rep(3.425, 4), rep(9.65, 3)), y = c(14.225, 11.475, 8.575, 5.3, 12.75, 10.125, 7.025),
+  w = c(rep(6.65, 4), rep(5.3, 3)), h = c(1.95, 1.55, 1.95, 2.3, 1.15, 1.45, 2.6), role = c(rep("main", 4), rep("excluded", 3)),
+  heading = c("Surveys conducted since 2000", "Recorded complete birth histories", "Surveys included", "Primary analysis sample",
+    paste(fmt(n$scope_mics_no_cbh), "MICS surveys excluded"), paste(fmt(n$excluded_no_covariate), "surveys excluded"),
     paste(fmt(n$included_excluded), "records excluded")),
-  detail = c(sprintf("%s surveys (%s)\n%s countries", fmt(n$registry_all), all_types, fmt(n$registry_countries_all)),
-    sprintf("%s surveys (%s)\n%s countries", fmt(n$cbh_surveys), by_type(cbh$survey), fmt(n$cbh_countries)),
+  detail = c(sprintf("%s surveys (%s)\n%s malaria endemic countries of mainland\nsub-Saharan Africa and Madagascar", fmt(n$scope_surveys), scope_types, fmt(n$scope_countries)),
+    sprintf("%s surveys (%s)\n%s countries", fmt(n$scope_cbh_surveys), by_type(cbh_in$survey), fmt(n$scope_cbh_countries)),
     sprintf("%s surveys (%s) · %s countries\n%s child age-band records entered\nin the 5 years before interview",
       fmt(n$surveys), by_type(inc$survey), fmt(n$countries), fmt(n$included_entered)),
     sprintf("%s child age-band records\n%s children · %s deaths\n%s complete birth histories\n%s survey-by-area units",
       fmt(n$primary), fmt(n$primary_distinct_children), fmt(n$deaths), fmt(n$primary_mothers), fmt(n$primary_units)),
     "No complete birth history",
-    sprintf("%s %s: malaria free\n%s %s:\noutside the %s\n%s (%s):\na confounder unavailable in every area",
-      fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, units_txt[["set"]], fmt(n$excluded_no_covariate), by_type(no_covariate_surveys)),
+    sprintf("%s\nA confounder unavailable in every area", by_type(no_covariate_surveys)),
     sprintf("%s: band not completed by\ninterview or begun outside 2000–2024\n%s: area not placed in a unit\nor mainly malaria free\n%s: a confounder unavailable",
       fmt(n$included_excluded_eligibility), fmt(n$included_not_placed), fmt(n$included_missing_covariates))))
 cbh_atomic_csv(nodes, file.path(out, "figure_labels.csv"))
@@ -178,7 +193,7 @@ fill <- c(main = "#EAF2F8", excluded = "#F6F3EF"); border <- c(main = "#346A8C",
 # Drawn at the printed width (6.5 in), so text sizes (points) are printed sizes and meet the paper's text-size rule
 # (CLAUDE.md); lines and arrows are those of the earlier 11.5 in drawing scaled by 6.5/11.5. Text is placed from each
 # box's top edge in points (pt: canvas units per point; one unit is about 37 pt on both axes).
-width <- 6.5; height <- 5.7; ylim <- c(4.05, 14.9); pt <- diff(ylim) / (height * 72 - 10)
+width <- 6.5; height <- 5.9; ylim <- c(4.05, 15.3); pt <- diff(ylim) / (height * 72 - 10)
 text_pt <- list(main = c(heading = 10, detail = 9.5), excluded = c(heading = 9.5, detail = 9))
 p <- ggplot() + theme_void() + coord_cartesian(xlim = c(0, 12.4), ylim = ylim, expand = FALSE, clip = "off") + theme(plot.margin = margin(5, 5, 5, 5))
 segment <- function(x, y, xe, ye, arrow = FALSE) {
@@ -204,10 +219,10 @@ subst_text <- paste0(vapply(seq_len(nrow(nsc)), function(i) sprintf(" For %s (%s
   cname(nsc$country[i]), nsc$note[i], and_list(unname(var_label[ns$variable[ns$country == nsc$country[i]]])), nsc$before_year[i], cname(nsc$source_country[i]),
   sub("-", "–", nsc$years[i], fixed = TRUE), fmt(nsc$records_in_sample[i]), fmt(nsc$deaths_in_sample[i])), ""), collapse = "")
 caption <- c(paste0("# Figure caption — primary sample inclusion (", units_txt[["set"]], ")"), "",
-  sprintf("**Figure. Sample inclusion for the primary analysis.** Of %s DHS, MIS and MICS surveys conducted in sub-Saharan Africa since 2000 (%s; %s countries), %s recorded complete birth histories (%s; %s countries); the other %s MICS surveys recorded only summary birth histories. %s surveys were excluded: %s from %s, which is malaria free and has no Malaria Atlas Project prevalence surface; %s from %s, which lie outside the %s; and %s (%s) in which at least one required covariate was unavailable in every survey × unit area. %s surveys (%s) from %s countries were included.",
-    fmt(n$registry_all), all_types, fmt(n$registry_countries_all), fmt(n$cbh_surveys), by_type(cbh$survey), fmt(n$cbh_countries), fmt(n$mics_no_cbh),
-    fmt(n$excluded_surveys), fmt(n$omitted), omitted_names, fmt(n$excluded_no_polygon), no_polygon_names, units_txt[["set"]], fmt(n$excluded_no_covariate),
-    by_type(no_covariate_surveys), fmt(n$surveys), by_type(inc$survey), fmt(n$countries)), "",
+  sprintf("**Figure. Sample inclusion for the primary analysis.** Of %s DHS, MIS and MICS surveys conducted since 2000 in the %s malaria endemic countries of mainland sub-Saharan Africa and Madagascar (%s), %s recorded complete birth histories (%s; %s countries); the other %s MICS surveys recorded only summary birth histories. %s surveys (%s) were excluded because at least one required covariate was unavailable in every survey × unit area, and %s surveys (%s) from %s countries were included. Not counted in the diagram are %s surveys (%s with complete birth histories) from %s, which is malaria free and has no Malaria Atlas Project prevalence surface, and from %s, which lie outside the %s.",
+    fmt(n$scope_surveys), fmt(n$scope_countries), scope_types, fmt(n$scope_cbh_surveys), by_type(cbh_in$survey), fmt(n$scope_cbh_countries), fmt(n$scope_mics_no_cbh),
+    fmt(n$excluded_no_covariate), by_type(no_covariate_surveys), fmt(n$surveys), by_type(inc$survey), fmt(n$countries),
+    fmt(n$out_of_scope_surveys), fmt(n$out_of_scope_cbh), omitted_names, no_polygon_names, units_txt[["set"]]), "",
   sprintf("In the included surveys, %s child age-band records were entered within the 60 months before interview; counts from here are records, not unique children. %s were excluded because the band could not be completed by the interview (%s) or began outside 2000–2024 (%s); %s because the record's area could not be placed in a %s (%s in survey-regions not matched to a boundary; %s in Zanzibar, which has no unit) or lay in malaria-free or island units or in units more than half malaria free (%s); and %s because at least one required covariate was unavailable (first missing: %s). Each record is placed in the %s through its smallest reported administrative area: in the unit holding at least %s%% of that area's population, or else in the union of the units each holding at least %s%%. The primary sample has %s records and %s deaths from %s children of %s mothers (complete birth histories), in %s survey × unit areas.",
     fmt(n$included_entered), fmt(n$included_excluded_eligibility), fmt(n$included_incomplete), fmt(n$included_outside_year), fmt(n$included_not_placed), units_txt[["one"]],
     fmt(n$included_unmatched), fmt(n$included_no_polygon), fmt(n$included_malaria_free), fmt(n$included_missing_covariates), first_missing,

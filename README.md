@@ -122,8 +122,10 @@ malnutrition could mediate the relationship between *Pf*PR₂₋₁₀ and death
 
 ## Results
 
-Of 217 DHS, MIS and MICS surveys conducted in sub-Saharan Africa since 2000, 171 recorded complete birth histories.
-The primary analysis included 136 surveys (99 DHS and 37 MICS) from 37 countries. These data contained 1,127,215
+Of 204 DHS, MIS and MICS surveys conducted in malaria endemic countries of sub-Saharan Africa (mainland and
+Madagascar) since 2000, 161 recorded complete birth histories. After excluding 25 surveys in which at least one
+confounding variable was unavailable in every sub-national area, the primary analysis included 136 surveys (99 DHS
+and 37 MICS) from 37 countries. These data contained 1,127,215
 complete birth histories contributing 7,802,127 child age band records from 2,347,261 children of whom 108,747 died.
 
 Under the *Pf*PR-ACM model, the population-weighted average malaria-attributable mortality rate across the 42 malaria

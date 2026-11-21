@@ -37,6 +37,12 @@ The primary analysis uses the GADM 4.1 admin-1 units (KEMRI-Wellcome merge; nati
 The label inventory (`06`, `06b`) and the unit maps (`21`, `22`) were removed on 1 November 2026, as no paper output uses them.
 
 **Output folders.** Outputs go to `results/cbh/units/` (aggregates) and `data/derived_cbh/units/` (private; git-ignored).
+On this branch the child-band build has ten age bands, so the files that depend on the bands have folders of their own
+and the paper's under-five files in the folders above are never overwritten (`cbh_allages_dirs()` in
+`R_cbh/00_config.R`): the placed records and their units go to `data/derived_cbh/allages/units/`, their summaries to
+`results/cbh/units_allages/`, and the DHS and MICS child-band builds to `data/derived_cbh/allages/` and
+`data/derived_mics/cbh_build_allages/`. The units, their PfPR and the survey-unit covariates are the paper's: scripts
+03, 05, 09 and 10 read the paper's under-five child-band files, which are made on the paper branch.
 
 **Inputs.**
 - GADM 4.1 admin 1, KEMRI-Wellcome merge of 4 February 2026: `data/Africa GADM 0-2 (040226)/Africa_GADM1_(040226).shp` (not committed: GADM licence and size; see `data/README.md`).

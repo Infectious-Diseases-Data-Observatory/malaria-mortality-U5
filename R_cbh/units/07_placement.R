@@ -2,13 +2,16 @@
 # Place every eligible child-band record in the endemic GADM admin-1 units (rules in R_cbh/units/R/placement.R).
 # Eligible records are the shards' rows whose survey-region is matched; national covariates come from the shards and the
 # child HIV incidence panel of the primary settings, as in v9.
-# Writes: <out>/placement/finer_unit_shares.csv and placement_summary.csv (aggregates);
-#         <private>/records_placed.rds (record level; private, under the ignored data/).
+# The records are those of the all-ages shards (units_records_shard_path(), R_cbh/units/R/settings.R); the surveys,
+# survey-regions and finer units are the paper's (<out>/feasibility).
+# Writes: <records_out>/placement/finer_unit_shares.csv and placement_summary.csv (aggregates);
+#         <records_private>/records_placed.rds (record level; private, under the ignored data/).
 suppressPackageStartupMessages({ library(data.table); library(sf); library(terra); library(exactextractr); library(haven) })
 sf_use_s2(FALSE)
 source("R_cbh/load_pipeline.R"); source("R_cbh/analysis/model.R"); source("R_cbh/primary/settings.R")
 source("R_cbh/units/R/settings.R"); source("R_cbh/units/R/placement.R")
-S <- units_dirs(units_settings(), "placement"); pout <- file.path(S$out, "placement")
+S <- units_settings(); pout <- file.path(S$records_out, "placement")
+for (d in c(pout, S$records_private)) dir.create(d, recursive = TRUE, showWarnings = FALSE)
 settings <- cbh_primary_settings("gadm")   # child HIV incidence panel
 registry <- fread("data/derived_dhs/survey_registry.csv"); setup <- fread("data/derived_mics/survey_setup.csv")
 cls <- fread(file.path(S$out, "feasibility", "region_classification.csv"))
@@ -33,6 +36,9 @@ fs <- rbindlist(lapply(unique(gs$survey), function(s) {
 }))
 if (!nrow(fs)) fs <- data.table(survey = character(), key = character(), Admin_ID = character(), w = numeric())
 fwrite(fs, file.path(pout, "finer_unit_shares.csv"))
+# units_rules() reads the paper's copy of these shares (<out>/placement): the two must be the same file.
+stopifnot(identical(unname(tools::md5sum(file.path(pout, "finer_unit_shares.csv"))),
+                    unname(tools::md5sum(file.path(S$out, "placement", "finer_unit_shares.csv")))))
 R <- units_rules(S)
 
 # 2. Base records: eligible rows of the shards, with the national covariates of v9.
@@ -49,7 +55,7 @@ finer_key <- function(s, rows) {   # chosen finer variable of a split survey, at
 }
 pieces <- list(); summ <- list()
 for (s in surveys) {
-  d <- as.data.table(cbh_attach_incidence(readRDS(units_shard_path(s))$data, hiv))
+  d <- as.data.table(cbh_attach_incidence(readRDS(units_records_shard_path(s))$data, hiv))
   d <- d[units_eligible(d), ..keep]
   d[, c("survey", "country", "region", "regkey") := lapply(.SD, as.character), .SDcols = c("survey", "country", "region", "regkey")]
   kids <- unique(d[, .(child_id, survey, regkey)])
@@ -65,7 +71,7 @@ for (s in surveys) {
 }
 recs <- rbindlist(pieces); summ <- rbindlist(summ, fill = TRUE)
 for (v in names(summ)) if (is.numeric(summ[[v]])) summ[is.na(get(v)), (v) := 0]
-saveRDS(recs, file.path(S$private, "records_placed.rds"))
+saveRDS(recs, file.path(S$records_private, "records_placed.rds"))
 fwrite(summ, file.path(pout, "placement_summary.csv"))
 tot <- summ[, lapply(.SD, sum), .SDcols = is.numeric]
 cat(sprintf("%s, %d surveys: %s eligible records (%s deaths); placed weight %s records (%.1f%%), %s deaths; %s rows in %d units\n", S$units,

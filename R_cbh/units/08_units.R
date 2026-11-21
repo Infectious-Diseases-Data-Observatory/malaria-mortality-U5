@@ -5,12 +5,13 @@
 # population, else the union of the admin-1 units each holding >= 5%; records whose unit is more than half malaria-free
 # are dropped; one row per record, w = 1. Records of a survey with the same set of admin-1 units form one analysis unit;
 # analysis units of a survey can overlap.
-# Writes <private>/records_units.rds (record level; private) and, in <out>/units/, units.csv (one row per survey x unit),
-# units_by_survey.csv and dropped_malaria_free.csv (aggregates).
+# Reads <records_private>/records_placed.rds (the all-ages records; R_cbh/units/R/settings.R). Writes
+# <records_private>/records_units.rds (record level; private) and, in <records_out>/units/, units.csv (one row per
+# survey x unit), units_by_survey.csv and dropped_malaria_free.csv (aggregates).
 suppressPackageStartupMessages(library(data.table))
 source("R_cbh/R/geography.R"); source("R_cbh/units/R/settings.R"); source("R_cbh/units/R/placement.R")
-S <- units_dirs(units_settings(), "units"); out <- file.path(S$out, "units")
-rec <- readRDS(file.path(S$private, "records_placed.rds"))
+S <- units_settings(); out <- file.path(S$records_out, "units"); dir.create(out, recursive = TRUE, showWarnings = FALSE)
+rec <- readRDS(file.path(S$records_private, "records_placed.rds"))
 pl <- unique(rec[, .(id = child_id, Admin_ID, w, rule)])
 stopifnot(!anyDuplicated(pl[, .(id, Admin_ID)]))
 un <- units_assign(pl, S)
@@ -20,7 +21,7 @@ d <- merge(base, un[, .(child_id = id, unit, w, rule, n_polygons, malaria_free)]
 mfree <- pl[, .(malaria_free = pmax(0, 1 - sum(w))), by = .(child_id = id)]
 dropped <- merge(base[!child_id %in% un$id], mfree, by = "child_id")
 stopifnot(all(d$w > 0 & d$w <= 1), d[, sum(w), by = .(child_id, age_band)]$V1 <= 1 + 1e-9)
-saveRDS(d, file.path(S$private, "records_units.rds"))
+saveRDS(d, file.path(S$records_private, "records_units.rds"))
 units <- d[, .(n_polygons = n_polygons[1], records = sum(w), deaths = sum(w * death), children = uniqueN(child_id)), by = .(survey, country, unit)]
 fwrite(units[order(country, survey, unit)], file.path(out, "units.csv"))
 bys <- d[, .(records = sum(w), deaths = sum(w * death), units = uniqueN(unit), merged_units = uniqueN(unit[n_polygons > 1]),

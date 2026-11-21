@@ -50,3 +50,18 @@ cbh_config <- function(root = getwd()) {
     schema_version = "cbh-band-entry-v1"
   )
 }
+
+# Folders of the all-ages build (author request, 21 November 2026). The paper's under-five build (seven bands, made on
+# the paper branch) keeps data/derived_cbh, data/derived_mics/cbh_build, data/derived_cbh/units and results/cbh/units,
+# and the paper's result files record checksums of those files. This branch's builder makes ten bands, so everything
+# it writes that depends on the bands goes to folders of its own and the paper's files are never overwritten:
+#   dhs, mics  the DHS and MICS child-band builds (R_cbh/01_make_analysis_data.R, R_mics/08_build_child_bands.R);
+#   records    the placed records and their units (R_cbh/units/07_placement.R, 08_units.R), read by the preparation;
+#   units_out  the placement and unit summaries of those records.
+# The units themselves, their PfPR and the survey-unit covariates do not depend on the bands and stay the paper's
+# (R_cbh/units/R/settings.R). All four folders are under git-ignored folders.
+cbh_allages_dirs <- function() list(
+  dhs = "data/derived_cbh/allages",
+  mics = "data/derived_mics/cbh_build_allages",
+  records = "data/derived_cbh/allages/units",
+  units_out = "results/cbh/units_allages")

@@ -6,6 +6,7 @@
 # splitting, no weights. Malaria-free and island areas are those of Snow et al. (2017); units without a MAP PfPR estimate
 # are malaria free too (author decision, 3 November 2026). The Snow-unit primary (v11-v14) was replaced by the GADM units
 # in v15 (author decision, 3 November 2026; code in git history up to f2db98e).
+if (!exists("cbh_allages_dirs")) source("R_cbh/00_config.R")   # the folders of the all-ages build
 units_settings <- function() list(
   variant = "gadm",   # fixed label, kept for signatures and provenance
   rule = "merge",
@@ -23,13 +24,21 @@ units_settings <- function() list(
   whole = 0.90, link = 0.05, sliver = 0.02, malaria_free_drop = 0.5,
   north_africa = c("DZA", "EGY", "LBY", "MAR", "TUN", "ESH"),
   out = "results/cbh/units",
-  private = "data/derived_cbh/units")
+  private = "data/derived_cbh/units",
+  # The placed records and their units depend on the age bands, so on this branch (ten bands) they have folders of
+  # their own (cbh_allages_dirs(), R_cbh/00_config.R); <out> and <private> hold the paper's under-five files.
+  records_private = cbh_allages_dirs()$records, records_out = cbh_allages_dirs()$units_out)
 # The layer's polygons as read by 01_polygons.R (private; regenerated, not committed).
 units_polygons_path <- function(S) file.path(S$private, "polygons.rds")
 units_dirs <- function(S, ...) { for (d in c(S$out, S$private, file.path(S$out, c(...)))) dir.create(d, recursive = TRUE, showWarnings = FALSE); invisible(S) }
-# Child-band shards (one per built survey) and the eligible rows.
+# Child-band shards (one per built survey) and the eligible rows. units_shard_path() and units_all_shards() are the
+# paper's under-five shards: the units, the choice of finer location variable and the covariates are the paper's
+# (03_feasibility.R, 05_finer_units.R, 09 and 10). units_records_shard_path() is the same survey's all-ages shard, whose
+# records are placed (07_placement.R).
 units_shard_path <- function(s) if (startsWith(s, "MC_")) file.path("data/derived_mics/cbh_build/child_bands", paste0(s, ".rds")) else
   file.path("data/derived_cbh/child_bands", paste0(s, ".rds"))
+units_records_shard_path <- function(s) file.path(if (startsWith(s, "MC_")) cbh_allages_dirs()$mics else cbh_allages_dirs()$dhs,
+  "child_bands", paste0(s, ".rds"))
 units_all_shards <- function() sort(c(sub("[.]rds$", "", list.files("data/derived_cbh/child_bands", "[.]rds$")),
                                      sub("[.]rds$", "", list.files("data/derived_mics/cbh_build/child_bands", "[.]rds$"))))
 # Eligible rows: every row whose survey-region is matched (the unit exposure does not need the survey-region MAP value).

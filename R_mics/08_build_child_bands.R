@@ -1,11 +1,12 @@
 #!/usr/bin/env Rscript
-# Run the existing child age-band builder (R_cbh/R/build.R) on the MICS surveys, writing to
-# data/derived_mics/cbh_build so the DHS manifest and shards are untouched. Paths are
-# overridden in memory; no shared builder file is edited.
+# Run the existing child age-band builder (R_cbh/R/build.R) on the MICS surveys, writing to a MICS folder so the DHS
+# manifest and shards are untouched. Paths are overridden in memory; no shared builder file is edited. This branch's
+# builder makes the bands of 5 years and over too, so the folder is the all-ages one (cbh_allages_dirs(),
+# R_cbh/00_config.R); the paper's under-five build in data/derived_mics/cbh_build is left as it is.
 source("R_cbh/load_pipeline.R")
 cfg <- cbh_config()
 d <- file.path(cfg$root, "data/derived_mics")
-cfg$output_dir <- file.path(d, "cbh_build")
+cfg$output_dir <- file.path(cfg$root, cbh_allages_dirs()$mics)
 cfg$registry <- file.path(d, "survey_registry_mics.csv")
 cfg$survey_rules <- file.path(d, "survey_rules_mics.csv")
 cfg$region_overrides <- file.path(d, "region_overrides_mics.csv")

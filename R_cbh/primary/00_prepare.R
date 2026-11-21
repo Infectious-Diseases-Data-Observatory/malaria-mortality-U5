@@ -40,7 +40,7 @@ cfg <- cbh_config()
 rel <- function(p) ifelse(startsWith(p, paste0(cfg$root, "/")), substring(p, nchar(cfg$root) + 2L), p)   # repository-relative
 rules <- cbh_national_substitutions()
 sv <- cbh_substituted_covariates(); stopifnot(setequal(sv$variable, setdiff(national, "log_hiv_incidence")))
-src <- c(records = file.path(S$private, "records_units.rds"), dhs = file.path(S$private, "covariates_dhs_long.csv"),
+src <- c(records = file.path(S$records_private, "records_units.rds"), dhs = file.path(S$private, "covariates_dhs_long.csv"),
          mics = file.path(S$private, "covariates_mics_long.csv"), pfpr = file.path(S$out, "pfpr", "pfpr_polygon_year.csv"),
          unicef = "data/derived_cbh/regional_adjustment/unicef/country_year_estimates.csv",
          setNames(rel(vapply(sv$panel, function(k) cfg$annual_panels[[k]]$path, "")), sv$panel),   # the substitutions' source panels

@@ -13,9 +13,17 @@
 # estimates with 500 joint draws (R_cbh/burden/06_uncertainty_draws.R).
 # The Snow-unit primary (v11-v14) was replaced by GADM units in v15 (author decision, 3 November 2026; code in git
 # history up to f2db98e); earlier versions (v1-v9) are history in the analysis project and in git.
+# v18 (author requests, 20 November 2026) is v15 extended to all ages with three older bands (R_cbh/00_config.R): 5-9
+# years (60-119 months), 10-14 years (120-179 months) and 15 years and over (180+; followed to the interview, ages 15 to
+# 24). The same surveys, units, exposure, covariates and model, three more models. Its results have their own folder,
+# so the paper's v15 results (under-five bands only) are not overwritten. The seven under-five models are the paper's
+# own fits, used as they are (under5_reference; R_cbh/primary/01_fit.R); only the older bands are fitted. The models,
+# their hazard ratios and the attributable fractions by age are extended; the burden and the paper's other figures
+# and tables are under-five (R_cbh/primary/run_regional.R). v17 was the first step (the 5-9 band only, eight fits);
+# its result folder is superseded by v18.
 cbh_primary_settings <- function(version = Sys.getenv("CBH_PRIMARY_VERSION", "gadm")) {
   if (!identical(version, "gadm")) stop("Unknown primary version: ", version, " (gadm)")
-  id <- "primary_gadm_merge_dhsmics_gamma2_v15"
+  id <- "primary_gadm_merge_dhsmics_allages_gamma2_v18"
   private <- file.path("data/derived_cbh/models", id)
   list(
     id = id, version = version,
@@ -34,5 +42,8 @@ cbh_primary_settings <- function(version = Sys.getenv("CBH_PRIMARY_VERSION", "ga
     unit = "gadm",
     # The surveys of the sample (survey, country): 00_prepare.R stops unless the prepared sample has exactly these.
     survey_reference = "R_cbh/primary/survey_set.csv",
+    # Result folder of the paper's primary (v15): its saved under-five fits are used as they are when they match this
+    # version's data (R_cbh/primary/01_fit.R); NULL, or a folder that is not there, fits every band.
+    under5_reference = "results/cbh/primary_gadm_merge_dhsmics_gamma2_v15",
     prepare = "R_cbh/primary/00_prepare.R")
 }

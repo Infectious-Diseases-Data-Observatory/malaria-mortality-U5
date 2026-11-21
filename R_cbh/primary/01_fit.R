@@ -10,14 +10,17 @@ stopifnot(all(args %in% "--force"))
 settings <- cbh_primary_settings()
 id <- settings$id; private <- settings$private; out <- settings$out
 for(path in c(private,out)) dir.create(path,recursive=TRUE,showWarnings=FALSE)
-ages <- cbh_config()$age_bands$age_band
+bands <- cbh_config()$age_bands;ages <- bands$age_band
 # One map_full model per age band (the job list was formerly read from the previous version's manifest).
 jobs <- data.frame(fit_id=paste0("map_full_age_",seq_along(ages)),series="map_full",age_band=ages,reuse=FALSE)
-stopifnot(nrow(jobs)==7L,!anyNA(jobs))
+stopifnot(nrow(jobs)==nrow(bands),!anyNA(jobs))
 # Knots are the committed snapshot of the original MAP bases (R_cbh/primary/reference_knots.csv),
-# so every refit uses the same spline bases as the paper.
+# so every refit uses the same spline bases as the paper. The bands of 5 years and over, added later, have the knots
+# mgcv places by default on their own records (R_cbh/primary/reference_knots_new_band.R).
 stopifnot(file.exists(settings$knots))
 knot_table <- cbh_read_csv(settings$knots)
+if(!all(ages %in% knot_table$age_band)) stop("No reference knots for ",paste(setdiff(ages,knot_table$age_band),collapse=", "),
+  ": run R_cbh/primary/reference_knots_new_band.R after the preparation.")
 message("Loading existing prepared sample; no data setup or HIV refitting")
 prepared <- readRDS(settings$data)
 input_signature <- prepared$signature
@@ -52,12 +55,32 @@ run <- function(form,d,knots,initial=NULL,strict=FALSE) {
     warning=function(w){warnings <<- unique(c(warnings,conditionMessage(w)));invokeRestart("muffleWarning")}))
   list(fit=f,elapsed_seconds=unname(timing["elapsed"]),warnings=warnings,session_info=sessionInfo())
 }
+# The seven under-five models are the paper's. Their records, exposure and covariate scaling are the same in this
+# version (the covariates are scaled on the under-five sample, R_cbh/primary/00_prepare.R). When the paper's result
+# folder (settings$under5_reference) holds a fit of the band whose model frame, formula, knots and gamma are those of
+# this run, that fit is used as it is and the band is not fitted again. --force fits every band afresh.
+reference_fit <- function(job,d,knots) {
+  ref <- settings$under5_reference
+  if(is.null(ref) || "--force" %in% args || !file.exists(file.path(ref,"fit_manifest.csv"))) return(NULL)
+  m <- cbh_read_csv(file.path(ref,"fit_manifest.csv"));m <- m[m$fit_id==job$fit_id & m$age_band==job$age_band,,drop=FALSE]
+  if(nrow(m)!=1L || !file.exists(m$model_file) || !identical(cbh_file_hash(m$model_file),m$md5)) return(NULL)
+  saved <- readRDS(m$model_file);f <- saved$fit
+  frame <- function(v) if(v=="offset(log(band_years))") log(d$band_years) else d[[v]]
+  same <- identical(saved$gamma,2) && identical(saved$knots,knots) && identical(deparse(formula(f)),deparse(form)) &&
+    nrow(f$model)==nrow(d) && all(names(f$model) %in% c(names(d),"offset(log(band_years))")) &&
+    all(vapply(names(f$model),function(v) isTRUE(all.equal(f$model[[v]],frame(v),check.attributes=FALSE)),NA))
+  if(!same) return(NULL)
+  list(saved=saved,path=m$model_file,version=paste0("reused_",basename(ref)))
+}
 diags <- curves <- summaries <- selections <- restarts <- components <- list()
 for(i in seq_len(nrow(jobs))) {
   job <- jobs[i,];fit_id <- job$fit_id
   d <- droplevels(input[input$age_band==job$age_band,,drop=FALSE])
+  # Band width in years: fixed, or for the open-ended band the record's own time to the interview.
+  band <- bands[match(job$age_band,ages),]
   stopifnot(!anyNA(d),all(d$death %in% 0:1),all(d$calendar_year>=2000 & d$calendar_year<2025),
-    max(abs(d$band_years-c(1,5,6,12,12,12,12)[match(job$age_band,ages)]/12))<1e-12)
+    if(is.finite(band$age_hi)) max(abs(d$band_years-(band$age_hi-band$age_lo)/12))<1e-12 else
+      all(d$band_years>0 & d$band_years<=band$entry_lookback_months/12))
   kt <- knot_table[knot_table$age_band==job$age_band,]
   knots <- setNames(lapply(c("pfpr_pct","calendar_year"),function(v) {
     z <- kt[kt$variable==v,];z$value[order(z$index)]
@@ -68,6 +91,12 @@ for(i in seq_len(nrow(jobs))) {
   path <- file.path(private,paste0(fit_id,".rds"))
   message("Starting ",fit_id,": ",nrow(d)," rows, ",sum(d$death)," deaths")
   saved <- if(file.exists(path) && !"--force" %in% args) readRDS(path) else NULL
+  # Without a current fit of its own, an under-five band takes the paper's (reference_fit).
+  reference <- if(is.null(saved) || !identical(saved$signature,sig)) reference_fit(job,d,knots) else NULL
+  if(!is.null(reference)) {
+    saved <- reference$saved;path <- reference$path;job$reuse <- TRUE
+    message("Using the saved fit ",path)
+  }
   if(!job$reuse && (is.null(saved) || !identical(saved$signature,sig))) {
     started <- as.character(Sys.time())
     saved <- run(form,d,knots)
@@ -77,7 +106,7 @@ for(i in seq_len(nrow(jobs))) {
     cbh_atomic_rds(saved,path)
   }
   diag <- cbh_sensitivity_diagnostics(saved,d,fit_id)
-  version <- if(job$reuse) "reused_gamma2" else "original"
+  version <- if(!is.null(reference)) reference$version else if(job$reuse) "reused_gamma2" else "original"
   if(!job$reuse && (!diag$converged || !is.finite(diag$min_smoothing_hessian_eigenvalue) || diag$min_smoothing_hessian_eigenvalue<=0)) {
     spath <- file.path(private,paste0(fit_id,"_strict.rds"))
     ssig <- cbh_hash(list(sig,cbh_file_hash(path),"strict"))
@@ -134,7 +163,7 @@ for(i in seq_len(nrow(jobs))) {
   message("Completed ",fit_id,"; ",round(diag$elapsed_seconds,1)," fit seconds; Hessian minimum ",signif(diag$min_smoothing_hessian_eigenvalue,3))
   rm(saved,f,d);gc(FALSE)
 }
-stopifnot(length(diags)==7L)
+stopifnot(length(diags)==nrow(bands))
 cbh_atomic_csv(data.frame(file=code,md5=unname(code_hash)),file.path(out,"code_provenance.csv"))
 stopifnot(identical(data_hash,cbh_file_hash(settings$data)))
 writeLines(trimws(capture.output(sessionInfo()),which="right"),file.path(out,"session_info.txt"))

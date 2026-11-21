@@ -9,7 +9,7 @@ settings <- cbh_primary_settings(Sys.getenv("CBH_PRIMARY_VERSION","gadm"));out <
 writeLines(trimws(readLines(file.path(out,"model_formula.txt")),which="right"),file.path(out,"model_formula.txt"))
 ages <- cbh_config()$age_bands$age_band
 diag <- cbh_read_csv(file.path(out,"fit_diagnostics.csv"))
-stopifnot(nrow(diag)==7,all(diag$series=="map_full"),all(diag$converged),all(diag$input_verified),
+stopifnot(nrow(diag)==length(ages),all(diag$series=="map_full"),all(diag$converged),all(diag$input_verified),
   all(diag$gamma==2),all(diag$min_smoothing_hessian_eigenvalue>0))
 cbh_primary_age_table(out,ages)
 files <- c("pfpr_40_to_20_contrasts.csv","pfpr_20_to_zero_contrasts.csv","tables/age_band_results.csv","fit_diagnostics.csv",

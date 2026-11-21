@@ -19,14 +19,21 @@ cbh_config <- function(root = getwd()) {
     burden_excluded = c("CPV", "STP"),
     survey_rules = file.path(root, "R_cbh/config/survey_rules.csv"),
     region_overrides = file.path(root, "R_cbh/config/region_overrides.csv"),
-    entry_lookback_months = 60L,
     first_entry_year = 2000L,
     last_entry_year = 2024L,
     exposure_timing = "band_entry_calendar_year",
+    # Age bands in completed months, and the months before the interview within which a band must be entered
+    # (entry_lookback_months). The seven under-five bands use 60 months. The older bands (author requests, 20 November
+    # 2026) use 120 months. The 5-9 and 10-14 year bands (60-119 and 120-179 months) are five years wide and must end
+    # before the interview: the child turned 5 (or 10) in the 120 months before the interview and would have turned 10
+    # (or 15) by it. The band of 15 years and over (180+) is open-ended (age_hi = Inf): the child turned 15 in the
+    # 120 months before the interview and is followed to the interview, so it covers ages 15 to 24 and its width is the
+    # record's own time from the 15th birthday to the interview.
     age_bands = data.frame(
-      age_band = c("<1", "1-5", "6-11", "12-23", "24-35", "36-47", "48-59"),
-      age_lo = c(0L, 1L, 6L, 12L, 24L, 36L, 48L),
-      age_hi = c(1L, 6L, 12L, 24L, 36L, 48L, 60L)),
+      age_band = c("<1", "1-5", "6-11", "12-23", "24-35", "36-47", "48-59", "60-119", "120-179", "180+"),
+      age_lo = c(0L, 1L, 6L, 12L, 24L, 36L, 48L, 60L, 120L, 180L),
+      age_hi = c(1, 6, 12, 24, 36, 48, 60, 120, 180, Inf),
+      entry_lookback_months = c(rep(60L, 7), 120L, 120L, 120L)),
     # Candidate X variables are retained, not selected or imputed here.
     # An unavailable optional panel produces NA and a source-status flag. The legacy HIV prevalence and immunisation
     # panels, which fed no model, were removed on 1 November 2026 (author decision).

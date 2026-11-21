@@ -33,11 +33,12 @@ cbh_validate_bands <- function(d, cfg) {
   if (!nrow(d)) return(invisible(TRUE))
   stopifnot(all(d$death %in% 0:1), all(is.finite(d$band_years) & d$band_years > 0),
     all(d$band_end_cmc <= d$interview_cmc),
-    all(d$band_entry_cmc >= d$interview_cmc - cfg$entry_lookback_months),
+    all(d$band_entry_cmc >= d$interview_cmc - cfg$age_bands$entry_lookback_months[d$age_band_index]),
     all(d$band_entry_cmc < d$interview_cmc),
     all(d$entry_year == cbh_cmc_year(d$band_entry_cmc)),
     all(d$exposure_year == d$entry_year),
-    all(d$band_years == (d$age_hi - d$age_lo) / 12),
+    all(d$band_years == (d$band_end_cmc - d$band_entry_cmc) / 12),
+    all(ifelse(is.finite(d$age_hi), d$band_end_cmc - d$band_entry_cmc == d$age_hi - d$age_lo, d$band_end_cmc == d$interview_cmc)),
     all(d$entry_year >= cfg$first_entry_year & d$entry_year <= cfg$last_entry_year),
     all(is.finite(d$survey_weight) & d$survey_weight > 0))
   dead <- d[d$death == 1L, c("child_id", "age_band_index"), drop = FALSE]

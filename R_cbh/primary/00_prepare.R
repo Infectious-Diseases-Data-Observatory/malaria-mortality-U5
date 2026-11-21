@@ -6,15 +6,19 @@
 #             admin-1 units it joins (R_cbh/units/02_pfpr_polygons.R), identical to an extraction over their union;
 #   regional covariates: the 13 v9 covariates of each (survey, unit) from the recodes (R_cbh/units/09, 10), then the v9
 #             fallbacks in the v9 order: national WUENIC DTP3/measles for the survey year (cbh_unicef_fill), then the
-#             within-survey mean of the units with a value, variable by variable (weighted by the units' records);
+#             within-survey mean of the units with a value, variable by variable (weighted by the units' under-five
+#             records);
 #   national: the declared substitutions of R_cbh/primary/national_substitutions.R: South Sudan's GDP per capita,
 #             health expenditure per capita and political stability for band-entry years before independence (2011)
 #             are Sudan's for the same year, from the cbh_config()$annual_panels files; its child HIV incidence is its
 #             own; and the declared fills of R_cbh/primary/national_interpolations.R: political stability in 2001, a
 #             year without a WGI round, is the mean of the country's 2000 and 2002 values, and health expenditure in
-#             2024, not yet published, is the country's 2023 value;
+#             2024, not yet published, is the country's 2023 value; a substituted record in a gap year takes the source
+#             country's fill (South Sudan in 2001: the mean of Sudan's 2000 and 2002 values; these records enter the
+#             5-10 year band, the only band a South Sudan record enters before 2005);
 #   unit:     region = survey : unit (the analogue of the v9 survey-region random effect).
-# Complete cases on the v9 requirements; z-scores as in v9 (the merge rule gives one row per record, w = 1). The
+# Complete cases on the v9 requirements; z-scores as in v9, with the means and SDs of the under-five records (the
+# merge rule gives one row per record, w = 1). The
 # sample's surveys must be exactly those of R_cbh/primary/survey_set.csv (settings$survey_reference).
 # Writes the prepared dataset and <private>/regional_covariates_wide.csv (private) in the layout of v9's preparation,
 # and summaries in the result folder:
@@ -57,8 +61,12 @@ rec <- readRDS(src[["records"]])
 L <- rbind(fread(src[["dhs"]])[, .(survey, unit, variable, value)], fread(src[["mics"]])[, .(survey, unit, variable, value)])
 stopifnot(!anyDuplicated(L[, .(survey, unit, variable)]), all(L$variable %in% regional))
 
-# Regional covariates per (survey, unit), then the v9 fallbacks.
-frame <- rec[, .(records = sum(w)), by = .(survey, unit, country, survey_year)]
+# Regional covariates per (survey, unit), then the v9 fallbacks. A unit's weight in the within-survey mean is its
+# number of under-five records (the paper's weights), so that the covariates of a survey-unit do not depend on which
+# older bands are in the dataset.
+under5 <- cfg$age_bands$age_band[cfg$age_bands$age_hi <= 60]
+frame <- rec[, .(records = sum(w[age_band %in% under5])), by = .(survey, unit, country, survey_year)]
+stopifnot(all(frame$records > 0))
 stopifnot(!anyDuplicated(frame[, .(survey, unit)]))
 W <- merge(frame, dcast(L, survey + unit ~ variable, value.var = "value"), by = c("survey", "unit"), all.x = TRUE)
 for (v in regional) if (!v %in% names(W)) W[, (v) := NA_real_]
@@ -92,13 +100,17 @@ d[, region := paste(survey, unit, sep = ":")]
 ns <- cbh_national_substitute(d$country, d$entry_year, cfg, rules)
 own <- lapply(setNames(sv$variable, sv$variable), function(v) is.finite(d[[v]][ns$row]))   # own values replaced
 for (v in sv$variable) {
-  if (!all(is.finite(ns[[v]]))) stop("No ", v, " in the source panel for ", paste(unique(paste(ns$source_country, ns$year)[!is.finite(ns[[v]])]), collapse = ", "))
+  # The source panel has no political stability in a WGI gap year: left missing here and filled below from the source
+  # country's adjacent years.
+  wgi_gap <- v == "political_stability" & ns$year %in% cbh_wgi_gap_years()
+  if (!all(is.finite(ns[[v]]) | wgi_gap)) stop("No ", v, " in the source panel for ", paste(unique(paste(ns$source_country, ns$year)[!is.finite(ns[[v]]) & !wgi_gap]), collapse = ", "))
   if (nrow(ns)) set(d, ns$row, v, ns[[v]])
 }
 # Declared fills, after the substitutions, where the record has no value: political stability in a WGI gap year, and
-# health expenditure in a carried year.
+# health expenditure in a carried year. A substituted record's series is its source country's.
+series_country <- as.character(d$country); series_country[ns$row] <- ns$source_country
 gi <- which(!is.finite(d$political_stability) & d$entry_year %in% cbh_wgi_gap_years())
-gv <- as.numeric(cbh_political_stability_interpolated(as.character(d$country[gi]), d$entry_year[gi], cfg))
+gv <- as.numeric(cbh_political_stability_interpolated(series_country[gi], d$entry_year[gi], cfg))
 if (length(gi)) set(d, gi, "political_stability", gv)
 hi <- which(!is.finite(d$log_health_expenditure_pc) & as.character(d$entry_year) %in% names(cbh_health_expenditure_carry_years()))
 hv <- as.numeric(cbh_health_expenditure_carried(as.character(d$country[hi]), d$entry_year[hi], cfg))
@@ -140,8 +152,11 @@ for (v in c("survey", "country", "region")) d[, (v) := factor(get(v))]
 stopifnot(all(d$w > 0 & d$w <= 1), d[, sum(w), by = .(child_id, age_band)]$V1 <= 1 + 1e-9, all(table(d$age_band) > 0),
           all(d$death %in% 0:1), all(d$band_years > 0))
 stopifnot(all(d$w == 1), !anyDuplicated(d[, .(child_id, age_band)]))
-scaling <- data.frame(variable = covs, mean = vapply(covs, function(v) mean(d[[v]]), 0),
-  sd = vapply(covs, function(v) sd(d[[v]]), 0), row.names = NULL)
+# z-scores on the under-five sample (the paper's seven bands), so that the standardisation of a band, and with it the
+# band's fit, does not depend on which older bands are in the dataset.
+u5 <- d$age_band %in% cfg$age_bands$age_band[cfg$age_bands$age_hi <= 60]
+scaling <- data.frame(variable = covs, mean = vapply(covs, function(v) mean(d[[v]][u5]), 0),
+  sd = vapply(covs, function(v) sd(d[[v]][u5]), 0), row.names = NULL)
 stopifnot(all(is.finite(scaling$sd) & scaling$sd > 0))
 for (i in seq_len(nrow(scaling))) d[, (paste0("z_", scaling$variable[i])) := (get(scaling$variable[i]) - scaling$mean[i]) / scaling$sd[i]]
 keep <- unique(c(required, paste0("z_", covs), "child_id", "entry_year", "survey_year", "regkey", "unit", "n_polygons", "rule", "w"))

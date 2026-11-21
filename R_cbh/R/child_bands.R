@@ -71,14 +71,17 @@ cbh_make_bands <- function(br, survey, rules, geography, cfg) {
   mark(died & is.finite(age$lo) & age$lo > interview - born, "death_after_interview")
   mark(!is.na(alive) & alive == 1 & is.finite(b7) & b7 >= 0 & b7 < 600,
        "alive_with_death_age")
-  death_band <- findInterval(age$lo, c(cfg$age_bands$age_lo, 60))
+  # Band limits in months: each band's lower limit, then the upper limit of the oldest band (Inf when it is open-ended).
+  oldest <- max(cfg$age_bands$age_hi)
+  breaks <- c(cfg$age_bands$age_lo, oldest)
+  death_band <- findInterval(age$lo, breaks)
   # Reported intervals must not cross a chosen band boundary.
-  upper_band <- findInterval(age$hi - 1e-7, c(cfg$age_bands$age_lo, 60))
-  mark(died & death_band != upper_band & age$lo < 60, "ambiguous_death_band")
-  b7_band <- findInterval(b7, c(cfg$age_bands$age_lo, 60))
+  upper_band <- findInterval(age$hi - 1e-7, breaks)
+  mark(died & death_band != upper_band & age$lo < oldest, "ambiguous_death_band")
+  b7_band <- findInterval(b7, breaks)
   death_band_disagreement <- died & age$source == "b6_reported" &
     is.finite(b7) & b7 >= 0 & b7 < 600 & b7 == floor(b7) & b7_band != death_band
-  death_band[!died] <- 8L
+  death_band[!died] <- nrow(cfg$age_bands) + 1L   # survivors pass every band
   # Stable within an input snapshot, pseudonymous, no original case IDs exported.
   if ("caseid" %in% names(br)) {
     mother_key <- trimws(cbh_column(br, "caseid"))
@@ -147,9 +150,11 @@ cbh_make_bands <- function(br, survey, rules, geography, cfg) {
   for (a in seq_len(nrow(cfg$age_bands))) {
     band <- cfg$age_bands[a, ]
     entry <- born + band$age_lo
-    end <- born + band$age_hi
+    # An open-ended band (age_hi = Inf) is followed to the interview: it ends there, and its width is the record's own.
+    open <- !is.finite(band$age_hi)
+    end <- if (open) interview else born + band$age_hi
     reached <- invalid == "" & death_band >= a
-    window <- reached & entry >= interview - cfg$entry_lookback_months & entry < interview
+    window <- reached & entry >= interview - band$entry_lookback_months & entry < interview
     complete <- window & end <= interview
     year <- cbh_cmc_year(entry)
     supported <- complete & year >= cfg$first_entry_year & year <= cfg$last_entry_year
@@ -158,7 +163,7 @@ cbh_make_bands <- function(br, survey, rules, geography, cfg) {
     d$age_band <- rep(band$age_band, nrow(d))
     d$age_band_index <- rep(a, nrow(d))
     d$age_lo <- rep(band$age_lo, nrow(d)); d$age_hi <- rep(band$age_hi, nrow(d))
-    d$band_years <- rep((band$age_hi - band$age_lo) / 12, nrow(d))
+    d$band_years <- if (open) (end[use] - entry[use]) / 12 else rep((band$age_hi - band$age_lo) / 12, nrow(d))
     d$log_band_years <- log(d$band_years)
     d$band_entry_cmc <- entry[use]; d$band_end_cmc <- end[use]
     d$entry_year <- year[use]; d$calendar_year <- cbh_cmc_time(entry[use])

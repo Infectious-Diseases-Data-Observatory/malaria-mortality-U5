@@ -13,7 +13,7 @@ diagnostics <- cbh_read_csv(file.path(out, "fit_diagnostics.csv"))
 curves <- cbh_read_csv(file.path(out, "pfpr_curves.csv"))
 ages <- cbh_config()$age_bands$age_band
 prevalences <- c(10, 20, 30, 40)
-stopifnot(length(components) == 7L, nrow(manifest) == 7L,
+stopifnot(length(components) == length(ages), nrow(manifest) == length(ages),
   all(manifest$series == "map_full"), all(diagnostics$gamma == 2), all(diagnostics$converged))
 rows <- lapply(seq_along(ages), function(i) {
   id <- paste0("map_full_age_", i); piece <- components[[id]]
@@ -38,35 +38,48 @@ rows <- lapply(seq_along(ages), function(i) {
     current_outside_central95 = prevalences < piece$support[2] | prevalences > piece$support[3])
 })
 d <- do.call(rbind, rows)
-stopifnot(nrow(d) == 28L, all(is.finite(d$attributable_fraction)),
+stopifnot(nrow(d) == length(ages) * length(prevalences), all(is.finite(d$attributable_fraction)),
           all(d$attributable_fraction >= 0 & d$attributable_fraction <= 1))
 # This is a fraction within each age band; no across-age normalization or clipping.
 cbh_atomic_csv(d, file.path(out, "attributable_fraction_by_age.csv"))
 d$age_band <- factor(d$age_band, levels = ages)
 d$prevalence <- factor(d$pfpr_pct, levels = prevalences, labels = paste0(prevalences, "%"))
 # Age is drawn to scale (user request, 27 October 2026): each estimate sits at its band's midpoint, dodged
-# by a fixed share of the band width so the four prevalence series stay legible and inside their band.
+# by a fixed share of the band width so the four prevalence series stay legible and inside their band. A band wider
+# than a year is dodged as a one-year band, so its four estimates stay together at its midpoint.
+# With bands above 60 months (all ages; author request, 20 November 2026) the axis is to scale up to 60 months, as in
+# the paper's figure, and one sixth of that scale above, so the under-five bands keep their room; a dashed line marks
+# the change of scale and older ages are labelled in years. An open-ended band is drawn up to the oldest age it can
+# hold (its lower limit plus its entry lookback: 25 years for the band of 15 years and over).
 bands <- cbh_config()$age_bands
-stopifnot(identical(bands$age_band, ages), bands$age_lo[1] == 0, all(bands$age_lo[-1] == bands$age_hi[-7]))
-b <- match(d$age_band, ages); width <- bands$age_hi[b] - bands$age_lo[b]
-d$age_months <- (bands$age_lo[b] + bands$age_hi[b]) / 2 +
-  width * c(-.15, -.05, .05, .15)[match(d$pfpr_pct, prevalences)]
+stopifnot(identical(bands$age_band, ages), bands$age_lo[1] == 0, all(bands$age_lo[-1] == bands$age_hi[-nrow(bands)]))
+band_end <- ifelse(is.finite(bands$age_hi), bands$age_hi, bands$age_lo + bands$entry_lookback_months)
+oldest <- max(band_end)
+axis_x <- function(months) ifelse(months <= 60, months, 60 + (months - 60) / 6)
+lo_x <- axis_x(bands$age_lo); hi_x <- axis_x(band_end); mid_x <- (lo_x + hi_x) / 2
+b <- match(d$age_band, ages)
+d$age_months <- mid_x[b] + pmin(hi_x[b] - lo_x[b], 12) * c(-.15, -.05, .05, .15)[match(d$pfpr_pct, prevalences)]
 # Top panel: each band's share of observed deaths as a bar of equal width (the neonatal band's 1 month) at the
 # band midpoint (user request, 27 October 2026), so bar height, not area, is the share.
 deaths <- data.frame(age_band = ages, age_lo = bands$age_lo, age_hi = bands$age_hi,
                      deaths = diagnostics$deaths[match(paste0("map_full_age_", seq_along(ages)), diagnostics$fit_id)])
 stopifnot(!anyNA(deaths$deaths), identical(diagnostics$age_band[match(paste0("map_full_age_", seq_along(ages)), diagnostics$fit_id)], ages))
 deaths$share <- 100 * deaths$deaths / sum(deaths$deaths)
-deaths$mid <- (deaths$age_lo + deaths$age_hi) / 2
-bar_width <- bands$age_hi[1] - bands$age_lo[1]
-deaths$label <- paste0(round(deaths$share), "%")
+deaths$mid <- mid_x
+bar_width <- hi_x[1] - lo_x[1]
+# With ages above 60 months on the axis the labels of the 1-5 and 6-11 month bars would overlap with a "%" sign, so
+# they are numbers only there; the axis title gives the unit.
+deaths$label <- paste0(round(deaths$share), if (oldest > 60) "" else "%")
 # A centred label on the neonatal bar would be clipped at the left edge, so it sits to the right of the bar top.
 deaths$label_x <- ifelse(deaths$age_band == ages[1], deaths$mid + bar_width / 2 + .3, deaths$mid)
 deaths$label_hjust <- ifelse(deaths$age_band == ages[1], 0, .5)
 boundaries <- bands$age_lo[-1]
 # Months 0 and 1 are too close to label both; the 1-month boundary is the first vertical line.
-x_scale <- scale_x_continuous(breaks = c(0, boundaries[-1], 60), limits = c(0, 60), expand = expansion(add = .6))
-x_lines <- geom_vline(xintercept = boundaries, colour = "grey88", linewidth = .23)
+ticks <- c(0, boundaries[-1], oldest)
+x_scale <- scale_x_continuous(breaks = axis_x(ticks), labels = ifelse(ticks <= 60, ticks, paste(ticks / 12, "y")),
+                              limits = c(0, axis_x(oldest)), expand = expansion(add = .6))
+x_lines <- list(geom_vline(xintercept = axis_x(boundaries), colour = "grey88", linewidth = .23),
+                if (oldest > 60) geom_vline(xintercept = 60, colour = "grey55", linewidth = .3, linetype = "22"))
 # Sizes meet the paper's printed text-size rule (CLAUDE.md) at 6.2 in (printed at 0.95\linewidth = 6.18 in); line,
 # point and margin sizes are those of the former 11 in canvas scaled to 6.2 in.
 base <- theme_minimal(base_size = 11.7, base_line_size = .5) +
@@ -98,7 +111,7 @@ bottom <- ggplot(d, aes(age_months, attributable_fraction, colour = prevalence, 
   scale_y_continuous(breaks = seq(0,.8,.2), labels = scales::label_percent(accuracy = 1),
                      expand = expansion(mult = 0)) +
   coord_cartesian(ylim = c(y_floor, 1)) +
-  labs(x = "Age (months)", y = "Malaria-attributable share\nof all-cause deaths",
+  labs(x = if (oldest > 60) "Age (months to 60, then years)" else "Age (months)", y = "Malaria-attributable share\nof all-cause deaths",
        colour = expression(italic(Pf)*PR[2-10])) +
   base + theme(legend.position = "bottom", legend.text = element_text(size = 9.9),
     legend.title = element_text(size = 11.46), plot.margin = margin(2,11,7,7))
@@ -111,4 +124,4 @@ inputs <- c(component_path, file.path(out, c("fit_manifest.csv", "fit_diagnostic
             "R_cbh/reporting/06_attributable_fraction_by_age.R", "R_cbh/primary/settings.R")
 cbh_atomic_csv(data.frame(file = inputs, md5 = vapply(inputs, cbh_file_hash, "")),
                file.path(out, "attributable_fraction_by_age_provenance.csv"))
-message("Attributable-fraction figure (to-scale age, deaths-by-age panel) with intervals and all 28 age/prevalence estimates saved")
+message("Attributable-fraction figure (to-scale age, deaths-by-age panel) with intervals and all ", nrow(d), " age/prevalence estimates saved")

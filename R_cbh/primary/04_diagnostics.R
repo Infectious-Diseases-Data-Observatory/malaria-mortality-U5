@@ -9,7 +9,7 @@ library(data.table)
 settings <- cbh_primary_settings();out <- settings$out
 manifest <- cbh_read_csv(file.path(out,"fit_manifest.csv"))
 provenance <- cbh_read_csv(file.path(out,"fit_input_provenance.csv"))
-stopifnot(nrow(manifest)==7,all(manifest$series=="map_full"),
+stopifnot(nrow(manifest)==nrow(cbh_config()$age_bands),all(manifest$series=="map_full"),
   identical(cbh_file_hash(settings$data),provenance$md5[provenance$file==settings$data]))
 coverage <- list()
 for(i in seq_len(nrow(manifest))) {

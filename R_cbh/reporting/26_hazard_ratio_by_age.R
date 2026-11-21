@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # Figure 2 (user request, 28 October 2026; formerly the supplementary log-HR curves relative to PfPR = 20%): the
 # hazard ratio of death in each age band at national-scale PfPR[2-10] P relative to zero prevalence,
-# exp{f_g(P) - f_g(0)}, from the seven saved primary spline fits, so that values can be read off and compared with
+# exp{f_g(P) - f_g(0)}, from the saved primary spline fits (one per age band), so that values can be read off and compared with
 # the hazard ratios and attributable fractions in the text (1 - 1/HR). Pointwise 95% intervals use the spline
 # coefficients' covariance, conditional on the smoothing parameters. Curves are solid over the central 95% of each
 # band's exposure distribution and dashed from zero to its 2.5th percentile, where the reference is reached by
@@ -19,7 +19,7 @@ paths <- c(components = file.path(st$private, "pfpr_components.rds"), manifest =
 stopifnot(all(file.exists(paths)))
 components <- readRDS(paths[["components"]]); manifest <- cbh_read_csv(paths[["manifest"]]); curves <- cbh_read_csv(paths[["curves"]])
 ages <- cbh_config()$age_bands$age_band
-stopifnot(length(components) == 7L, nrow(manifest) == 7L)
+stopifnot(length(components) == length(ages), nrow(manifest) == length(ages))
 d <- do.call(rbind, lapply(seq_along(ages), function(i) {
   id <- paste0("map_full_age_", i); piece <- components[[id]]
   stopifnot(identical(piece$age_band, ages[i]), identical(piece$model_md5, manifest$md5[match(id, manifest$fit_id)]))
@@ -51,11 +51,13 @@ p <- ggplot(d, aes(pfpr_pct, hazard_ratio)) +
     axis.title = element_text(size = 11.92), axis.text = element_text(size = 9.9), strip.text = element_text(size = 10.8, face = "bold"),
     panel.spacing = grid::unit(11, "pt"), plot.margin = margin(5, 11, 5, 5))
 stopifnot(is.null(p$labels$title), is.null(p$labels$subtitle), is.null(p$labels$caption))
-ggsave(file.path(out, "fig2_hazard_ratio_by_age.png"), p, width = 6.5, height = 3.9, dpi = 320, device = ragg::agg_png, bg = "white")
+# Four panels a row; the height keeps the panel size of the paper's two rows (3.9 in).
+ggsave(file.path(out, "fig2_hazard_ratio_by_age.png"), p, width = 6.5, height = .6 + 1.65 * ceiling(length(ages) / 4), dpi = 320,
+       device = ragg::agg_png, bg = "white")
 at <- function(age, x) { z <- d[d$age_band == age & d$pfpr_pct == x, ]; sprintf("%.2f (%.2f–%.2f)", z$hazard_ratio, z$lower_95, z$upper_95) }
 writeLines(c("# Figure 2 caption — hazard ratio of death by age band, relative to zero prevalence", "",
   paste0("**Figure. Malaria prevalence and age-specific all-cause mortality.** Hazard ratio of death in each age band at national ",
-    "PfPR[2–10] relative to zero prevalence, from the seven age-band models of the ", cbh_paper_model_label(), ". ",
+    "PfPR[2–10] relative to zero prevalence, from the ", c("seven", "eight", "nine", "ten")[length(ages) - 6L], " age-band models of the ", cbh_paper_model_label(), ". ",
     "Lines are point estimates and shaded areas pointwise 95% confidence intervals (conditional on the estimated smoothing parameters). ",
     "Curves are solid over the central 95% of each band's exposure distribution and dashed from zero to its 2.5th percentile (about 2%), ",
     "where the zero-prevalence reference is reached by extrapolation. The attributable fraction at prevalence P is 1 − 1/HR(P). ",

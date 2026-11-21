@@ -1,8 +1,13 @@
 #!/usr/bin/env Rscript
 # Primary analysis (version gadm: DHS and MICS surveys in GADM 4.1 admin-1 units, 17 adjustment covariates, MAP PfPR,
 # gamma = 2; R_cbh/primary/settings.R):
-# preparation, the seven age-band fits, effects and national burden, and every primary figure and
+# preparation, the age-band fits, effects and national burden, and every primary figure and
 # table in the paper. No TeX is written. Normally called by run_pipeline.R (stage "primary").
+# With the bands of 5 years and over (v18; author requests, 20 November 2026) only the model stages run: preparation,
+# the fits (with --resume the under-five bands take the paper's saved fits and only the older bands are fitted), the
+# contrasts, the age-band table, the hazard ratios by age and the attributable fractions by age. The burden and the
+# paper's other figures and tables are under-five (UN IGME, IHME and CA-CODE inputs, and checks on seven bands) and
+# are not extended; their stages are listed in under5_only and skipped while the config has a band above 60 months.
 # Usage: [CBH_PRIMARY_VERSION=gadm] Rscript R_cbh/primary/run_regional.R [--resume | --report-only]
 #   --resume       reuse verified fit caches
 #   --report-only  skip preparation and fitting (use the saved fits)
@@ -31,6 +36,13 @@ stages <- c(prepare=settings$prepare,fit="R_cbh/primary/01_fit.R",
   ihme_vs_unigme="R_cbh/reporting/28_malaria_rates_ihme_vs_unigme.R",
   malaria_share="R_cbh/reporting/20_malaria_share_vs_pfpr.R",
   paper_manifest="R_cbh/reporting/04_paper_figures.R")
+under5_only <- c("national_inputs","flow","excluded_table","survey_map","units_map","annual_burden",
+  "uncertainty","rates_figures","rates_table","model_vs_cause","ihme_vs_unigme","malaria_share","paper_manifest")
+source("R_cbh/00_config.R")
+if(any(cbh_config()$age_bands$age_hi>60)) {
+  message("Bands above 60 months are fitted: skipping the under-five stages ",paste(under5_only,collapse=", "))
+  stages <- stages[!names(stages) %in% under5_only]
+}
 if("--report-only" %in% args) stages <- stages[!names(stages) %in% c("prepare","fit")]
 dir.create(settings$out,recursive=TRUE,showWarnings=FALSE)
 log <- list()

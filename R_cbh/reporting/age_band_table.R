@@ -31,7 +31,7 @@ cbh_primary_age_table <- function(root, ages) {
   stopifnot(max(abs(exp(z$log_hazard_ratio)-z$hazard_ratio_20_to_zero))<1e-12,
     max(abs(lo0-(1-z$upper_95)))<1e-12,max(abs(hi0-(1-z$lower_95)))<1e-12)
   data <- data.frame(age_band=ages,records=d$rows,observed_deaths=d$deaths,
-    observed_u5_death_share_pct=100*d$deaths/total,displayed_death_share_pct=pct,pfpr_edf=e$edf,
+    observed_death_share_pct=100*d$deaths/total,displayed_death_share_pct=pct,pfpr_edf=e$edf,
     hr_40_to_20=h$hazard_ratio_40_to_20,hr_40_to_20_lower_95=h$lower_95,hr_40_to_20_upper_95=h$upper_95,
     hr_20_to_zero=z$hazard_ratio_20_to_zero,hr_20_to_zero_lower_95=lo0,hr_20_to_zero_upper_95=hi0,
     zero_below_observed_support=z$zero_below_observed_support)

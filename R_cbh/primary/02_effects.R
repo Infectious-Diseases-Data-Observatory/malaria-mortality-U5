@@ -11,9 +11,13 @@ component_path <- file.path(settings$private,"pfpr_components.rds")
 components <- readRDS(component_path)
 manifest <- cbh_read_csv(file.path(root,"fit_manifest.csv"))
 diag <- cbh_read_csv(file.path(root,"fit_diagnostics.csv"))
-stopifnot(length(components)==7,nrow(manifest)==7,all(diag$converged),all(diag$input_verified))
+bands <- cbh_config()$age_bands;ages <- bands$age_band
+stopifnot(length(components)==nrow(bands),nrow(manifest)==nrow(bands),all(diag$converged),all(diag$input_verified))
 for(piece in components) stopifnot(identical(piece$model_md5,manifest$md5[match(piece$fit_id,manifest$fit_id)]))
-ages <- cbh_config()$age_bands$age_band
+# The national burden is under-five: the all-cause inputs cover the seven bands below 60 months. The contrasts at the
+# end of this script are for every band.
+under5 <- ages[bands$age_hi<=60]
+stopifnot(length(under5)==7)
 years <- settings$years
 series <- "map_full"
 inputs <- c(component_path,file.path(root,c("fit_manifest.csv","fit_diagnostics.csv")))
@@ -33,7 +37,7 @@ for(year in years) {
     "age_mapping","status","map_population_coverage_within_raster","map_coverage_below_95pct","population_weight_year")
   bands <- old[keep]
   for(s in series) {
-    res <- do.call(rbind,lapply(ages,function(a) {
+    res <- do.call(rbind,lapply(under5,function(a) {
       z <- bands[bands$age_band==a,]
       piece <- components[[paste0(s,"_age_",match(a,ages))]]
       use <- is.finite(z$pfpr_pct)
@@ -99,7 +103,7 @@ sums <- do.call(rbind,lapply(years,function(y) {
 cbh_atomic_csv(sums,file.path(out,"year_summary.csv"))
 # Preserve the equal person-time assumption for the unresolved IHME 2-4 bin.
 for(y in years) for(iso in unique(r$iso3)) {
-  z <- r[r$year==y & r$iso3==iso & r$age_band %in% ages[5:7],]
+  z <- r[r$year==y & r$iso3==iso & r$age_band %in% under5[5:7],]
   stopifnot(nrow(z)==3,diff(range(z$ihme_deaths))<1e-7,
     diff(range(z$implied_person_years))<1e-7,diff(range(z$ihme_rate_per100000))<1e-7)
 }

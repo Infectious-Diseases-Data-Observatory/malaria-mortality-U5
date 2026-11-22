@@ -108,9 +108,12 @@ assets.extend([
     (root / "uncertainty/SPEC.md", Path("tables/uncertainty_specification.md")),
 ])
 assets.extend([
-    # Number sources of the text: age-band deaths and the annual totals.
+    # Number source of the text: age-band deaths. The annual totals of the text are the UN IGME rows of
+    # source_annual_rates_2000_2024.csv (crisis-free values; 627,063 attributable deaths in 2024) with the intervals of
+    # uncertainty_annual_intervals_2000_2024.csv. annual_comparison/annual_totals_2000_2024.csv is not exported: its
+    # model_deaths column is the earlier IHME-based estimate without the crisis-year adjustment (598,040 in 2024), kept
+    # only for the checks of R_cbh/reporting/10_validate_reporting.R.
     (root / "tables/age_band_results.csv", Path("tables/age_band_results.csv")),
-    (root / "annual_comparison/annual_totals_2000_2024.csv", Path("tables/annual_totals_2000_2024.csv")),
 ])
 
 def check(source, rel):

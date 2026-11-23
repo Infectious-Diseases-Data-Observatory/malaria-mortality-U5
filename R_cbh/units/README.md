@@ -1,6 +1,6 @@
 # GADM admin-1 units as the unit of analysis
 
-The primary analysis uses the GADM 4.1 admin-1 units (KEMRI-Wellcome merge; national boundaries for Botswana, Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda) as its geographic unit, in place of the survey-regions of the DHS and MICS files (primary version `gadm`, result id `primary_gadm_merge_dhsmics_gamma2_v15`). The Snow-unit primary (v11–v14) was replaced by the GADM units in v15 (author decision, 3 November 2026; code in git history up to f2db98e). Settings: `R/settings.R` (`units_settings()`, one fixed unit set).
+The primary analysis uses the GADM 4.1 admin-1 units (KEMRI-Wellcome merge; national boundaries for Botswana, Ghana, Kenya, Madagascar, Malawi, mainland Tanzania and Uganda) as its geographic unit, in place of the survey-regions of the DHS and MICS files (primary version `gadm`, result id `primary_gadm_merge_dhsmics_gamma2_v19`). The Snow-unit primary (v11–v14) was replaced by the GADM units in v15 (author decision, 3 November 2026; code in git history up to f2db98e). Settings: `R/settings.R` (`units_settings()`, one fixed unit set).
 
 ## Rules (user decisions, 6, 11 and 12 October 2026; units of 3 November 2026)
 
@@ -14,7 +14,7 @@ The primary analysis uses the GADM 4.1 admin-1 units (KEMRI-Wellcome merge; nati
   - No record is split, so there are no weights.
   - Analysis units of one survey can overlap: one region's records can get the union of four admin-1 units, while a neighbouring region keeps one of them.
 - **Malaria-free areas.** A record whose location has more than half of its population in malaria-free or island units is dropped. Otherwise those units are left out of its analysis unit.
-- **Exposure.** MAP PfPR~2–10~ of the analysis unit in the band-entry year, population-weighted over its admin-1 units (GPW density × cell area).
+- **Exposure.** MAP PfPR~2–10~ of the analysis unit in the band-entry year: the mean prevalence of the unit's whole population (GPW density × cell area). Cells without a MAP value lie outside MAP's limits of transmission and count as zero, as in MAP's national estimates used for the burden (since v19, 23 November 2026; v15 took the mean over cells with a value in 2024, which overstated the prevalence of partly endemic units).
 - **Covariates.** The 13 regional covariates of v9 (the survey-region primary, removed from this repository on 1 November 2026), recomputed for each survey × unit from the DHS BR, PR and HW recodes and the MICS files (`09`, `10`), then the v9 fallbacks (WUENIC, within-survey mean). The 4 national covariates are those of v9, with one declared substitution (12 October 2026): for band-entry years before independence (2011), South Sudan takes Sudan's GDP per capita, health expenditure per capita and political stability (`R_cbh/primary/national_substitutions.R`). Its child HIV incidence is its own. Political stability in 2001, a year without a WGI round, is the mean of the country's 2000 and 2002 values, and health expenditure in 2024, not yet published, is the country's 2023 value (`R_cbh/primary/national_interpolations.R`; 29 October 2026).
 - **Surveys.** Every MAP-eligible survey is placed. The sample's 136 surveys are pinned in `R_cbh/primary/survey_set.csv`: `R_cbh/primary/00_prepare.R` stops unless the prepared sample has exactly these surveys.
 - **Model.** The seven v9 age-band models, with the random effect on survey × unit (`R_cbh/primary/`).
@@ -25,7 +25,7 @@ The primary analysis uses the GADM 4.1 admin-1 units (KEMRI-Wellcome merge; nati
 |---|---|
 | `00_gadm_layer.R` | The unit layer from the KEMRI-Wellcome merge of GADM 4.1 admin 1: the 44 countries, Addis Ababa, Niamey and Bamako cut out of the regions that contain them, ids pinned against `config/unit_ids.csv`, and the type of each unit. Writes `data/external/gadm_admin1/gadm1_units.gpkg` (git-ignored) and `polygons/gadm_layer.csv`. |
 | `01_polygons.R` | The 568 units (535 endemic), checked against the counts fixed in `units_settings()`; centroids and population. |
-| `02_pfpr_polygons.R` | MAP PfPR for each endemic unit and year, 2000–2024, with the population weight of each value. |
+| `02_pfpr_polygons.R` | MAP PfPR for each endemic unit and year, 2000–2024 (mean over the unit's whole population), with the population weight of each value. |
 | `03_feasibility.R` | Overlay of every survey-region with eligible records on the units; region classes and the reviewed overrides. |
 | `04_location_variables.R` | Location variables finer than the survey-region (names, labels, counts only). |
 | `05_finer_units.R` | Places split regions' records through the best finer variable. Reviewed fixes: no previous-residence or health-facility variables (`config/finer_variable_exclusions.csv`); a variable that places nothing is not chosen. |

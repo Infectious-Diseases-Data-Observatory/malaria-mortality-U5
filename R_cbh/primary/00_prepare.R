@@ -4,6 +4,7 @@
 #             units; merge rule: one unit per record, w = 1; national covariates and child HIV incidence as in v9);
 #   exposure: MAP PfPR2-10 of the record's unit in its band-entry year: the population-weighted mean over the endemic
 #             admin-1 units it joins (R_cbh/units/02_pfpr_polygons.R), identical to an extraction over their union;
+#             each unit's value is the mean over its whole population (cells outside MAP's limits count as zero);
 #   regional covariates: the 13 v9 covariates of each (survey, unit) from the recodes (R_cbh/units/09, 10), then the v9
 #             fallbacks in the v9 order: national WUENIC DTP3/measles for the survey year (cbh_unicef_fill), then the
 #             within-survey mean of the units with a value, variable by variable (weighted by the units' records);

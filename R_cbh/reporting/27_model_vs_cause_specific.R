@@ -121,9 +121,10 @@ scatter <- function(z, source_label) {
     coord_equal() + axis_titles(source_label) + figure_theme
 }
 # Log-scale version of Figure 5: both axes start at 0.1 per 1,000 and a value below it is drawn at 0.1 with an open
-# circle; the x-axis ends at 10 and the y-axis at 16, which hold every point and interval. Grid lines at every 1-9
-# multiple of each decade (the decades darker); 1, 2, 3 and 5 of each decade are labelled.
-floor_at <- 0.1; top_x <- 10; top_y <- 16
+# circle; the x-axis ends at 10 and the y-axis at 20, which hold every point and interval (South Sudan's upper bound is
+# above 16 since v19). Grid lines at every 1-9 multiple of each decade (the decades darker); 1, 2, 3 and 5 of each
+# decade, and 20, are labelled.
+floor_at <- 0.1; top_x <- 10; top_y <- 20
 scatter_log <- function(z, source_label) {
   clamp <- function(v, top) pmin(pmax(v, floor_at), top)
   z <- copy(z)[, `:=`(x = clamp(cause_specific, top_x), y = clamp(model, top_y), below = cause_specific < floor_at | model < floor_at,
@@ -136,7 +137,7 @@ scatter_log <- function(z, source_label) {
   lab[, `:=`(nx = fifelse(x <= floor_at * 1.1, .07, fifelse(above, -.07, .07)), ny = fifelse(y <= floor_at * 1.1, .06, fifelse(above, .05, -.05)))]
   lab[data.table(iso3 = c("MOZ", "BDI", "UGA", "TCD"), nx = c(.11, .11, .07, .08), ny = c(.01, -.03, -.07, -.05)), on = "iso3", `:=`(nx = i.nx, ny = i.ny)]
   grid_at <- function(top) { g <- as.vector(outer(1:9, 10^(-1:1))); g[g >= floor_at & g <= top] }
-  decades <- c(0.1, 1, 10); labelled_ticks <- c(0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10)
+  decades <- c(0.1, 1, 10); labelled_ticks <- c(0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10, 20)
   # Breaks come back from the log scale with rounding error, so they are matched to the labelled values with a tolerance.
   tick <- function(b) vapply(b, function(v) { k <- which(abs(log10(v / labelled_ticks)) < 1e-6); if (length(k)) as.character(labelled_ticks[k]) else "" }, "")
   ggplot(z, aes(x, y)) +
@@ -159,7 +160,7 @@ save_figure <- function(p, file, height) {
 }
 # The cause-specific series is labelled CA-CODE, the name the paper uses for it (author request, 18 November 2026).
 save_figure(scatter(d, "CA-CODE"), sprintf("fig5_model_vs_cause_specific_%d.png", fig_year), 6.3)
-save_figure(scatter_log(d, "CA-CODE"), sprintf("sfig_model_vs_cause_specific_log_%d.png", fig_year), 6.9)
+save_figure(scatter_log(d, "CA-CODE"), sprintf("sfig_model_vs_cause_specific_log_%d.png", fig_year), 7.2)
 save_figure(scatter(h, "IHME"), sprintf("sfig_model_vs_cause_specific_ihme_%d.png", fig_year), 6.3)
 summarise <- function(z) z[, .(rho = cor(model, cause_specific, method = "spearman"), above = sum(model > cause_specific),
   lower_above = sum(model_lower > cause_specific), upper_below = sum(model_upper < cause_specific))]

@@ -48,29 +48,36 @@ w[, labelled := pmax(ihme, unigme) >= label_min]
 # (at least 0.6 mm from it), the note or the panel edge. Leaders shorter than 1.5 mm are not drawn. The script stops if
 # the labelled set changes. The GADM-unit positions were set on the v15 estimates (3 November 2026) by a constraint
 # search over the crowded cluster (Liberia to Equatorial Guinea); a version without rows falls back to ggrepel.
+# Reset on the v19 estimates (23 November 2026): Guinea-Bissau and Gabon reach 1.5 per 1,000 and are labelled, and the
+# labels of Liberia, Côte d'Ivoire, Mali, the Central African Republic and Chad were moved by hand and checked on the
+# figure, because their points moved closer together. Liberia's point is now 2 mm from Côte d'Ivoire's, with
+# Mozambique's below, so no position beside it meets the nearest-point rule: its label is across the equality line,
+# joined to its point by a leader.
 offsets <- fread(text = "version,iso3,dx,dy
 gadm,AGO,0.326,-0.118
 gadm,BDI,0.355,0.118
 gadm,BEN,-0.278,0.118
 gadm,BFA,-0.568,0.118
-gadm,CAF,-0.239,0.118
-gadm,CIV,0.564,-0.056
+gadm,CAF,-0.239,-0.118
+gadm,CIV,0.600,-0.020
 gadm,CMR,0.461,0.118
 gadm,COD,0.244,0.118
 gadm,COG,-0.181,-0.118
+gadm,GAB,0.360,-0.118
 gadm,GHA,0.317,0.118
 gadm,GIN,-0.336,0.118
+gadm,GNB,-0.700,0.000
 gadm,GNQ,-0.491,0.118
-gadm,LBR,0.223,-0.161
+gadm,LBR,-0.515,0.115
 gadm,MDG,-0.534,0.118
-gadm,MLI,0.238,-0.019
+gadm,MLI,0.238,0.030
 gadm,MOZ,0.576,0.019
 gadm,MWI,-0.326,-0.118
 gadm,NER,0.263,0.118
 gadm,NGA,0.331,0.118
 gadm,SLE,-0.299,0.141
 gadm,SSD,0.558,0.118
-gadm,TCD,-0.263,0.118
+gadm,TCD,-0.315,0.000
 gadm,TGO,-0.244,0.118
 gadm,UGA,0.360,-0.118
 gadm,ZMB,0.346,0.118

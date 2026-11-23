@@ -15,7 +15,7 @@ source("R_cbh/primary/settings.R")
 source("R_cbh/primary/specification.R")
 library(mgcv); library(data.table)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(all(args %in% "--force"))
-st <- list(id = "nutrition_adjustment_gadm_merge_gamma2_v9",
+st <- list(id = "nutrition_adjustment_gadm_merge_gamma2_v10",
            dropped = c("wasting_pct", "stunting_pct"))
 st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
 primary <- cbh_primary_settings("gadm"); stopifnot(isTRUE(primary$nutrition))

@@ -16,7 +16,7 @@ parser.add_argument("--copy", action="store_true", help="Copy after validating; 
 # The GADM-unit primary (CBH_PRIMARY_VERSION=gadm, set by run_pipeline.R). The Snow-unit primary (v11-v14) was replaced
 # by GADM units in v15 (author decision, 3 November 2026; code in git history up to f2db98e).
 assert os.environ.get("CBH_PRIMARY_VERSION", "gadm") == "gadm", "export_paper.py exports the GADM-unit primary (gadm)"
-default_root = "results/cbh/primary_gadm_merge_dhsmics_gamma2_v15"
+default_root = "results/cbh/primary_gadm_merge_dhsmics_gamma2_v19"
 parser.add_argument("--root", type=Path, default=Path(default_root))
 args = parser.parse_args()
 root = args.root
@@ -25,9 +25,9 @@ out.mkdir(parents=True, exist_ok=True)
 destination = args.destination.expanduser().resolve()
 assert destination.is_dir()
 # Sensitivities refitted on the GADM-unit sample.
-subgroups = Path("results/cbh/subgroups_gadm_merge_gamma2_v9")
-nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v9")
-imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v16")
+subgroups = Path("results/cbh/subgroups_gadm_merge_gamma2_v10")
+nutrition = Path("results/cbh/nutrition_adjustment_gadm_merge_gamma2_v10")
+imputed = Path("results/cbh/primary_gadm_merge_imputed_gamma2_v20")
 # The analyses that main.tex does not present were removed from the repository on 18 November 2026 (author request;
 # git tag pre-cleanup-20261118 keeps them): the Sahel refit and its seasonality analysis, the country fixed-effects
 # refit, and the comparator table of 12_source_comparison_table.R.

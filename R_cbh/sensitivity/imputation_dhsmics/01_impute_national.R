@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-# National annual covariate gaps for the imputed-covariate sensitivity of the GADM-unit primary (imputed_gadm_v16), on
+# National annual covariate gaps for the imputed-covariate sensitivity of the GADM-unit primary (imputed_gadm_v20), on
 # the countries of the combined DHS and MICS sample. First the primary's declared substitutions
 # (R_cbh/primary/national_substitutions.R): South Sudan's GDP, health expenditure and political stability before
 # independence (2000-2010) are Sudan's observed values for the same year (labels *_substituted_sdn; Sudan has no 2001 WGI

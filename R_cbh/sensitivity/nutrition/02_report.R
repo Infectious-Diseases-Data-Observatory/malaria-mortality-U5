@@ -8,7 +8,7 @@ source("R_cbh/reporting/labels.R")
 source("R_cbh/reporting/curves_vs_zero.R")
 library(ggplot2)
 args <- commandArgs(trailingOnly = TRUE); stopifnot(!length(args))
-st <- list(out = file.path("results/cbh", "nutrition_adjustment_gadm_merge_gamma2_v9"))
+st <- list(out = file.path("results/cbh", "nutrition_adjustment_gadm_merge_gamma2_v10"))
 primary <- cbh_primary_settings("gadm")
 labels <- c(full = "All 17 covariates (primary analysis)",
             drop = "Wasting and stunting removed (sensitivity)")

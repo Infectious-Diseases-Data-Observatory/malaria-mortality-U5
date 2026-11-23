@@ -228,7 +228,7 @@ prevalence; the last row is the 42-country population-weighted average. Copied f
 
   `Rscript run_pipeline.R --list` shows the stages and which are complete; `--from=STAGE` and `--only=STAGE` re-run
   part of it. Logs are in `logs/`.
-- Results are written to `results/cbh/` (the primary analysis is `primary_gadm_merge_dhsmics_gamma2_v15`), and the
+- Results are written to `results/cbh/` (the primary analysis is `primary_gadm_merge_dhsmics_gamma2_v19`), and the
   figures, tables and captions used in the paper are exported to `paper/`.
 
 The stages, in order: `restore` and `inputs` (frozen inputs, MAP prevalence), `hiv_panels` (child HIV incidence; `hiv`

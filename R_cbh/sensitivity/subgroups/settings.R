@@ -1,4 +1,4 @@
-# Subgroup refits of the GADM-unit primary (CBH_PRIMARY_VERSION=gadm; v9 on primary v15; the Snow-unit v5-v8 on
+# Subgroup refits of the GADM-unit primary (CBH_PRIMARY_VERSION=gadm; v10 on primary v19, v9 on v15; the Snow-unit v5-v8 on
 # primary v11-v14 were replaced with it, author decision 3 November 2026; code in git history up to f2db98e).
 # Subsets of the fitted 17-variable sample, each refitted separately by age band:
 #   west_africa, central_africa, east_africa   UN M49 Western, Middle and Eastern Africa countries
@@ -13,7 +13,7 @@ cbh_subgroup_settings <- function() {
   # year of the records, about 2013; every survey can contribute to both halves).
   st <- list(
     sample = "dhsmics",
-    id = "subgroups_gadm_merge_gamma2_v9",   # v9: primary v15 (GADM units)
+    id = "subgroups_gadm_merge_gamma2_v10",   # v10: primary v19 (whole-population unit PfPR); v9: primary v15 (GADM units)
     primary_version = "gadm",
     # UN M49 Eastern Africa (https://unstats.un.org/unsd/methodology/m49/), restricted to
     # countries that can appear in the DHS/MIS/MICS sample.

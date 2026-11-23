@@ -1,4 +1,4 @@
-# Imputed-covariate sensitivity of the GADM-unit primary (v16 on primary v15; the Snow-unit v12 and v15 on primary
+# Imputed-covariate sensitivity of the GADM-unit primary (v20 on primary v19, v16 on v15; the Snow-unit v12 and v15 on primary
 # v11-v14 were replaced with it, author decision 3 November 2026; code in git history up to f2db98e). Liberia's child
 # HIV incidence comes from UNAIDS counts (R_cbh/hiv/03_add_liberia_aidsinfo.R). The 17 covariates, formula, reference
 # knots and gamma are the primary's; every placed record is retained after imputing all remaining covariate gaps.
@@ -8,13 +8,13 @@ cbh_imputed_dhsmics_settings <- function() {
   source("R_cbh/primary/settings.R", local = TRUE)
   primary <- cbh_primary_settings("gadm")
   st <- primary[c("knots", "years", "gamma", "seed", "nthreads", "regional", "nutrition", "mics_output_dir")]
-  st$id <- "primary_gadm_merge_imputed_gamma2_v16"
+  st$id <- "primary_gadm_merge_imputed_gamma2_v20"
   st$out <- file.path("results/cbh", st$id); st$private <- file.path("data/derived_cbh/models", st$id)
   st$data <- file.path(st$private, "complete_case_dataset.rds")
   st$reference <- primary$out; st$reference_data <- primary$data
   st$imputed <- TRUE; st$mics <- TRUE
-  st$imputation_private <- "data/derived_cbh/regional_adjustment/imputed_gadm_v16"
-  st$imputation_results <- "results/cbh/covariate_imputation_gadm_v16"
+  st$imputation_private <- "data/derived_cbh/regional_adjustment/imputed_gadm_v20"
+  st$imputation_results <- "results/cbh/covariate_imputation_gadm_v20"
   st$imputed_overlay <- file.path(st$imputation_private, "regional_covariates_wide.csv")
   st$imputed_national <- file.path(st$imputation_private, "national_covariates_imputed.csv")
   st$dhs_manifest <- "data/derived_cbh/survey_manifest.csv"

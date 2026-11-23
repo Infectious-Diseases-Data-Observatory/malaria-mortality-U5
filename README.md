@@ -16,11 +16,11 @@ Malaria-attributable fractions were applied to national all-cause mortality esti
 countries from 2000 to 2024.
 
 **Results.** Among 2,347,261 children (108,747 deaths), the hazard ratio for death at 40% *Pf*PR₂₋₁₀, relative to 0%,
-was 1.08 (95% confidence interval [CI], 1.02 to 1.14) in neonates, 1.27 (95% CI, 1.17 to 1.39) at 1–5 months, 1.66
-(95% CI, 1.50 to 1.84) at 6–11 months, and 1.88 to 2.44 at 1–4 years. Assuming no residual confounding, this implied
-malaria-attributable fractions between 7% (neonates) and 47% to 59% (1–4 years). In 2024, the model estimated 627,000
-(95% uncertainty interval [UI], 511,000 to 732,000) malaria-attributable deaths (23% of under-5 deaths), compared with
-440,000 malaria deaths in current estimates (42% more; 95% UI, 15 to 59).
+was 1.09 (95% confidence interval [CI], 1.03 to 1.16) in neonates, 1.32 (95% CI, 1.21 to 1.44) at 1–5 months, 1.72
+(95% CI, 1.55 to 1.90) at 6–11 months, and 1.85 to 2.47 at 1–4 years. Assuming no residual confounding, this implied
+malaria-attributable fractions between 9% (neonates) and 46% to 59% (1–4 years). In 2024, the model estimated 666,000
+(95% uncertainty interval [UI], 550,000 to 771,000) malaria-attributable deaths (24% of under-5 deaths), compared with
+440,000 malaria deaths in current estimates (51% more; 95% UI, 24 to 68).
 
 **Conclusions.** The impact of malaria infection on childhood mortality is considerably higher than current estimates.
 
@@ -129,9 +129,9 @@ and 37 MICS) from 37 countries. These data contained 1,127,215
 complete birth histories contributing 7,802,127 child age band records from 2,347,261 children of whom 108,747 died.
 
 Under the *Pf*PR-ACM model, the population-weighted average malaria-attributable mortality rate across the 42 malaria
-endemic countries fell from 10.4 (95% UI, 9.3–11.2) deaths per 1,000 child-years in 2000 to 3.5 (95% UI, 2.9–4.1) in
-2024. In 2024, the model estimated 627,000 (95% UI, 511,000 to 732,000) malaria-attributable deaths in children under
-5. This was 42% (95% UI, 15 to 59) greater than the CA-CODE estimate of 440,000 deaths, and the *Pf*PR-ACM estimates
+endemic countries fell from 10.8 (95% UI, 9.7–11.7) deaths per 1,000 child-years in 2000 to 3.7 (95% UI, 3.1–4.3) in
+2024. In 2024, the model estimated 666,000 (95% UI, 550,000 to 771,000) malaria-attributable deaths in children under
+5. This was 51% (95% UI, 24 to 68) greater than the CA-CODE estimate of 440,000 deaths, and the *Pf*PR-ACM estimates
 were higher in 31 of the 42 countries.
 
 ### Figures and tables of the paper
@@ -170,49 +170,49 @@ prevalence; the last row is the 42-country population-weighted average. Copied f
 
 | Country | *Pf*PR₂₋₁₀ (%) | All-cause deaths per 1,000 (UN IGME) | *Pf*PR-ACM: deaths per 1,000 (95% UI) | *Pf*PR-ACM: % of deaths | CA-CODE: deaths per 1,000 | CA-CODE: % of deaths |
 |---|--:|--:|--:|--:|--:|--:|
-| Benin | 35.4 | 16.0 | 4.9 (3.1–7.0) | 30 | 3.1 | 19 |
-| C. African Rep. | 32.1 | 20.8 | 5.8 (2.8–8.5) | 28 | 5.3 | 26 |
-| Burundi | 31.8 | 9.9 | 2.7 (1.4–5.0) | 28 | 1.7 | 17 |
-| Sierra Leone | 29.2 | 19.8 | 6.0 (3.1–8.3) | 30 | 5.8 | 30 |
-| Burkina Faso | 28.8 | 16.1 | 4.9 (2.8–7.9) | 30 | 2.6 | 16 |
-| DR Congo | 28.8 | 19.5 | 5.8 (4.3–8.2) | 30 | 5.3 | 25 |
-| Malawi | 27.7 | 10.3 | 2.2 (1.4–3.2) | 21 | 1.0 | 9 |
-| Côte d'Ivoire | 25.4 | 13.8 | 3.3 (2.2–4.5) | 24 | 1.2 | 9 |
-| Mozambique | 25.3 | 12.8 | 2.9 (2.0–4.0) | 23 | 1.8 | 14 |
-| South Sudan | 25.2 | 20.7 | 4.7 (0.9–15.4) | 23 | 2.6 | 12 |
-| Guinea | 24.9 | 20.0 | 5.4 (3.5–7.7) | 27 | 3.1 | 15 |
-| Zambia | 24.5 | 10.3 | 2.3 (1.7–3.1) | 23 | 0.8 | 8 |
-| Uganda | 24.1 | 10.2 | 2.3 (1.4–3.0) | 22 | 1.5 | 15 |
-| Nigeria | 24.1 | 25.3 | 7.0 (4.0–9.4) | 28 | 4.9 | 19 |
-| Angola | 23.9 | 10.6 | 2.7 (1.5–4.5) | 25 | 0.7 | 7 |
-| Togo | 23.5 | 13.9 | 3.6 (2.0–5.5) | 26 | 1.8 | 13 |
-| Cameroon | 23.2 | 13.8 | 3.6 (2.2–5.4) | 26 | 1.4 | 10 |
-| Eq. Guinea | 21.8 | 14.6 | 3.3 (1.2–7.1) | 23 | 0.4 | 3 |
-| Rep. of Congo | 21.3 | 8.2 | 1.8 (0.8–4.2) | 22 | 0.6 | 7 |
-| Niger | 19.6 | 24.8 | 6.4 (3.9–9.3) | 26 | 5.0 | 20 |
-| Gabon | 17.8 | 6.7 | 1.1 (0.6–1.9) | 17 | 0.1 | 1 |
-| Mali | 17.2 | 16.1 | 3.4 (2.5–4.6) | 21 | 1.6 | 10 |
-| Ghana | 16.8 | 7.5 | 1.2 (0.8–1.8) | 17 | 0.3 | 4 |
-| Liberia | 14.6 | 18.6 | 3.3 (2.0–4.7) | 18 | 4.5 | 24 |
-| Chad | 14.0 | 21.4 | 4.5 (2.3–7.5) | 21 | 3.9 | 18 |
-| Tanzania | 9.5 | 7.8 | 0.8 (0.5–1.1) | 10 | 0.7 | 8 |
-| Madagascar | 9.0 | 13.3 | 1.7 (1.0–2.7) | 13 | 2.0 | 15 |
-| Guinea-Bissau | 6.6 | 14.4 | 1.5 (0.2–4.1) | 10 | 1.1 | 8 |
-| Kenya | 5.3 | 8.2 | 0.4 (0.1–1.1) | 5 | 0.3 | 4 |
-| Ethiopia | 4.0 | 9.3 | 0.4 (0.2–0.9) | 5 | 0.4 | 4 |
-| Comoros | 3.5 | 8.2 | 0.3 (0.1–0.4) | 3 | 0.1 | 1 |
-| The Gambia | 3.3 | 8.9 | 0.4 (0.2–0.6) | 4 | 0.4 | 5 |
-| Somalia | 2.9 | 22.4 | 1.1 (0.4–3.0) | 5 | 0.2 | 1 |
-| Rwanda | 2.2 | 7.9 | 0.2 (0.1–0.5) | 3 | 0.4 | 5 |
+| Benin | 35.4 | 16.0 | 5.1 (3.2–7.2) | 32 | 3.1 | 19 |
+| C. African Rep. | 32.1 | 20.8 | 6.1 (3.1–8.9) | 29 | 5.3 | 26 |
+| Burundi | 31.8 | 9.9 | 2.9 (1.5–5.3) | 29 | 1.7 | 17 |
+| Sierra Leone | 29.2 | 19.8 | 6.3 (3.3–8.8) | 32 | 5.8 | 30 |
+| Burkina Faso | 28.8 | 16.1 | 5.1 (2.9–8.2) | 32 | 2.6 | 16 |
+| DR Congo | 28.8 | 19.5 | 6.2 (4.6–8.6) | 32 | 5.3 | 25 |
+| Malawi | 27.7 | 10.3 | 2.4 (1.5–3.4) | 23 | 1.0 | 9 |
+| Côte d'Ivoire | 25.4 | 13.8 | 3.5 (2.3–4.8) | 26 | 1.2 | 9 |
+| Mozambique | 25.3 | 12.8 | 3.1 (2.2–4.2) | 24 | 1.8 | 14 |
+| South Sudan | 25.2 | 20.7 | 5.0 (1.0–16.4) | 24 | 2.6 | 12 |
+| Guinea | 24.9 | 20.0 | 5.8 (3.7–8.2) | 29 | 3.1 | 15 |
+| Zambia | 24.5 | 10.3 | 2.5 (1.8–3.3) | 24 | 0.8 | 8 |
+| Uganda | 24.1 | 10.2 | 2.4 (1.5–3.2) | 24 | 1.5 | 15 |
+| Nigeria | 24.1 | 25.3 | 7.4 (4.3–9.7) | 29 | 4.9 | 19 |
+| Angola | 23.9 | 10.6 | 2.9 (1.6–4.7) | 27 | 0.7 | 7 |
+| Togo | 23.5 | 13.9 | 3.8 (2.1–5.8) | 27 | 1.8 | 13 |
+| Cameroon | 23.2 | 13.8 | 3.8 (2.4–5.7) | 28 | 1.4 | 10 |
+| Eq. Guinea | 21.8 | 14.6 | 3.6 (1.4–7.5) | 25 | 0.4 | 3 |
+| Rep. of Congo | 21.3 | 8.2 | 2.0 (0.8–4.5) | 24 | 0.6 | 7 |
+| Niger | 19.6 | 24.8 | 6.8 (4.2–9.8) | 28 | 5.0 | 20 |
+| Gabon | 17.8 | 6.7 | 1.2 (0.6–2.1) | 18 | 0.1 | 1 |
+| Mali | 17.2 | 16.1 | 3.7 (2.6–4.8) | 23 | 1.6 | 10 |
+| Ghana | 16.8 | 7.5 | 1.4 (0.9–2.0) | 18 | 0.3 | 4 |
+| Liberia | 14.6 | 18.6 | 3.6 (2.1–5.1) | 19 | 4.5 | 24 |
+| Chad | 14.0 | 21.4 | 4.8 (2.5–8.0) | 23 | 3.9 | 18 |
+| Tanzania | 9.5 | 7.8 | 0.9 (0.5–1.2) | 11 | 0.7 | 8 |
+| Madagascar | 9.0 | 13.3 | 1.9 (1.1–2.9) | 14 | 2.0 | 15 |
+| Guinea-Bissau | 6.6 | 14.4 | 1.6 (0.2–4.3) | 11 | 1.1 | 8 |
+| Kenya | 5.3 | 8.2 | 0.5 (0.1–1.2) | 6 | 0.3 | 4 |
+| Ethiopia | 4.0 | 9.3 | 0.5 (0.2–1.0) | 5 | 0.4 | 4 |
+| Comoros | 3.5 | 8.2 | 0.3 (0.1–0.5) | 4 | 0.1 | 1 |
+| The Gambia | 3.3 | 8.9 | 0.4 (0.2–0.6) | 5 | 0.4 | 5 |
+| Somalia | 2.9 | 22.4 | 1.2 (0.4–3.2) | 5 | 0.2 | 1 |
+| Rwanda | 2.2 | 7.9 | 0.3 (0.1–0.5) | 3 | 0.4 | 5 |
 | Senegal | 2.2 | 7.7 | 0.2 (0.1–0.3) | 3 | 0.3 | 3 |
 | Mauritania | 1.9 | 7.8 | 0.2 (0.1–0.3) | 2 | 0.2 | 3 |
-| Djibouti | 1.5 | 10.2 | 0.1 (0.1–0.3) | 1 | 0.2 | 2 |
-| Eritrea | 1.3 | 7.2 | 0.1 (0.1–0.3) | 2 | 0.3 | 4 |
-| Zimbabwe | 0.7 | 13.6 | 0.1 (0.0–0.1) | 1 | 0.2 | 2 |
+| Djibouti | 1.5 | 10.2 | 0.2 (0.1–0.3) | 2 | 0.2 | 2 |
+| Eritrea | 1.3 | 7.2 | 0.2 (0.1–0.3) | 2 | 0.3 | 4 |
+| Zimbabwe | 0.7 | 13.6 | 0.1 (0.0–0.2) | 1 | 0.2 | 2 |
 | Namibia | 0.3 | 7.5 | 0.0 (0.0–0.0) | 0 | 0.1 | 1 |
 | Eswatini | 0.0 | 9.4 | 0.0 (0.0–0.0) | 0 | 0.0 | 0 |
 | Botswana | 0.0 | 6.8 | 0.0 (0.0–0.0) | 0 | 0.0 | 0 |
-| **All 42 countries** | **18.6** | **15.6** | **3.5 (2.9–4.1)** | **23** | **2.5** | **16** |
+| **All 42 countries** | **18.6** | **15.6** | **3.7 (3.1–4.3)** | **24** | **2.5** | **16** |
 
 ## Running it
 

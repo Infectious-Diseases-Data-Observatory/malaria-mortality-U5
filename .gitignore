@@ -78,3 +78,4 @@ data/map_window_cache_*/
 # shapefile is over GitHub's 100 MB file limit). R_cbh/units/00_gadm_layer.R reads the first and writes the second.
 data/Africa GADM 0-2 (040226)/
 data/external/gadm_admin1/
+malaria-mortality-audit-summary.docx
